@@ -1,7 +1,7 @@
 #ifndef ZMATH_ANGLE_H
 #define ZMATH_ANGLE_H
 
-#include "constants.h"
+#include "ZMath_Constants.h"
 
 const float minAngle = 0.0f;
 const float halfAngle = 180.0f;

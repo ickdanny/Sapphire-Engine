@@ -2,7 +2,8 @@
 #define ZMATH_VECTOR_H
 
 #include <math.h>
-#include "Point.h"
+#include "ZMath_Point.h"
+#include "ZMath_Angle.h"
 
 typedef struct Vector{
     float x;
@@ -60,7 +61,7 @@ inline float vectorMagnitude(Vector vector){
 }
 
 inline float vectorAngle(Vector vector){
-    //todo
+    return toDegrees(atan2f(-vector.y, vector.x));
 }
 
 inline Vector vectorFromAToB(Point a, Point b){
