@@ -34,7 +34,7 @@ add_subdirectory(./source/Trifecta)
 add_subdirectory(./source/Unknown)
 add_subdirectory(./source/WindECS)
 add_subdirectory(./source/ZMath)
-add_subdirectory(./source/game)
+add_subdirectory(./source/AAAgame)
 
 include_directories(${PROJECT_DIRECTORIES})
 
