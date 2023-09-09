@@ -14,16 +14,16 @@ typedef struct AABB{
     float yHigh;
 } AABB;
 
-inline AABB aabbCopy(AABB toCopy){
+extern inline AABB aabbCopy(const AABB toCopy){
     return toCopy;
 }
 
-inline void aabbCopyInto(AABB *destination, AABB* source){
-    memcpy(destination, source, sizeof(AABB));
+extern inline void aabbCopyInto(AABB *destination, const AABB *source){
+    memcpy(destination, source, sizeof(*source));
 }
 
-inline AABB aabbFromRadius(float radius){
-    AABB toRet;
+extern inline AABB aabbFromRadius(float radius){
+    AABB toRet = {0};
     toRet.xLow = -radius;
     toRet.xHigh = radius;
     toRet.yLow = -radius;
@@ -31,8 +31,8 @@ inline AABB aabbFromRadius(float radius){
     return toRet;
 }
 
-inline AABB aabbFromXY(float x, float y){
-    AABB toRet;
+extern inline AABB aabbFromXY(float x, float y){
+    AABB toRet = {0};
     toRet.xLow = -x;
     toRet.xHigh = x;
     toRet.yLow = -y;
@@ -40,13 +40,13 @@ inline AABB aabbFromXY(float x, float y){
     return toRet;
 }
 
-inline AABB aabbFromDimensions(
+extern inline AABB aabbFromDimensions(
     float xLow, 
     float xHigh, 
     float yLow, 
     float yHigh
 ){
-    AABB toRet;
+    AABB toRet = {0};
     toRet.xLow = xLow;
     toRet.xHigh = xHigh;
     toRet.yLow = yLow;
@@ -54,52 +54,53 @@ inline AABB aabbFromDimensions(
     return toRet;
 }
 
-inline float aabbWidth(AABB *const aabbPtr){
+extern inline float aabbWidth(const AABB *aabbPtr){
     return fabsf(aabbPtr->xHigh - aabbPtr->xLow);
 }
 
-inline float aabbHeight(AABB *const aabbPtr){
+extern inline float aabbHeight(const AABB *aabbPtr){
     return fabsf(aabbPtr->yHigh - aabbPtr->yLow);
 }
 
-inline float aabbArea(AABB *const aabbPtr){
+extern inline float aabbArea(const AABB *aabbPtr){
     return aabbWidth(aabbPtr) * aabbHeight(aabbPtr);
 }
 
-inline Point aabbCenter(AABB *const aabbPtr){
-    Point toRet;
+extern inline Point aabbCenter(const AABB *aabbPtr){
+    Point toRet = {0};
     toRet.x = (aabbPtr->xLow + aabbPtr->xHigh) / 2.0f;
     toRet.y = (aabbPtr->yLow + aabbPtr->yHigh) / 2.0f;
     return toRet;
 }
 
-inline void aabbSetX(AABB *aabbPtr, float x){
+extern inline void aabbSetX(AABB *aabbPtr, float x){
     aabbPtr->xLow = -x;
     aabbPtr->xHigh = x;
 }
 
-inline void aabbSetY(AABB *aabbPtr, float y){
+extern inline void aabbSetY(AABB *aabbPtr, float y){
     aabbPtr->yLow = -y;
     aabbPtr->yHigh = y;
 }
 
-inline AABB aabbCenterAt(AABB aabb, Point center){
-    aabb.xLow += center.x;
-    aabb.xHigh += center.x;
-    aabb.yLow += center.y;
-    aabb.yHigh += center.y;
-    return aabb;
+extern inline AABB aabbCenterAt(const AABB *aabbPtr, Point center){
+    AABB toRet = {0};
+    toRet.xLow += center.x;
+    toRet.xHigh += center.x;
+    toRet.yLow += center.y;
+    toRet.yHigh += center.y;
+    return toRet;
 }
 
-inline bool aabbCollides(AABB *const aabb1Ptr, AABB *const aabb2Ptr){
+extern inline bool aabbCollides(const AABB *aabb1Ptr, const AABB *aabb2Ptr){
     return aabb1Ptr->xLow <= aabb2Ptr->xHigh
         && aabb1Ptr->xHigh >= aabb2Ptr->xLow
         && aabb1Ptr->yLow <= aabb2Ptr->yHigh
         && aabb1Ptr->yHigh >= aabb2Ptr->yLow;
 }
 
-inline AABB aabbMakeEncompassing(AABB *const aabb1Ptr, AABB *const aabb2Ptr){
-    AABB toRet;
+extern inline AABB aabbMakeEncompassing(const AABB *aabb1Ptr, const AABB *aabb2Ptr){
+    AABB toRet = {0};
     toRet.xLow = fminf(aabb1Ptr->xLow, aabb2Ptr->xLow);
     toRet.xHigh = fmaxf(aabb1Ptr->xHigh, aabb2Ptr->xHigh);
     toRet.yLow = fminf(aabb1Ptr->yLow, aabb2Ptr->yLow);

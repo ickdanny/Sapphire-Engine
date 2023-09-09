@@ -3,67 +3,67 @@
 
 #include "ZMath_Constants.h"
 
-const float minAngle = 0.0f;
-const float halfAngle = 180.0f;
-const float maxAngle = 360.0f;
+const float z_minAngle = 0.0f;
+const float z_halfAngle = 180.0f;
+const float z_maxAngle = 360.0f;
 
-inline float toDegrees(float radians){
+extern inline float toDegrees(float radians){
     return radians * 180.0f / z_pi;
 }
 
-inline float toRadians(float degrees){
+extern inline float toRadians(float degrees){
     return degrees * z_pi / 180.0f;
 }
 
-inline float angleMod(float angle){
-    if(angle < minAngle){
-        angle += maxAngle;
+extern inline float angleMod(float angle){
+    if(angle < z_minAngle){
+        angle += z_maxAngle;
     }
-    else if(angle >= maxAngle){
-        angle -= maxAngle;
+    else if(angle >= z_maxAngle){
+        angle -= z_maxAngle;
     }
     return angle;
 }
 
-inline float angleSmallerDifference(float from, float to){
+extern inline float angleSmallerDifference(float from, float to){
     float difference = from - to;
-    if(difference > halfAngle){
-        return -(maxAngle - difference);
+    if(difference > z_halfAngle){
+        return -(z_maxAngle - difference);
     }
-    if(difference < -halfAngle){
-        return maxAngle + difference;
+    if(difference < -z_halfAngle){
+        return z_maxAngle + difference;
     }
     return difference;
 }
 
-inline float angleLargerDifference(float from, float to){
+extern inline float angleLargerDifference(float from, float to){
     float difference = from - to;
-    if (difference < halfAngle && difference >= minAngle) {
-		return -(maxAngle - difference);
+    if (difference < z_halfAngle && difference >= z_minAngle) {
+		return -(z_maxAngle - difference);
 	}
-	if (difference > -halfAngle && difference <= minAngle) {
-		return maxAngle + difference;
+	if (difference > -z_halfAngle && difference <= z_minAngle) {
+		return z_maxAngle + difference;
 	}
 	return difference;
 }
 
-inline float angleFlipY(float angle){
-    return angleMod(halfAngle - angle);
+extern inline float angleFlipY(float angle){
+    return angleMod(z_halfAngle - angle);
 }
 
-inline float angleFlipX(float angle){
+extern inline float angleFlipX(float angle){
     return angleMod(-angle);
 }
 
-inline float angleNegate(float angle){
-    return angleMod(angle + halfAngle);
+extern inline float angleNegate(float angle){
+    return angleMod(angle + z_halfAngle);
 }
 
-inline float angleAdd(float angle1, float angle2){
+extern inline float angleAdd(float angle1, float angle2){
     return angleMod(angle1 + angle2);
 }
 
-inline float angleSubtract(float angle1, float angle2){
+extern inline float angleSubtract(float angle1, float angle2){
     return angleMod(angle1 - angle2);
 }
 
