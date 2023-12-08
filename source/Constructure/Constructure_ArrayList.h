@@ -16,6 +16,7 @@ extern inline TYPENAME PREFIX##Make(int initCapacity){                          
     TYPENAME toRet = {0};                                                       \
     toRet.capacity = initCapacity;                                              \
     toRet.ptr = calloc(initCapacity, sizeof(ELEMENT));                          \
+    assert(toRet.ptr && "calloc check");                                        \
     return toRet;                                                               \
 }                                                                               \
                                                                                 \
@@ -28,6 +29,7 @@ extern inline bool _##PREFIX##GrowIfNeeded(TYPENAME *listPtr){                  
             listPtr->ptr,                                                       \
             sizeof(ELEMENT) * listPtr->capacity                                 \
         );                                                                      \
+        assert(listPtr->ptr && "realloc check");                                \
         if(!(listPtr->ptr)){                                                    \
             return false;                                                       \
         }                                                                       \

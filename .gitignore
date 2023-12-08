@@ -1,8 +1,9 @@
-*.vscode
-*build
+.vscode
+build
 
 *.png
 *.mid
 *.cfg
 *.zip
 *.dlg
+*.DS_Store

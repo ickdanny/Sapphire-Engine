@@ -13,6 +13,7 @@ extern inline TYPENAME PREFIX##Make(int size){                  \
     assert(size > 0);                                           \
     TYPENAME toRet = {0};                                       \
     toRet.ptr = calloc(size, sizeof(ELEMENT));                  \
+    assert(toRet.ptr && "calloc check");                        \
     toRet.size = size;                                          \
     return toRet;                                               \
 }                                                               \

@@ -7,6 +7,7 @@
 
 #include "ZMath_Point.h"
 
+/* AABBs are stored as bounds, not width/height */
 typedef struct AABB{
     float xLow;
     float xHigh;
@@ -14,14 +15,17 @@ typedef struct AABB{
     float yHigh;
 } AABB;
 
+/* Makes a value copy of the given AABB */
 extern inline AABB aabbCopy(const AABB toCopy){
     return toCopy;
 }
 
+/* Copies the AABB source into destination */
 extern inline void aabbCopyInto(AABB *destination, const AABB *source){
     memcpy(destination, source, sizeof(*source));
 }
 
+/* Constructs an AABB of the given radius */
 extern inline AABB aabbFromRadius(float radius){
     AABB toRet = {0};
     toRet.xLow = -radius;
@@ -31,6 +35,7 @@ extern inline AABB aabbFromRadius(float radius){
     return toRet;
 }
 
+/* Constructs a symmetrical AABB from given x and y */
 extern inline AABB aabbFromXY(float x, float y){
     AABB toRet = {0};
     toRet.xLow = -x;
@@ -40,6 +45,7 @@ extern inline AABB aabbFromXY(float x, float y){
     return toRet;
 }
 
+/* Constructs an AABB from the given dimensions */
 extern inline AABB aabbFromDimensions(
     float xLow, 
     float xHigh, 
@@ -54,18 +60,22 @@ extern inline AABB aabbFromDimensions(
     return toRet;
 }
 
+/* Returns the width of the given AABB (x) */
 extern inline float aabbWidth(const AABB *aabbPtr){
     return fabsf(aabbPtr->xHigh - aabbPtr->xLow);
 }
 
+/* Returns the height of the given AABB (y) */
 extern inline float aabbHeight(const AABB *aabbPtr){
     return fabsf(aabbPtr->yHigh - aabbPtr->yLow);
 }
 
+/* Returns the area of the given AABB */
 extern inline float aabbArea(const AABB *aabbPtr){
     return aabbWidth(aabbPtr) * aabbHeight(aabbPtr);
 }
 
+/* Returns the geometric center of the given AABB */
 extern inline Point aabbCenter(const AABB *aabbPtr){
     Point toRet = {0};
     toRet.x = (aabbPtr->xLow + aabbPtr->xHigh) / 2.0f;
@@ -73,18 +83,22 @@ extern inline Point aabbCenter(const AABB *aabbPtr){
     return toRet;
 }
 
+/* Sets the x radius of the given AABB */
 extern inline void aabbSetX(AABB *aabbPtr, float x){
     aabbPtr->xLow = -x;
     aabbPtr->xHigh = x;
 }
 
+/* Sets the y radius of the given AABB */
 extern inline void aabbSetY(AABB *aabbPtr, float y){
     aabbPtr->yLow = -y;
     aabbPtr->yHigh = y;
 }
 
+/* Returns a new AABB from adding the given Point to the given AABB */
 extern inline AABB aabbCenterAt(const AABB *aabbPtr, Point center){
     AABB toRet = {0};
+    aabbCopyInto(&toRet, aabbPtr);
     toRet.xLow += center.x;
     toRet.xHigh += center.x;
     toRet.yLow += center.y;
@@ -92,6 +106,7 @@ extern inline AABB aabbCenterAt(const AABB *aabbPtr, Point center){
     return toRet;
 }
 
+/* Returns true if the given AABBs intersect, false otherwise */
 extern inline bool aabbCollides(const AABB *aabb1Ptr, const AABB *aabb2Ptr){
     return aabb1Ptr->xLow <= aabb2Ptr->xHigh
         && aabb1Ptr->xHigh >= aabb2Ptr->xLow
@@ -99,6 +114,7 @@ extern inline bool aabbCollides(const AABB *aabb1Ptr, const AABB *aabb2Ptr){
         && aabb1Ptr->yHigh >= aabb2Ptr->yLow;
 }
 
+/* Returns a new AABB which is the smallest AABB containing both given AABBs */
 extern inline AABB aabbMakeEncompassing(const AABB *aabb1Ptr, const AABB *aabb2Ptr){
     AABB toRet = {0};
     toRet.xLow = fminf(aabb1Ptr->xLow, aabb2Ptr->xLow);
