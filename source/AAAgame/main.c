@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "ZMath.h"
 
-#include <Constructure_Array.h>
+#include "ZMath.h"
+#include "Constructure_Array.h"
 
 CONSTRUCTURE_ARRAY(IntArray, intArray, int)
 
