@@ -10,6 +10,7 @@
 #include "ZMath_Rectangle.h"
 #include "ZMath_Vector.h"
 
+/* Returns the result of adding the given Vector to the given AABB */
 extern inline AABB aabbAddVector(AABB aabb, Vector vector){
     aabb.xLow += vector.x;
     aabb.xHigh += vector.x;
@@ -18,6 +19,7 @@ extern inline AABB aabbAddVector(AABB aabb, Vector vector){
     return aabb;
 }
 
+/* Returns the result of subtracting the given Vector from the given AABB */
 extern inline AABB aabbSubtractVector(AABB aabb, Vector vector){
     aabb.xLow -= vector.x;
     aabb.xHigh -= vector.x;
@@ -26,15 +28,12 @@ extern inline AABB aabbSubtractVector(AABB aabb, Vector vector){
     return aabb;
 }
 
+/* Returns true if the given Point is within the given AABB, false otherwise */
 extern inline bool isPointWithinAABB(Point point, AABB *const aabbPtr){
     return point.x > aabbPtr->xLow
         && point.x < aabbPtr->xHigh
         && point.y > aabbPtr->yLow
         && point.y < aabbPtr->yHigh;
-}
-
-extern inline int ceilingIntegerDivide(int x, int y){
-    return x / y + (x % y != 0);
 }
 
 #endif

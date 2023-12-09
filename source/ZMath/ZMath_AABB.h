@@ -7,7 +7,7 @@
 
 #include "ZMath_Point.h"
 
-/* AABBs are stored as bounds, not width/height */
+/* A 2D AABB stored as bounds, not width/height */
 typedef struct AABB{
     float xLow;
     float xHigh;

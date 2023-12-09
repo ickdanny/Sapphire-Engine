@@ -5,10 +5,17 @@
 
 #include "ZMath_Constants.h"
 
+/* The minimum value of angle representations inclusive */
 #define z_minAngle 0.0f
+
+/* The maximum value of angle representations exclusive */
 #define z_maxAngle 360.0f
-#define z_angleRange (z_maxAngle - z_minAngle)
-#define z_halfAngle (z_minAngle + (z_angleRange / 2.0f))
+
+/* The range of possible values of angles */
+#define z_angleRange ((z_maxAngle) - (z_minAngle))
+
+/* The value of the angle which is halfway from min and max */
+#define z_halfAngle ((z_minAngle) + ((z_angleRange) / 2.0f))
 
 /* Converts radians to degrees */
 extern inline float toDegrees(float radians){
