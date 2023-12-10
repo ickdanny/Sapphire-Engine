@@ -1,9 +1,10 @@
 #include <stdio.h>
 
 #include "ZMath.h"
-#include "Constructure_Array.h"
+#include "Constructure.h"
 
 CONSTRUCTURE_ARRAY(IntArray, intArray, int)
+CONSTRUCTURE_ARRAYLIST(IntArrayList, intArrayList, int)
 
 void printInt(int toPrint){
     printf("%d\n", toPrint);

@@ -1,6 +1,9 @@
+#ifndef CONSTRUCTURE_ARRAY
+
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+
+#include "PGUtil.h"
 
 #define CONSTRUCTURE_ARRAY(TYPENAME, PREFIX, ELEMENT)           \
                                                                 \
@@ -10,10 +13,9 @@ typedef struct TYPENAME{                                        \
 } TYPENAME;                                                     \
                                                                 \
 extern inline TYPENAME PREFIX##Make(int size){                  \
-    assert(size > 0);                                           \
+    assertTrue(size > 0, "bad init size");                      \
     TYPENAME toRet = {0};                                       \
-    toRet.ptr = calloc(size, sizeof(ELEMENT));                  \
-    assert(toRet.ptr && "calloc check");                        \
+    toRet.ptr = pgAlloc(size, sizeof(ELEMENT));                 \
     toRet.size = size;                                          \
     return toRet;                                               \
 }                                                               \
@@ -31,7 +33,10 @@ extern inline ELEMENT PREFIX##Get(                              \
     TYPENAME *arrayPtr,                                         \
     int index                                                   \
 ){                                                              \
-    assert(index > 0 && index < arrayPtr->size);                \
+    assertTrue(                                                 \
+        index > 0 && index < arrayPtr->size,                    \
+        "bad index"                                             \
+    );                                                          \
     return (arrayPtr->ptr)[index];                              \
 }                                                               \
                                                                 \
@@ -40,7 +45,10 @@ extern inline void PREFIX##Set(                                 \
     const ELEMENT *elementPtr,                                  \
     int index                                                   \
 ){                                                              \
-    assert(index > 0 && index < arrayPtr->size);                \
+    assertTrue(                                                 \
+        index > 0 && index < arrayPtr->size,                    \
+        "bad index"                                             \
+    );                                                          \
     (arrayPtr->ptr)[index] = *elementPtr;                       \
 }                                                               \
                                                                 \
@@ -49,7 +57,10 @@ extern inline void PREFIX##SetValue(                            \
     ELEMENT element,                                            \
     int index                                                   \
 ){                                                              \
-    assert(index > 0 && index < arrayPtr->size);                \
+    assertTrue(                                                 \
+        index > 0 && index < arrayPtr->size,                    \
+        "bad index"                                             \
+    );                                                          \
     (arrayPtr->ptr)[index] = element;                           \
 }                                                               \
                                                                 \
@@ -72,7 +83,8 @@ extern inline void PREFIX##ForEachValue(                        \
 }                                                               \
                                                                 \
 extern inline void PREFIX##Free(TYPENAME *arrayPtr){            \
-    free(arrayPtr->ptr);                                        \
-    arrayPtr->ptr = NULL;                                       \
+    pgFree(arrayPtr->ptr);                                      \
     arrayPtr->size = 0;                                         \
 }
+
+#endif
