@@ -37,7 +37,9 @@ extern inline void *pgRealloc(
 
 /* Frees the given pointer and sets it to NULL */
 #define pgFree(PTR_NAME) \
-    free(PTR_NAME);      \
-    (PTR_NAME) = NULL;
+    do{ \
+        free(PTR_NAME); \
+        (PTR_NAME) = NULL; \
+    } while(false)
 
 #endif
