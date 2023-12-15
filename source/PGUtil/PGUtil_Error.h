@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define SRC_LOCATION __FILE__ ":" TOSTRING(__LINE__)
+
 /* 
  * Asserts that the given bool is true, printing the given
  * error message otherwise
