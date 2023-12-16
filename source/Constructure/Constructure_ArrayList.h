@@ -1,27 +1,92 @@
-#ifndef CONSTRUCTURE_ARRAYLIST
-
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
+#ifndef CONSTRUCTURE_ARRAYLIST_H
+#define CONSTRUCTURE_ARRAYLIST_H
 
 #include "PGUtil.h"
 
-#define CONSTRUCTURE_ARRAYLIST(TYPENAME, PREFIX, ELEMENT)   \
+/* A growable contiguous array on the heap */
+typedef struct ArrayList{
+    void *ptr;
+    size_t size;
+    size_t capacity;
+
+    #ifdef _DEBUG
+    const char *typeName;
+    #endif
+} ArrayList;
+
+#ifdef _DEBUG
+/*
+ * Asserts that the given type matches that of the 
+ * given arraylist pointer
+ */
+#define _arrayListPtrTypeCheck(TYPENAME, ARRAYLISTPTR) \
+    assertStringEqual( \
+        TYPENAME, \
+        (ARRAYLISTPTR)->typeName, \
+        "bad arraylist type; " SRC_LOCATION \
+    )
+/*
+ * Asserts that the given type matches that of the 
+ * given arraylist
+ */
+#define _arrayListTypeCheck(TYPENAME, ARRAYLIST) \
+    assertStringEqual( \
+        TYPENAME, \
+        (ARRAYLIST).typeName, \
+        "bad arraylist type; " SRC_LOCATION \
+    )
+#endif
+
+/* Creates an arraylist and returns it by value */
+extern inline ArrayList _arrayListMake(
+    size_t initCapacity,
+    size_t elementSize
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    assertTrue(
+        initCapacity > 0, 
+        "initCapacity cannot be 0; "
+        SRC_LOCATION
+    );
+    ArrayList toRet = {0};
+    toRet.capacity = initCapacity;
+    toRet.ptr = pgAlloc(initCapacity, elementSize);
+    toRet.size = 0;
+
+    #ifdef _DEBUG
+    toRet.typeName = typeName;
+    #endif
+
+    return toRet;
+}
+
+#ifndef _DEBUG
+/* 
+ * Creates an arraylist of the specified type 
+ * and capacity and returns it by value
+ */
+#define arrayListMake(TYPENAME, INIT_CAPACITY) \
+    _arrayMake(INIT_CAPACITY, sizeof(TYPENAME))
+#else
+/* 
+ * Creates an arraylist of the specified type 
+ * and capacity and returns it by value
+ */
+#define arrayListMake(TYPENAME, INIT_CAPACITY) \
+    _arrayMake( \
+        INIT_CAPACITY, \
+        sizeof(TYPENAME), \
+        #TYPENAME \
+    )
+#endif
+
+#endif
+
+/*                                              \
                                                             \
-typedef struct TYPENAME{                                    \
-    ELEMENT *ptr;                                           \
-    int size;                                               \
-    int capacity;                                           \
-} TYPENAME;                                                 \
-                                                            \
-extern inline TYPENAME PREFIX##Make(int initCapacity){      \
-    assertTrue(initCapacity >= 0, "bad init capacity");     \
-    TYPENAME toRet = {0};                                   \
-    toRet.capacity = initCapacity;                          \
-    toRet.ptr = pgAlloc(initCapacity, sizeof(ELEMENT));     \
-    return toRet;                                           \
-}                                                           \
-                                                            \
+                                               \
 extern inline bool _##PREFIX##GrowIfNeeded(                 \
     TYPENAME *listPtr                                       \
 ){                                                          \
@@ -207,3 +272,4 @@ extern inline void PREFIX##ForEachValue(                    \
 }
 
 #endif
+*/

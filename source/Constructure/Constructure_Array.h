@@ -1,9 +1,6 @@
 #ifndef CONSTRUCTURE_ARRAY_H
 #define CONSTRUCTURE_ARRAY_H
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "PGUtil.h"
 
 /* A wrapper for a contiguous array on the heap */
