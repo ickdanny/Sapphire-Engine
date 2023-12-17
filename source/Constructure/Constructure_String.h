@@ -11,7 +11,7 @@
 typedef char CHARTYPE; //todo remove
 
 typedef struct TYPENAME{
-    CHARTYPE *ptr;
+    CHARTYPE *_ptr;
     int length; /* does not include null terminator */
 } TYPENAME;
 
@@ -40,8 +40,8 @@ extern inline CHARTYPE *_cCopy(
 extern inline TYPENAME MakeFromC(const CHARTYPE *cStringPtr){
     TYPENAME toRet = {0};
     toRet.length = _cLength(cStringPtr);  //todo: what if wchar?
-    toRet.ptr = pgAlloc(toRet.length + 1, sizeof(CHARTYPE));
-    _cCopy(toRet.ptr, cStringPtr);
+    toRet._ptr = pgAlloc(toRet.length + 1, sizeof(CHARTYPE));
+    _cCopy(toRet._ptr, cStringPtr);
     return toRet;
 }
 
@@ -50,7 +50,7 @@ extern inline TYPENAME MakeFromC(const CHARTYPE *cStringPtr){
 //todo: more funcs
 
 extern inline void Free(TYPENAME *strPtr){
-    pgFree(strPtr->ptr);
+    pgFree(strPtr->_ptr);
     strPtr->length = 0;
 }
 
