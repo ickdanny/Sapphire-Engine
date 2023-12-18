@@ -30,6 +30,7 @@ extern inline void *pgRealloc(
 ){
     assertTrue(numItems > 0, "numItems must be > 0");
     assertTrue(size > 0, "size must be > 0");
+    /* possible multiplication overflow */
     void *toRet = realloc(ptr, numItems * size);
     assertTrue(toRet, "realloc fail");
     return toRet;

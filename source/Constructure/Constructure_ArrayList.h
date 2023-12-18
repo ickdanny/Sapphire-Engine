@@ -61,14 +61,14 @@ extern inline ArrayList _arrayListMake(
  * and capacity and returns it by value
  */
 #define arrayListMake(TYPENAME, INIT_CAPACITY) \
-    _arrayMake(INIT_CAPACITY, sizeof(TYPENAME))
+    _arrayListMake(INIT_CAPACITY, sizeof(TYPENAME))
 #else
 /* 
  * Creates an arraylist of the specified type 
  * and capacity and returns it by value
  */
 #define arrayListMake(TYPENAME, INIT_CAPACITY) \
-    _arrayMake( \
+    _arrayListMake( \
         INIT_CAPACITY, \
         sizeof(TYPENAME), \
         #TYPENAME \
@@ -123,7 +123,7 @@ extern inline void _arrayListClear(
 #define arrayListClear(TYPENAME, ARRAYLISTPTR) \
     _arrayListClear( \
         ARRAYLISTPTR, \
-        sizeof(TYPENAME) \
+        sizeof(TYPENAME), \
         #TYPENAME \
     )
 #endif
@@ -332,6 +332,79 @@ extern inline void _arrayListPopBack(
     _arrayListPopBack(ARRAYLISTPTR, #TYPENAME)
 #endif
 
+/* 
+ * Erases the element of the given arraylist
+ * at the given index
+ */
+extern inline void _arrayListErase(
+    ArrayList *arrayListPtr,
+    size_t index,
+    size_t elementSize
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _arrayListPtrTypeCheck(
+        typeName, 
+        arrayListPtr
+    );
+    #endif
+
+    assertTrue(
+        index < arrayListPtr->size,
+        "bad index; " SRC_LOCATION
+    );
+
+    --(arrayListPtr->size);
+
+    /* length is 0 if we remove back */
+    memmove(
+        voidPtrAdd(
+            arrayListPtr->_ptr, 
+            index * elementSize
+        ),
+        voidPtrAdd(
+            arrayListPtr->_ptr,
+            (index + 1) * elementSize
+        ),
+        (arrayListPtr->size - index) * elementSize
+    );  
+}
+
+#ifndef _DEBUG
+/* 
+ * Erases the element of the given arraylist
+ * of the specified type at the given index
+ */
+#define arrayListErase( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX \
+) \
+    _arrayListErase( \
+        ARRAYLISTPTR, \
+        INDEX, \
+        sizeof(TYPENAME) \
+    )
+#else
+/* 
+ * Erases the element of the given arraylist
+ * of the specified type at the given index
+ */
+#define arrayListErase( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX \
+) \
+    _arrayListErase( \
+        ARRAYLISTPTR, \
+        INDEX, \
+        sizeof(TYPENAME), \
+        #TYPENAME \
+    )
+#endif
+
 /*
  * Returns a pointer to the element of the given
  * arraylist at the given index
@@ -373,7 +446,7 @@ extern inline void *_arrayListGetPtr(
     INDEX \
 ) \
     ((TYPENAME*)_arrayListGetPtr( \
-        ARRAYPTR, \
+        ARRAYLISTPTR, \
         INDEX, \
         sizeof(TYPENAME) \
     ))
@@ -389,7 +462,7 @@ extern inline void *_arrayListGetPtr(
     INDEX \
 ) \
     ((TYPENAME*)_arrayListGetPtr( \
-        ARRAYPTR, \
+        ARRAYLISTPTR, \
         INDEX, \
         sizeof(TYPENAME), \
         #TYPENAME \
@@ -414,6 +487,332 @@ extern inline void *_arrayListGetPtr(
             INDEX \
         )) \
     )
+
+/* 
+ * Copies the specified element into the given 
+ * arraylist at the given index, replacing the
+ * previous element
+ */
+extern inline void _arrayListSetPtr(
+    ArrayList *arrayListPtr,
+    size_t index,
+    const void *elementPtr,
+    size_t elementSize
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _arrayListPtrTypeCheck(
+        typeName, 
+        arrayListPtr
+    );
+    #endif
+
+    assertTrue(
+        index < arrayListPtr->size, 
+        "bad index; " SRC_LOCATION
+    );
+
+    /* memcpy safe; elements shouldn't overlap */
+    memcpy(
+        voidPtrAdd(
+            arrayListPtr->_ptr, 
+            index * elementSize
+        ),
+        elementPtr,
+        elementSize
+    );
+}
+
+#ifndef _DEBUG
+/* 
+ * Copies the specified element into the given 
+ * arraylist of the specified type at the
+ * given index, replacing the previous element
+ */
+#define arrayListSetPtr( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENTPTR \
+) \
+    _Generic(*ELEMENTPTR, \
+        TYPENAME: _arrayListSetPtr( \
+            ARRAYLISTPTR, \
+            INDEX, \
+            ELEMENTPTR, \
+            sizeof(TYPENAME) \
+        ) \
+    )
+#else
+/* 
+ * Copies the specified element into the given 
+ * arraylist of the specified type at the
+ * given index, replacing the previous element
+ */
+#define arrayListSetPtr( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENTPTR \
+) \
+    _Generic(*ELEMENTPTR, \
+        TYPENAME: _arrayListSetPtr( \
+            ARRAYLISTPTR, \
+            INDEX, \
+            ELEMENTPTR, \
+            sizeof(TYPENAME), \
+            #TYPENAME \
+        ) \
+    )
+#endif
+
+/* 
+ * Arraylist setting must be done via macro because
+ * it expects values not pointers.
+ */
+#ifndef _DEBUG
+/* 
+ * Sets the element at the given index in the given
+ * arraylist of the specified type to the 
+ * given value, replacing the previous element
+ */
+#define arrayListSet( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENT \
+) \
+    do{ \
+        assertTrue( \
+            INDEX < (ARRAYLISTPTR)->size, \
+            "bad index; " SRC_LOCATION \
+        ); \
+        ((TYPENAME *)((ARRAYLISTPTR)->_ptr))[INDEX] \
+            = ELEMENT; \
+    } while(false)
+#else
+/* 
+ * Sets the element at the given index in the given
+ * arraylist of the specified type to the 
+ * given value, replacing the previous element
+ */
+#define arrayListSet( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENT \
+) \
+    do{ \
+        _arrayListPtrTypeCheck( \
+            #TYPENAME, \
+            ARRAYLISTPTR \
+        ); \
+        assertTrue( \
+            INDEX < (ARRAYLISTPTR)->size, \
+            "bad index; " SRC_LOCATION \
+        ); \
+        ((TYPENAME *)((ARRAYLISTPTR)->_ptr))[INDEX] \
+            = ELEMENT; \
+    } while(false)
+#endif
+
+/* 
+ * Copies the specified element into the given
+ * arraylist at the given index by making room
+ * for the element
+ */
+extern inline void _arrayListInsertPtr(
+    ArrayList *arrayListPtr,
+    size_t index,
+    const void *elementPtr,
+    size_t elementSize
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _arrayListPtrTypeCheck(
+        typeName, 
+        arrayListPtr
+    );
+    #endif
+
+    assertTrue(
+        index <= arrayListPtr->size,
+        "bad index; " SRC_LOCATION
+    );
+
+    assertTrue(
+        _arrayListGrowIfNeeded(
+            arrayListPtr, 
+            elementSize
+        ),
+        "failed to grow for insert; "
+        SRC_LOCATION
+    );
+
+    /* length is 0 if we insert as new back */
+    memmove(
+        voidPtrAdd(
+            arrayListPtr->_ptr,
+            (index + 1) * elementSize
+        ),
+        voidPtrAdd(
+            arrayListPtr->_ptr,
+            index * elementSize
+        ),
+        (arrayListPtr->size - index) * elementSize
+    );
+
+    /* memcpy safe; elements shouldn't overlap */
+    memcpy(
+        voidPtrAdd(
+            arrayListPtr->_ptr, 
+            index * elementSize
+        ),
+        elementPtr,
+        elementSize
+    );
+
+    ++(arrayListPtr->size);
+}
+
+#ifndef _DEBUG
+/* 
+ * Copies the specified element into the given
+ * arraylist of the specified type at the 
+ * given index by making room for the element
+ */
+#define arrayListInsertPtr( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENTPTR \
+) \
+    _Generic(*ELEMENTPTR, \
+        TYPENAME: _arrayListInsertPtr( \
+            ARRAYLISTPTR, \
+            INDEX, \
+            ELEMENTPTR, \
+            sizeof(TYPENAME) \
+        ) \
+    )
+#else
+/* 
+ * Copies the specified element into the given
+ * arraylist of the specified type at the 
+ * given index by making room for the element
+ */
+#define arrayListInsertPtr( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENTPTR \
+) \
+    _Generic(*ELEMENTPTR, \
+        TYPENAME: _arrayListInsertPtr( \
+            ARRAYLISTPTR, \
+            INDEX, \
+            ELEMENTPTR, \
+            sizeof(TYPENAME), \
+            #TYPENAME \
+        ) \
+    )
+#endif
+
+/*
+ * Arraylist insert must be done via macro because
+ * it expects values not pointers.
+ */
+#ifndef _DEBUG
+/*
+ * Inserts the given element into in the given 
+ * arraylist of the specified type at the given
+ * index by making room for the element
+ */
+#define arrayListInsert( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENT \
+) \
+    do{ \
+        assertTrue( \
+            INDEX <= (ARRAYLISTPTR)->size, \
+            "bad index; " SRC_LOCATION \
+        ); \
+        assertTrue( \
+            _arrayListGrowIfNeeded( \
+                (ARRAYLISTPTR), \
+                sizeof(ELEMENT) \
+            ), \
+            "failed to grow for insert; " \
+            SRC_LOCATION \
+        ); \
+        memmove( \
+            voidPtrAdd( \
+                (ARRAYLISTPTR)->_ptr, \
+                (INDEX + 1) * sizeof(ELEMENT) \
+            ), \
+            voidPtrAdd( \
+                (ARRAYLISTPTR)->_ptr, \
+                INDEX * sizeof(ELEMENT) \
+            ), \
+            ((ARRAYLISTPTR)->size - INDEX) \
+                * sizeof(ELEMENT) \
+        ); \
+        ((TYPENAME *)((ARRAYLISTPTR)->_ptr))[INDEX] \
+            = ELEMENT; \
+        ++((ARRAYLISTPTR)->size); \
+    } while(false)
+#else
+/*
+ * Inserts the given element into in the given 
+ * arraylist of the specified type at the given
+ * index by making room for the element
+ */
+#define arrayListInsert( \
+    TYPENAME, \
+    ARRAYLISTPTR, \
+    INDEX, \
+    ELEMENT \
+) \
+    do{ \
+        _arrayListPtrTypeCheck( \
+            #TYPENAME, \
+            (ARRAYLISTPTR) \
+        ); \
+        assertTrue( \
+            INDEX <= (ARRAYLISTPTR)->size, \
+            "bad index; " SRC_LOCATION \
+        ); \
+        assertTrue( \
+            _arrayListGrowIfNeeded( \
+                (ARRAYLISTPTR), \
+                sizeof(ELEMENT) \
+            ), \
+            "failed to grow for insert; " \
+            SRC_LOCATION \
+        ); \
+        memmove( \
+            voidPtrAdd( \
+                (ARRAYLISTPTR)->_ptr, \
+                (INDEX + 1) * sizeof(ELEMENT) \
+            ), \
+            voidPtrAdd( \
+                (ARRAYLISTPTR)->_ptr, \
+                INDEX * sizeof(ELEMENT) \
+            ), \
+            ((ARRAYLISTPTR)->size - INDEX) \
+                * sizeof(ELEMENT) \
+        ); \
+        ((TYPENAME *)((ARRAYLISTPTR)->_ptr))[INDEX] \
+            = ELEMENT; \
+        ++((ARRAYLISTPTR)->size); \
+    } while(false)
+#endif
 
 /*
  * Returns a pointer to the front element of 
@@ -557,6 +956,8 @@ extern inline void *_arrayListBackPtr(
         )) \
     )
 
+
+
 /* 
  * Apply must be done via macro because
  * it expects values not pointers.
@@ -655,89 +1056,3 @@ extern inline void _arrayListFree(
 #endif
 
 #endif
-
-/*
-extern inline void PREFIX##Erase(                           \
-    TYPENAME *listPtr,                                      \
-    int index                                               \
-){                                                          \
-    assertTrue(                                             \
-        index >= 0 && index < listPtr->size,                \
-        "bad index"                                         \
-    );                                                      \
-    --(listPtr->size);                                      \
-    memmove(                                                \
-        listPtr->_ptr + index,                               \
-        listPtr->_ptr + (index + 1),                         \
-        (listPtr->size - index) * sizeof(ELEMENT)           \
-    );                                                      \
-}                                                           \
-                                                            \
-extern inline bool PREFIX##Insert(                          \
-    TYPENAME *listPtr,                                      \
-    const ELEMENT *newElementPtr,                           \
-    int index                                               \
-){                                                          \
-    assertTrue(                                             \
-        index >= 0 && index <= listPtr->size,               \
-        "bad index"                                         \
-    );                                                      \
-    if(!_##PREFIX##GrowIfNeeded(listPtr)){                  \
-        return false;                                       \
-    }                                                       \
-    memmove(                                                \
-        listPtr->_ptr + (index + 1),                         \
-        listPtr->_ptr + index,                               \
-        (listPtr->size - index) * sizeof(ELEMENT)           \
-    );                                                      \
-    listPtr->_ptr[index] = *newElementPtr;                   \
-    ++(listPtr->size);                                      \
-    return true;                                            \
-}                                                           \
-                                                            \
-extern inline bool PREFIX##InsertValue(                     \
-    TYPENAME *listPtr,                                      \
-    ELEMENT element,                                        \
-    int index                                               \
-){                                                          \
-    assertTrue(                                             \
-        index >= 0 && index <= listPtr->size,               \
-        "bad index"                                         \
-    );                                                      \
-    if(!_##PREFIX##GrowIfNeeded(listPtr)){                  \
-        return false;                                       \
-    }                                                       \
-    memmove(                                                \
-        listPtr->_ptr + (index + 1),                         \
-        listPtr->_ptr + index,                               \
-        (listPtr->size - index) * sizeof(ELEMENT)           \
-    );                                                      \
-    listPtr->_ptr[index] = element;                          \
-    ++(listPtr->size);                                      \
-    return true;                                            \
-}                                                           \
-                                                            \
-extern inline void PREFIX##Assign(                          \
-    TYPENAME *listPtr,                                      \
-    const ELEMENT *elementPtr,                              \
-    int index                                               \
-){                                                          \
-    assertTrue(                                             \
-        index >= 0 && index <= listPtr->size,               \
-        "bad index"                                         \
-    );                                                      \
-    (listPtr->_ptr)[index] = *elementPtr;                    \
-}                                                           \
-                                                            \
-extern inline void PREFIX##AssignValue(                     \
-    TYPENAME *listPtr,                                      \
-    ELEMENT element,                                        \
-    int index                                               \
-){                                                          \
-    assertTrue(                                             \
-        index >= 0 && index <= listPtr->size,               \
-        "bad index"                                         \
-    );                                                      \
-    (listPtr->_ptr)[index] = element;                        \
-}
-*/

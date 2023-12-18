@@ -8,23 +8,17 @@ void printInt(int *toPrint){
 }
 
 int main(){
-    Array array = arrayMake(int, 10);
-    arraySet(int, &array, 3, 2);
-    arraySet(int, &array, 8, 7);
-    arraySet(int, &array, 2, 9);
-    arraySet(int, &array, 9, 30);
+    ArrayList list = arrayListMake(int, 2);
 
-    int value = 4;
-    int *ptr = &value;
-    arraySetPtr(int, &array, 0, ptr);
+    for(int i = 0; i < 100; ++i){
+        arrayListPushBack(int, &list, i);
+    }
 
-    printf("Get 9: %d\n", arrayGet(int, &array, 9));
+    printf("size: %lu\n", list.size);
+    printf("capacity: %lu\n", list._capacity);
+    arrayListApply(int, &list, printInt);
 
-    arrayApply(int, &array, printInt);
-    printf("size: %ld\n", array.size);
-
-    arrayClear(int, &array);
-
-    arrayFree(int, &array);
-    printf("size: %ld\n", array.size);
+    arrayListFree(int, &list);
+    printf("size: %lu\n", list.size);
+    printf("capacity: %lu\n", list._capacity);
 }
