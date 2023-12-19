@@ -7,8 +7,12 @@
 typedef struct Array{
     void *_ptr;
     size_t size;
-
+    
     #ifdef _DEBUG
+    /* 
+     * Should only ever point to a string literal,
+     * thus should not be freed
+     */
     const char *_typeName;
     #endif
 } Array;
@@ -66,6 +70,59 @@ extern inline Array _arrayMake(
  */
 #define arrayMake(TYPENAME, SIZE) \
     _arrayMake(SIZE, sizeof(TYPENAME), #TYPENAME)
+#endif
+
+/*
+ * Makes a one level deep copy of the given array
+ * and returns it by value
+ */
+extern inline Array _arrayCopy(
+    size_t elementSize,
+    const Array *toCopyPtr
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _arrayPtrTypeCheck(typeName, toCopyPtr);
+    #endif
+
+    Array toRet = {0};
+    toRet.size = toCopyPtr->size;
+    toRet._ptr = pgAlloc(toRet.size, elementSize);
+    /* may overflow */
+    memcpy(
+        toRet._ptr, 
+        toCopyPtr->_ptr, 
+        toRet.size * elementSize
+    );
+
+    #ifdef _DEBUG
+    /* safe to shallow copy; it is a literal */
+    toRet._typeName = toCopyPtr->_typeName;
+    #endif
+
+    return toRet;
+}
+
+#ifndef _DEBUG
+/*
+ * Makes a one level deep copy of the given array
+ * of the specified type and returns it by value
+ */
+#define arrayCopy(TYPENAME, TOCOPYPTR) \
+    _arrayCopy(sizeof(TYPENAME), TOCOPYPTR)
+#else
+/*
+ * Makes a one level deep copy of the given array
+ * of the specified type and returns it by value
+ */
+#define arrayCopy(TYPENAME, TOCOPYPTR) \
+    _arrayCopy( \
+        sizeof(TYPENAME), \
+        TOCOPYPTR, \
+        #TYPENAME \
+    )
 #endif
 
 /* Zeroes the data in the given array */

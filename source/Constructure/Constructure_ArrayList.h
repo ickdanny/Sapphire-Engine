@@ -10,6 +10,10 @@ typedef struct ArrayList{
     size_t _capacity;
 
     #ifdef _DEBUG
+    /* 
+     * Should only ever point to a string literal,
+     * thus should not be freed
+     */
     const char *_typeName;
     #endif
 } ArrayList;
@@ -71,6 +75,65 @@ extern inline ArrayList _arrayListMake(
     _arrayListMake( \
         INIT_CAPACITY, \
         sizeof(TYPENAME), \
+        #TYPENAME \
+    )
+#endif
+
+/*
+ * Makes a one level deep copy of the given
+ * arraylist and returns it by value
+ */
+extern inline ArrayList _arrayListCopy(
+    size_t elementSize,
+    const ArrayList *toCopyPtr
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _arrayListPtrTypeCheck(typeName, toCopyPtr);
+    #endif
+
+    ArrayList toRet = {0};
+    toRet.size = toCopyPtr->size;
+    toRet._capacity = toCopyPtr->_capacity;
+    toRet._ptr = pgAlloc(
+        toRet._capacity, 
+        elementSize
+    );
+    /* may overflow */
+    memcpy(
+        toRet._ptr, 
+        toCopyPtr->_ptr, 
+        toRet._capacity * elementSize
+    );
+
+    #ifdef _DEBUG
+    /* safe to shallow copy; it is a literal */
+    toRet._typeName = toCopyPtr->_typeName;
+    #endif
+
+    return toRet;
+}
+
+#ifndef _DEBUG
+/*
+ * Makes a one level deep copy of the given
+ * arraylist of the specified type and returns 
+ * it by value
+ */
+#define arrayListCopy(TYPENAME, TOCOPYPTR) \
+    _arrayListCopy(sizeof(TYPENAME), TOCOPYPTR)
+#else
+/*
+ * Makes a one level deep copy of the given
+ * arraylist of the specified type and returns 
+ * it by value
+ */
+#define arrayListCopy(TYPENAME, TOCOPYPTR) \
+    _arrayListCopy( \
+        sizeof(TYPENAME), \
+        TOCOPYPTR, \
         #TYPENAME \
     )
 #endif
