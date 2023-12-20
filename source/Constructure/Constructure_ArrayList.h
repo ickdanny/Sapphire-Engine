@@ -192,7 +192,7 @@ extern inline void _arrayListClear(
 #endif
 
 /* 
- * Grows the given arraylist if it is at capacity,
+ * Grows the given arraylist if it is at capacity;
  * returns false as error code, true otherwise
  */
 extern inline bool _arrayListGrowIfNeeded(
@@ -200,6 +200,7 @@ extern inline bool _arrayListGrowIfNeeded(
     size_t elementSize
 ) {
     enum{ growRatio = 2u };
+
     if(arrayListPtr->size 
         == arrayListPtr->_capacity
     ){
@@ -421,6 +422,7 @@ extern inline void _arrayListErase(
 
     --(arrayListPtr->size);
 
+    /* move all later elements 1 forward */
     /* length is 0 if we remove back */
     memmove(
         voidPtrAdd(
@@ -716,6 +718,7 @@ extern inline void _arrayListInsertPtr(
         SRC_LOCATION
     );
 
+    /* move all later elements 1 back */
     /* length is 0 if we insert as new back */
     memmove(
         voidPtrAdd(
