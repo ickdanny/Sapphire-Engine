@@ -102,20 +102,35 @@ extern inline TYPENAME makeC(
 }
 
 /*
- * Creates and allocates space for an
- * empty string
+ * Creates a new empty string and reserves enough
+ * space for the requested number of characters
+ * including the null terminator
  */
-extern inline TYPENAME makeEmpty(){
-    enum{ stringInitCapacity = 16u};
-
+extern inline TYPENAME makeAndReserve(
+    size_t initCapacity
+){
+    assertFalse(
+        initCapacity == 0u,
+        "trying to reserve 0 capacity; "
+        SRC_LOCATION
+    );
     TYPENAME toRet = {0};
     toRet.length = 0;
-    toRet._capacity = stringInitCapacity;
+    toRet._capacity = initCapacity;
     toRet._ptr = (CHARTYPE *)pgAlloc(
         toRet._capacity, 
         sizeof(CHARTYPE)
     );
     return toRet;
+}
+
+/*
+ * Creates and allocates space for an
+ * empty string
+ */
+extern inline TYPENAME makeEmpty(){
+    enum{ stringInitCapacity = 16u };
+    return makeAndReserve(stringInitCapacity);
 }
 
 /*
@@ -264,15 +279,21 @@ extern inline bool _growIfNeeded(
 
 /* 
  * Prepends the given null terminated C string
- * onto the front of the given string
+ * of the specified length onto the front of 
+ * the given string; do not attempt to pass in
+ * the same string twice
  */
-extern inline void prependC(
+extern inline void _prependHelper(
     TYPENAME *stringPtr,
-    const CHARTYPE *toPrependPtr
+    const CHARTYPE *toPrependPtr,
+    size_t toPrependLength
 ){
-    size_t toPrependLength = _cLength(
-        toPrependPtr
+    assertFalse(
+        stringPtr->_ptr == toPrependPtr,
+        "do not pass in the same string; "
+        SRC_LOCATION
     );
+
     if(!toPrependLength){
         return;
     }
@@ -283,7 +304,7 @@ extern inline void prependC(
     /* allocate more space if needed */
     assertTrue(
         _growToFitNewLength(stringPtr),
-        "failed to grow for prependC; "
+        "failed to grow for prepend; "
         SRC_LOCATION
     );
 
@@ -304,54 +325,63 @@ extern inline void prependC(
 }
 
 /* 
- * Appends the second given string onto the
- * front of the first
+ * Prepends the given null terminated C string
+ * onto the front of the given string; do not
+ * attempt to pass in the same string twice
+ */
+extern inline void prependC(
+    TYPENAME *stringPtr,
+    const CHARTYPE *toPrependPtr
+){
+    size_t toPrependLength = _cLength(
+        toPrependPtr
+    );
+    _prependHelper(
+        stringPtr,
+        toPrependPtr,
+        toPrependLength
+    );
+}
+
+/* 
+ * Prepends the second given string onto the
+ * front of the first; do not attempt to pass
+ * in the same string twice
  */
 extern inline void prepend(
     TYPENAME *stringPtr,
     TYPENAME *toPrependPtr
 ){
-    if(!(toPrependPtr->length)){
-        return;
-    }
-
-    size_t originalLength = stringPtr->length;
-    stringPtr->length += toPrependPtr->length;
-
-    /* allocate more space if needed */
-    assertTrue(
-        _growToFitNewLength(stringPtr),
-        "failed to grow for prepend; "
+    assertFalse(
+        stringPtr == toPrependPtr,
+        "do not pass in the same string; "
         SRC_LOCATION
     );
 
-    memmove(
-        stringPtr->_ptr + toPrependPtr->length,
-        stringPtr->_ptr,
-        /* copy null */
-        lengthIncludingNull(originalLength)
-            * sizeof(CHARTYPE)
-    );
-    /* use memcpy; length is known */
-    memcpy(
-        stringPtr->_ptr, 
-        toPrependPtr,
-        /* do not copy null*/
-        toPrependPtr->length * sizeof(CHARTYPE)
+    _prependHelper(
+        stringPtr,
+        toPrependPtr->_ptr,
+        toPrependPtr->length
     );
 }
 
 /*
  * Appends the given null terminated C string
- * onto the back of the given string
+ * of the specified length onto the back of the 
+ * given string; do not attempt to pass in the
+ * same string twice
  */
-extern inline void appendC(
+extern inline void _appendHelper(
     TYPENAME *stringPtr,
-    const CHARTYPE *toAppendPtr
+    const CHARTYPE *toAppendPtr,
+    size_t toAppendLength
 ){
-    size_t toAppendLength = _cLength(
-        toAppendPtr
+    assertFalse(
+        stringPtr->_ptr == toAppendPtr,
+        "do not pass in the same string; "
+        SRC_LOCATION
     );
+
     if(!toAppendLength){
         return;
     }
@@ -362,7 +392,7 @@ extern inline void appendC(
     /* allocate more space if needed */
     assertTrue(
         _growToFitNewLength(stringPtr),
-        "failed to grow for appendC; "
+        "failed to grow for append; "
         SRC_LOCATION
     );
 
@@ -377,34 +407,43 @@ extern inline void appendC(
 }
 
 /*
+ * Appends the given null terminated C string
+ * onto the back of the given string; do not
+ * attempt to pass in the same string twice
+ */
+extern inline void appendC(
+    TYPENAME *stringPtr,
+    const CHARTYPE *toAppendPtr
+){
+    size_t toAppendLength = _cLength(
+        toAppendPtr
+    );
+    _appendHelper(
+        stringPtr, 
+        toAppendPtr, 
+        toAppendLength
+    );
+}
+
+/*
  * Appends the second given string onto the back
- * of the first
+ * of the first; do not attempt to pass in the
+ * same string twice
  */
 extern inline void append(
     TYPENAME *stringPtr,
     TYPENAME *toAppendPtr
 ){
-    if(!(toAppendPtr->length)){
-        return;
-    }
-
-    size_t originalLength = stringPtr->length;
-    stringPtr->length += toAppendPtr->length;
-
-    /* allocate more space if needed */
-    assertTrue(
-        _growToFitNewLength(stringPtr),
-        "failed to grow for append; "
+    assertFalse(
+        stringPtr == toAppendPtr,
+        "do not pass in the same string; "
         SRC_LOCATION
     );
 
-    /* use memcpy; length is known */
-    memcpy(
-        stringPtr->_ptr + originalLength,
+    _appendHelper(
+        stringPtr,
         toAppendPtr->_ptr,
-        /* copy null */
-        lengthIncludingNull(toAppendPtr->length) 
-            * sizeof(CHARTYPE)
+        toAppendPtr->length
     );
 }
 
@@ -412,7 +451,7 @@ extern inline void append(
  * Writes a null terminator at the back of
  * the given string after its length
  */
-extern inline void writeNull(
+extern inline void _writeNull(
     TYPENAME *stringPtr
 ){
     assertTrue(
@@ -443,7 +482,7 @@ extern inline void pushBack(
     ++(stringPtr->length);
 
     /* write new null terminator */
-    writeNull(stringPtr);
+    _writeNull(stringPtr);
 }
 
 /*
@@ -460,7 +499,7 @@ extern inline void popBack(
 
     /* write new null terminator */
     --(stringPtr->length);
-    writeNull(stringPtr);
+    _writeNull(stringPtr);
 }
 
 /*
@@ -599,15 +638,17 @@ extern inline void insertChar(
 
 /*
  * Inserts the given null terminated C string
- * into the given string starting at the given
- * index by making room for the new characters;
- * do not attempt to pass the same string as
- * both the base and the insertion
+ * of the specified length into the given
+ * string starting at the given index by making
+ * room for the new characters; do not attempt
+ * to pass the same string as both the base and
+ * the insertion
  */
-extern inline void insertC(
+extern inline void _insertHelper(
     TYPENAME *stringPtr,
     size_t startingIndex,
-    const CHARTYPE *toInsertPtr
+    const CHARTYPE *toInsertPtr,
+    size_t toInsertLength
 ){
     assertFalse(
         stringPtr->_ptr == toInsertPtr,
@@ -620,9 +661,6 @@ extern inline void insertC(
         "bad starting index; " SRC_LOCATION
     );
 
-    size_t toInsertLength = _cLength(
-        toInsertPtr
-    );
     if(!toInsertLength){
         return;
     }
@@ -633,7 +671,7 @@ extern inline void insertC(
     /* allocate more space if needed */
     assertTrue(
         _growToFitNewLength(stringPtr),
-        "failed to grow for insertC; "
+        "failed to grow for insert; "
         SRC_LOCATION
     );
 
@@ -665,12 +703,35 @@ extern inline void insertC(
 }
 
 /*
+ * Inserts the given null terminated C string
+ * into the given string starting at the given
+ * index by making room for the new characters;
+ * do not attempt to pass the same string as
+ * both the base and the insertion
+ */
+extern inline void insertC(
+    TYPENAME *stringPtr,
+    size_t startingIndex,
+    const CHARTYPE *toInsertPtr
+){
+    size_t toInsertLength = _cLength(
+        toInsertPtr
+    );
+    _insertHelper(
+        stringPtr, 
+        startingIndex, 
+        toInsertPtr, 
+        toInsertLength
+    );
+}
+
+/*
  * Inserts the latter given string into the former
  * starting at the given index by making room for 
  * the new characters; do not attempt to pass the 
  * same string as both the base and the insertion
  */
-extern inline void insertC(
+extern inline void insert(
     TYPENAME *stringPtr,
     size_t startingIndex,
     const TYPENAME *toInsertPtr
@@ -681,56 +742,11 @@ extern inline void insertC(
         SRC_LOCATION
     );
 
-    assertFalse(
-        stringPtr->_ptr == toInsertPtr->_ptr,
-        "the two strings point to the same; "
-        SRC_LOCATION
-    );
-    
-    assertTrue(
-        startingIndex <= stringPtr->length,
-        "bad starting index; " SRC_LOCATION
-    );
-
-    if(!(toInsertPtr->length)){
-        return;
-    }
-
-    size_t originalLength = stringPtr->length;
-    stringPtr->length += toInsertPtr->length;
-
-    /* allocate more space if needed */
-    assertTrue(
-        _growToFitNewLength(stringPtr),
-        "failed to grow for insert; "
-        SRC_LOCATION
-    );
-
-    /* 
-     * move all later elements backwards to
-     * fit the new string
-     */
-    /* length is 1 if we insert at the back */
-    memmove(
-        stringPtr->_ptr 
-            + ((startingIndex 
-                + toInsertPtr->length
-            ) * sizeof(CHARTYPE)),
-        stringPtr->_ptr 
-            + (startingIndex * sizeof(CHARTYPE)),
-        /* move null terminator back also */
-        sizeof(CHARTYPE) * lengthIncludingNull(
-            originalLength - startingIndex
-        )
-    );
-
-    /* copy in the insertion */
-    /* use memmove just to be safe */
-    memmove(
-        stringPtr->_ptr 
-            + (startingIndex * sizeof(CHARTYPE)),
+    _insertHelper(
+        stringPtr,
+        startingIndex,
         toInsertPtr->_ptr,
-        toInsertPtr->length * sizeof(CHARTYPE)
+        toInsertPtr->length
     );
 }
 
@@ -757,9 +773,38 @@ extern inline size_t indexOfChar(
     return indexNotFound;
 }
 
-//TODO: refactor other C and string versions
-//to take in length as parameter instead of
-//duplicating code
+/*
+ * Returns the index of the last occurrence
+ * of the given character in the given string,
+ * or returns indexNotFound if no such character
+ * exists
+ */
+extern inline size_t lastIndexOfChar(
+    const TYPENAME *stringPtr,
+    CHARTYPE toFind
+){
+    /* linear search from back */
+    /*
+     * Because the following loop is decrementing
+     * an unsigned integral variable to zero, it
+     * must end only when it overflows to its
+     * maximum representable value. If the string
+     * is of length zero, then i starts at SIZE_MAX
+     * thus the behavior of the loop is expected.
+     * If the string is of length SIZE_MAX, then i 
+     * starts at the predecessor integer.
+     */
+    for(
+        size_t i = stringPtr->length - 1;
+        i != SIZE_MAX;
+        --i
+    ){
+        if((stringPtr->_ptr)[i] == toFind){
+            return i;
+        }
+    }
+    return indexNotFound;
+}
 
 /*
  * Returns the starting index of the first
@@ -770,7 +815,7 @@ extern inline size_t indexOfChar(
  */
 extern inline size_t _indexOfHelper(
     const TYPENAME *stringPtr,
-    const CHARTYPE *cStringPtr,
+    const CHARTYPE *targetPtr,
     size_t subLength
 ){
     /* must check to avoid overflow below */
@@ -789,11 +834,11 @@ extern inline size_t _indexOfHelper(
         ++i
     ){
         /* check if the first character matches*/
-        if((stringPtr->_ptr[i]) == *cStringPtr){
+        if((stringPtr->_ptr[i]) == *targetPtr){
             /* check every other character */
             for(j = 1u; j < subLength; ++j){
                 if(stringPtr->_ptr[i + j] 
-                    != cStringPtr[j]
+                    != targetPtr[j]
                 ){
                     break;
                 }
@@ -815,12 +860,12 @@ extern inline size_t _indexOfHelper(
  */
 extern inline size_t indexOfC(
     const TYPENAME *stringPtr,
-    const CHARTYPE *cStringPtr
+    const CHARTYPE *targetPtr
 ){
-    size_t subLength = _cLength(cStringPtr);
+    size_t subLength = _cLength(targetPtr);
     return _indexOfHelper(
         stringPtr, 
-        cStringPtr, 
+        targetPtr, 
         subLength
     );
 }
@@ -832,14 +877,293 @@ extern inline size_t indexOfC(
  * indexNotFound if no such substring exists
  */
 extern inline size_t indexOf(
-    const TYPENAME *baseStringPtr,
-    const TYPENAME *targetStringPtr
+    const TYPENAME *stringPtr,
+    const TYPENAME *targetPtr
 ){
     return _indexOfHelper(
-        baseStringPtr,
-        targetStringPtr->_ptr,
-        targetStringPtr->length
+        stringPtr,
+        targetPtr->_ptr,
+        targetPtr->length
     );
+}
+
+/*
+ * Returns the starting index of the last
+ * occurrence of the given C string of the
+ * specified length in the given string, or
+ * returns indexNotFound if no such substring
+ * exists
+ */
+extern inline size_t _lastIndexOfHelper(
+    const TYPENAME *stringPtr,
+    const CHARTYPE *targetPtr,
+    size_t subLength
+){
+    /* must check to avoid overflow below */
+    if(subLength > stringPtr->length){
+        return indexNotFound;
+    }
+
+    /* used in inner loop to iterate over target */
+    size_t j = 0u;
+
+    /* brute force linear search */
+    /* 
+     * basically like indexOf algorithm except
+     * the outer loop runs backwards
+     */
+    for(
+        size_t i = stringPtr->length - subLength;
+        /* see comment in lastIndexOfChar */
+        i != SIZE_MAX;
+        --i
+    ){
+        /* check if the first character matches*/
+        if((stringPtr->_ptr[i]) == *targetPtr){
+            /* check every other character */
+            for(j = 1u; j < subLength; ++j){
+                if(stringPtr->_ptr[i + j] 
+                    != targetPtr[j]
+                ){
+                    break;
+                }
+            }
+            if(j == subLength){
+                return i;
+            }
+        }
+    }
+    return indexNotFound;
+    /* for a "better" algorithm see KMP */
+}
+
+/*
+ * Returns the starting index of the last
+ * occurrence of the given null terminated
+ * C string in the given string, or returns
+ * indexNotFound if no such substring exists
+ */
+extern inline size_t lastIndexOfC(
+    const TYPENAME *stringPtr,
+    const CHARTYPE *targetPtr
+){
+    size_t subLength = _cLength(targetPtr);
+    return _lastIndexOfHelper(
+        stringPtr, 
+        targetPtr, 
+        subLength
+    );
+}
+
+/*
+ * Returns the starting index of the last
+ * occurrence of the given target string
+ * in the given base string, or returns
+ * indexNotFound if no such substring exists
+ */
+extern inline size_t lastIndexOf(
+    const TYPENAME *stringPtr,
+    const TYPENAME *targetPtr
+){
+    return _lastIndexOfHelper(
+        stringPtr,
+        targetPtr->_ptr,
+        targetPtr->length
+    );
+}
+
+/*
+ * Returns true if the given string begins with
+ * the given character, false otherwise
+ */
+extern inline bool beginsWithChar(
+    const TYPENAME *stringPtr,
+    CHARTYPE toTest
+){
+    return stringPtr->length > 0u 
+        && stringPtr->_ptr[0u] == toTest;
+}
+
+/*
+ * Returns true if the given string ends with
+ * the given character, false otherwise
+ */
+extern inline bool endsWithChar(
+    const TYPENAME *stringPtr,
+    CHARTYPE toTest
+){
+    return stringPtr->length > 0u && (
+        stringPtr->_ptr[stringPtr->length - 1]
+            == toTest
+    );
+}
+
+/*
+ * Returns true if the given string begins with
+ * the given null terminated C string of the
+ * specified length, false otherwise
+ */
+extern inline bool _beginsWithHelper(
+    const TYPENAME *stringPtr,
+    const CHARTYPE *toTestPtr,
+    size_t toTestLength
+){
+    if(stringPtr->length < toTestLength){
+        return false;
+    }
+    if(toTestLength == 0u){
+        return false;
+    }
+
+    for(size_t i = 0u; i < toTestLength; ++i){
+        if(stringPtr->_ptr[i] != toTestPtr[i]){
+            return false;
+        }
+    }
+    return true;
+}
+
+/*
+ * Returns true if the given string begins with
+ * the given null terminated C string, false
+ * otherwise
+ */
+extern inline bool beginsWithC(
+    const TYPENAME *stringPtr,
+    const CHARTYPE *toTestPtr
+){
+    size_t toTestLength = _cLength(toTestPtr);
+    return _beginsWithHelper(
+        stringPtr,
+        toTestPtr,
+        toTestLength
+    );
+}
+
+/*
+ * Returns true if the former given string begins
+ * with the latter, false otherwise
+ */
+extern inline bool beginsWith(
+    const TYPENAME *stringPtr,
+    const TYPENAME *toTestPtr
+){
+    return _beginsWithHelper(
+        stringPtr,
+        toTestPtr->_ptr,
+        toTestPtr->length
+    );
+}
+
+/*
+ * Returns true if the given string ends with
+ * the given null terminated C string of the
+ * specified length, false otherwise
+ */
+extern inline bool _endsWithHelper(
+    const TYPENAME *stringPtr,
+    const CHARTYPE *toTestPtr,
+    size_t toTestLength
+){
+    if(stringPtr->length < toTestLength){
+        return false;
+    }
+    if(toTestLength == 0u){
+        return false;
+    }
+
+    /* index to check in the string */
+    size_t checkIndex 
+        = stringPtr->length - toTestLength;
+    for(
+        size_t i = 0u; 
+        i < toTestLength; 
+        ++i, ++checkIndex
+    ){
+        if(stringPtr->_ptr[checkIndex] 
+            != toTestPtr[i]
+        ){
+            return false;
+        }
+    }
+    return true;
+}
+
+/*
+ * Returns true if the given string ends with
+ * the given null terminated C string, false
+ * otherwise
+ */
+extern inline bool endsWithC(
+    const TYPENAME *stringPtr,
+    const CHARTYPE *toTestPtr
+){
+    size_t toTestLength = _cLength(toTestPtr);
+    return _endsWithHelper(
+        stringPtr,
+        toTestPtr,
+        toTestLength
+    );
+}
+
+/*
+ * Returns true if the former given string ends
+ * with the latter, false otherwise
+ */
+extern inline bool endsWith(
+    const TYPENAME *stringPtr,
+    const TYPENAME *toTestPtr
+){
+    return _endsWithHelper(
+        stringPtr,
+        toTestPtr->_ptr,
+        toTestPtr->length
+    );
+}
+
+/*
+ * Returns a newly created string by value
+ * which points to a copy of a substring
+ * of the given string; the substring is
+ * specified by inclusive start and end
+ * indices
+ */
+extern inline TYPENAME substring(
+    const TYPENAME *stringPtr,
+    size_t startIndexInclusive,
+    size_t endIndexInclusive
+){
+    assertTrue(
+        endIndexInclusive >= startIndexInclusive,
+        "end index >= start index!; "
+        SRC_LOCATION
+    );
+
+    assertTrue(
+        startIndexInclusive < stringPtr->length,
+        "bad start index; " SRC_LOCATION
+    );
+
+    assertTrue(
+        endIndexInclusive < stringPtr->length,
+        "bad end index; " SRC_LOCATION
+    );
+
+    size_t subLength = endIndexInclusive 
+        - startIndexInclusive + 1;
+
+    TYPENAME toRet = makeAndReserve(
+        lengthIncludingNull(subLength)
+    );
+    toRet.length = subLength;
+
+    for(size_t i = 0u; i < subLength; ++i){
+        toRet._ptr[i] = stringPtr->_ptr[
+            startIndexInclusive + i
+        ];
+    }
+
+    return toRet;
 }
 
 /*
@@ -922,15 +1246,6 @@ extern inline bool equals(
         stringPtr2->_ptr
     );
 }
-
-/*
- * indexOf(char or string)
- * lastIndexOf(char or string)
- * substring
- * beginsWith
- * endsWith
- * tokenize (?)
- */
 
 /* Frees the given PREFIX */
 extern inline void Free(TYPENAME *strPtr){

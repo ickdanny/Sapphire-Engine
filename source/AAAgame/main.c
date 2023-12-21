@@ -7,18 +7,21 @@ void printInt(int *toPrint){
     printf("%d\n", *toPrint);
 }
 
+typedef TYPENAME CharString;
+
+void printCharString(const CharString *toPrint){
+    printf("%s\n", toPrint->_ptr);
+}
+
 int main(){
-    ArrayList list = arrayListMake(int, 2);
+    CharString str1 = makeC("");
+    CharString str2 = makeC("1");
+    printf("%d\n", compare(&str1, &str2));
 
-    for(int i = 0; i < 100; ++i){
-        arrayListPushBack(int, &list, i);
-    }
+    Free(&str1);
+    Free(&str2);
 
-    printf("size: %lu\n", list.size);
-    printf("capacity: %lu\n", list._capacity);
-    arrayListApply(int, &list, printInt);
-
-    arrayListFree(int, &list);
-    printf("size: %lu\n", list.size);
-    printf("capacity: %lu\n", list._capacity);
+    assertTrue(
+        isEmpty(&str1), "expect empty"
+    );
 }
