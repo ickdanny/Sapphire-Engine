@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <wchar.h>
 
 #include "ZMath.h"
 #include "Constructure.h"
@@ -7,21 +8,22 @@ void printInt(int *toPrint){
     printf("%d\n", *toPrint);
 }
 
-typedef TYPENAME CharString;
-
-void printCharString(const CharString *toPrint){
+void printString(const String *toPrint){
     printf("%s\n", toPrint->_ptr);
 }
 
+void printWideString(const WideString *toPrint){
+    printf("%ls\n", toPrint->_ptr);
+}
+
 int main(){
-    CharString str1 = makeC("");
-    CharString str2 = makeC("1");
-    printf("%d\n", compare(&str1, &str2));
+    String str1 = stringMakeC("hello world");
+    stringInsertC(&str1, 7u, "test");
+    printString(&str1);
 
-    Free(&str1);
-    Free(&str2);
+    WideString ws1 = wideStringMakeC(L"hello world");
+    wideStringInsertC(&ws1, 7u, L"test");
+    printWideString(&ws1);
 
-    assertTrue(
-        isEmpty(&str1), "expect empty"
-    );
+    return 0;
 }
