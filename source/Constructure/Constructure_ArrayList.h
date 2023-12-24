@@ -50,7 +50,7 @@ extern inline ArrayList _arrayListMake(
     ArrayList toRet = {0};
     toRet._capacity = initCapacity;
     toRet._ptr = pgAlloc(initCapacity, elementSize);
-    toRet.size = 0;
+    toRet.size = 0u;
 
     #ifdef _DEBUG
     toRet._typeName = typeName;
@@ -198,7 +198,7 @@ extern inline void _arrayListClear(
 extern inline bool _arrayListGrowIfNeeded(
     ArrayList *arrayListPtr,
     size_t elementSize
-) {
+){
     enum{ growRatio = 2u };
 
     if(arrayListPtr->size 
