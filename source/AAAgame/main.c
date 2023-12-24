@@ -17,13 +17,7 @@ void printWideString(const WideString *toPrint){
 }
 
 int main(){
-    String str1 = stringMakeC("hello world");
-    stringInsertC(&str1, 7u, "test");
-    printString(&str1);
-
-    WideString ws1 = wideStringMakeC(L"hello world");
-    wideStringInsertC(&ws1, 7u, L"test");
-    printWideString(&ws1);
+    HashMap map = hashMapMake(int, char, 1);
 
     return 0;
 }
