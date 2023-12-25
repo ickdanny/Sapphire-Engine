@@ -43,4 +43,14 @@ extern inline void *pgRealloc(
         (PTR_NAME) = NULL; \
     } while(false)
 
+/* 
+ * Frees the given pointer and sets it to the
+ * given new value
+ */
+#define pgFreeAndSwap(PTR_NAME, NEW_VALUE) \
+    do{ \
+        free(PTR_NAME); \
+        (PTR_NAME) = (NEW_VALUE); \
+    } while(false)
+
 #endif

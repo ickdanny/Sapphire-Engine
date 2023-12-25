@@ -1101,8 +1101,8 @@ extern inline void _arrayListFree(
     #endif
 
     pgFree(arrayListPtr->_ptr);
-    arrayListPtr->size = 0;
-    arrayListPtr->_capacity = 0;
+    arrayListPtr->size = 0u;
+    arrayListPtr->_capacity = 0u;
 }
 
 #ifndef _DEBUG
