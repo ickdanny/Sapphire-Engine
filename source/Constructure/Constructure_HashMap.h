@@ -12,7 +12,7 @@
  * The maximum ratio of occupied slots in a
  * hashmap before a resize occurs
  */
-#define _maxLoadFactor .65f
+#define _maxLoadFactor .60f
 
 /* A growable hash map on the heap */
 typedef struct HashMap{
@@ -51,7 +51,7 @@ typedef struct HashMap{
      * and return bool, and moreover must agree
      * with the given hash function
      */
-    bool (*_equalsFunc)(void *);
+    bool (*_equalsFunc)(void *, void *);
 
     #ifdef _DEBUG
     /* 
@@ -77,7 +77,7 @@ typedef struct HashMap{
  * the given slot
  */
 #define _dereferenceStatusByte(slotPtr) \
-    (*((unsigned char *)slotPtr))
+    (*((unsigned char *)(slotPtr)))
 
 /*
  * Evaluates to true if the given slot
@@ -362,7 +362,7 @@ extern inline void _hashMapClear(
 ) \
     _hashMapClear( \
         HASHMAPPTR, \
-        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        _slotSize(KEYTYPENAME, VALUETYPENAME) \
     )
 #else
 /* 
@@ -407,11 +407,12 @@ extern inline float _hashMapNextLoadFactor(
 }
 
 /* 
- * Returns a pointer to the slot to insert
- * given a hash, a slot array, the length
- * of that slot array, and the slot size
+ * Returns a pointer to the first empty slot 
+ * to insert given a hash, a slot array, 
+ * the length of that slot array, and the slot 
+ * size
  */
-extern inline void *_findSlotToInsert(
+extern inline void *_findEmptySlotToInsert(
     size_t hash,
     const void *slotArrayPtr,
     size_t slotArrayLength,
@@ -498,7 +499,7 @@ extern inline bool _hashMapRehashIfNeeded(
              * find proper slot in the new 
              * array to insert
              */
-            newSlotPtr = _findSlotToInsert(
+            newSlotPtr = _findEmptySlotToInsert(
                 hash,
                 newPtr,
                 newCapacity,
@@ -514,7 +515,7 @@ extern inline bool _hashMapRehashIfNeeded(
                 slotSize
             );
         }
-
+        /* move to next slot in old array*/
         oldSlotPtr = voidPtrAdd(
             oldSlotPtr, 
             slotSize
@@ -535,15 +536,317 @@ extern inline bool _hashMapRehashIfNeeded(
 }
 
 /*
- * rehash
- * hasKeyPtr
- * hasKey
+ * Returns a pointer to the slot occupied by the
+ * specified key given a hashmap and the slot size;
+ * if no such slot exists, returns NULL; an optional
+ * output void ** can be provided for writing the
+ * first unoccupied slot found in the search
+ */
+extern inline void *_findSlotOfKey(
+    const HashMap *hashMapPtr,
+    const void *keyPtr,
+    size_t slotSize,
+    void **firstEmptySlotPtrPtr
+){
+    /* quadratic probe sequence */
+    size_t increment = 1u;
+    size_t hash = hashMapPtr->_hashFunc(keyPtr);
+    size_t index = hash % hashMapPtr->size;
+
+    /*
+     * keep probing until we find a slot which
+     * equals the keyPtr
+     */
+    void *firstEmptySlotPtr = NULL;
+    void *slotPtr;
+    while(_isTouched(
+        slotPtr = voidPtrAdd(
+            hashMapPtr->_ptr, 
+            index * slotSize
+        )
+    )){
+        /* check for equality if occupied */
+        if(_isOccupied(slotPtr)){
+            /* test to see if match found */
+            if(hashMapPtr->_equalsFunc(
+                keyPtr, 
+                _getKeyPtr(slotPtr))
+            ){
+                /* if so, return that pointer */
+                if(firstEmptySlotPtrPtr){
+                    *firstEmptySlotPtrPtr 
+                        = firstEmptySlotPtr;
+                }
+                return slotPtr;
+            }
+        }
+        /* 
+         * otherwise, if this is the first empty
+         * slot, store it
+         */
+        else if(!firstEmptySlotPtr){
+            firstEmptySlotPtr = slotPtr;
+        }
+        /* keep looking */
+        index += increment;
+        index %= hashMapPtr->size;
+        ++increment;
+    }
+    /* 
+     * finding an untouched slot means there is
+     * no such element; return NULL in this case
+     */
+    if(firstEmptySlotPtrPtr){
+        *firstEmptySlotPtrPtr 
+            = firstEmptySlotPtr;
+    }
+    return NULL;
+}
+
+/* 
+ * Returns true if the given hashmap has an entry
+ * for the given key, false otherwise
+ */
+extern inline bool _hashMapHasKeyPtr(
+    const HashMap *hashMapPtr,
+    const void *keyPtr,
+    size_t slotSize
+    #ifdef _DEBUG 
+    , const char *keyTypeName
+    , const char *valueTypeName
+    #endif
+){
+    #ifdef _DEBUG
+    _hashMapPtrTypeCheck(
+        keyTypeName, 
+        valueTypeName, 
+        hashMapPtr
+    );
+    #endif
+
+    /* cast the pointer to bool as return */
+    return _findSlotOfKey(
+        keyPtr, 
+        hashMapPtr, 
+        slotSize,
+        NULL
+    );
+}
+
+#ifndef _DEBUG
+/* 
+ * Returns true if the given hashmap of the
+ * specified key and value types has an entry
+ * for the given key, false otherwise
+ */
+#define hashMapHasKeyPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR \
+) \
+    _hashMapHasKeyPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME) \
+    )
+#else
+/* 
+ * Returns true if the given hashmap of the
+ * specified key and value types has an entry
+ * for the given key, false otherwise
+ */
+#define hashMapHasKeyPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR \
+) \
+    _hashMapHasKeyPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        #KEYTYPENAME, \
+        #VALUETYPENAME \
+    )
+#endif
+
+/*
+ * Returns true if the given hashmap of the
+ * specified key and value types has an entry
+ * for the given key, false otherwise
+ */
+#define hashMapHasKey( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEY \
+) \
+    hashMapHasKeyPtr( \
+        KEYTYPENAME, \
+        VALUETYPENAME, \
+        HASHMAPPTR, \
+        &(KEY) /* equals takes void* anyway */ \
+    )
+
+/*
+ * Returns a pointer to the value associated
+ * with the given key in the given hashmap or
+ * returns NULL if no such value exists
+ */
+extern inline void *_hashMapGetPtr(
+    HashMap *hashMapPtr,
+    const void *keyPtr,
+    size_t slotSize,
+    size_t keySize
+    #ifdef _DEBUG 
+    , const char *keyTypeName
+    , const char *valueTypeName
+    #endif
+){
+    #ifdef _DEBUG
+    _hashMapPtrTypeCheck(
+        keyTypeName, 
+        valueTypeName, 
+        hashMapPtr
+    );
+    #endif
+
+    void *slotPtr = _findSlotOfKey(
+        keyPtr,
+        hashMapPtr,
+        slotSize,
+        NULL
+    );
+    if(slotPtr){
+        return _getValuePtr(slotPtr, keySize);
+    }
+    else{
+        return NULL;
+    }
+}
+
+#ifndef _DEBUG
+/*
+ * Returns a pointer to the value associated
+ * with the given key in the given hashmap of
+ * the specified key and value types or
+ * returns NULL if no such value exists
+ */
+#define hashMapGetPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR \
+) \
+    _hashMapGetPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        sizeof(KEYTYPENAME) \
+    )
+#else
+/*
+ * Returns a pointer to the value associated
+ * with the given key in the given hashmap of
+ * the specified key and value types or
+ * returns NULL if no such value exists
+ */
+#define hashMapGetPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR \
+) \
+    _hashMapGetPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        sizeof(KEYTYPENAME), \
+        #KEYTYPENAME, \
+        #VALUETYPENAME \
+    )
+#endif
+
+/*
+ * Copies the specified value into the given
+ * hashmap and associates it with the given
+ * key, possibly replacing its previously
+ * associated value; previously created
+ * pointers into the hashmap may become
+ * invalidated should a rehash operation occur
+ */
+extern inline void _hashMapPutPtr(
+    HashMap *hashMapPtr,
+    const void *keyPtr,
+    const void *valuePtr,
+    size_t slotSize,
+    size_t keySize,
+    size_t valueSize
+    #ifdef _DEBUG 
+    , const char *keyTypeName
+    , const char *valueTypeName
+    #endif
+){
+    #ifdef _DEBUG
+    _hashMapPtrTypeCheck(
+        keyTypeName, 
+        valueTypeName, 
+        hashMapPtr
+    );
+    #endif
+
+    void *firstEmptySlotPtr = NULL;
+    void *slotPtr = _findSlotOfKey(
+        hashMapPtr,
+        keyPtr,
+        slotSize,
+        &firstEmptySlotPtr
+    );
+    /* case 1: replace */
+    if(_isOccupied(slotPtr)){
+        /* case 1a: replace value in place */
+        if(!firstEmptySlotPtr){
+            memcpy(
+                _getValuePtr(slotPtr, keySize),
+                valuePtr,
+                valueSize
+            );
+        }
+        /* case 1b: replace in earlier slot */
+        else{
+            /* set previous slot to grave */
+            memset(slotPtr, 0, slotSize);
+            _setGrave(slotPtr);
+            /* place key in earlier slot */
+            memcpy(
+                _getKeyPtr(firstEmptySlotPtr),
+                keyPtr,
+                keySize
+            );
+            /* place value in earlier slot */
+            memcpy(
+                _getValuePtr(
+                    firstEmptySlotPtr,
+                    keySize
+                ),
+                valuePtr,
+                valueSize
+            );
+            /* set earlier slot to occupied */
+            _setOccupied(firstEmptySlotPtr);
+        }
+    }
+    /* case 2: insert */
+    else{
+        /* case 2a: no rehash */
+        //TODO HOW TO CHECK IF REHASH OCCURRED?
+    }
+}
+
+/*
  * putPtr
  * put
- * replacePtr
- * replace
- * getPtr
- * get
  * remove (can remove all graves if new size 0)
  * valueApply
  */
