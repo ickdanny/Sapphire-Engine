@@ -10,25 +10,35 @@
 #define TOSTRING(x) STRINGIFY(x)
 #define SRC_LOCATION __FILE__ ":" TOSTRING(__LINE__)
 
+/* Prints the given error message */
+extern inline void pgError(const char *errorMsg){
+    fprintf(stderr, "%s\n", errorMsg);
+    exit(1);
+}
+
 /* 
- * Asserts that the given bool is true, printing the given
- * error message otherwise
+ * Asserts that the given bool is true, printing the
+ * given error message otherwise
  */
-extern inline void assertTrue(bool assertion, const char *errorMsg){
+extern inline void assertTrue(
+    bool assertion, 
+    const char *errorMsg
+){
     if(!assertion){
-        fprintf(stderr, "%s\n", errorMsg);
-        exit(1);
+        pgError(errorMsg);
     }
 }
 
 /*
- * Asserts that the given bool is false, printing the given 
- * error message otherwise 
+ * Asserts that the given bool is false, printing the 
+ * given error message otherwise 
  */
-extern inline void assertFalse(bool assertion, const char *errorMsg){
+extern inline void assertFalse(
+    bool assertion, 
+    const char *errorMsg
+){
     if(assertion){
-        fprintf(stderr, "%s\n", errorMsg);
-        exit(1);
+        pgError(errorMsg);
     }
 }
 

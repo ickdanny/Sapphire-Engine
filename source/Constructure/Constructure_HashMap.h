@@ -8,11 +8,19 @@
  * hashmap before a rehash occurs
  */
 #define _maxTouchedRatio .75f
+
 /*
  * The maximum ratio of occupied slots in a
  * hashmap before a resize occurs
  */
 #define _maxLoadFactor .60f
+
+/* Returned by the rehash function */
+typedef enum rehashReturnCode {
+    _hashMapNoRehash = 0u,
+    _hashMapRehash = 1u,
+    _hashMapError = 2u
+} rehashReturnCode;
 
 /* A growable hash map on the heap */
 typedef struct HashMap{
@@ -447,7 +455,7 @@ extern inline void *_findEmptySlotToInsert(
  * would put it above the maximum load factor; 
  * returns false as error code, true otherwise
  */
-extern inline bool _hashMapRehashIfNeeded(
+extern inline rehashReturnCode _hashMapRehashIfNeeded(
     HashMap *hashMapPtr,
     size_t slotSize
 ){
@@ -458,7 +466,7 @@ extern inline bool _hashMapRehashIfNeeded(
     );
     /* if grave ratio is low, do nothing */
     if(graveRatio < _maxTouchedRatio){
-        return true;
+        return _hashMapNoRehash;
     }
     /* at this point, grave ratio is high */
     float loadFactor = _hashMapNextLoadFactor(
@@ -476,7 +484,7 @@ extern inline bool _hashMapRehashIfNeeded(
     void *newPtr = pgAlloc(newCapacity, slotSize);
     /* return false if allocation failed */
     if(!newPtr){
-        return false;
+        return _hashMapError;
     }
     /* insert each K/V pair into new array */
     void *oldSlotPtr = hashMapPtr->_ptr;
@@ -532,7 +540,7 @@ extern inline bool _hashMapRehashIfNeeded(
     hashMapPtr->_touchedCount = hashMapPtr->size;
     /* note that size should stay the same */
 
-    return true;
+    return _hashMapRehash;
 }
 
 /*
@@ -839,13 +847,142 @@ extern inline void _hashMapPutPtr(
     }
     /* case 2: insert */
     else{
-        /* case 2a: no rehash */
-        //TODO HOW TO CHECK IF REHASH OCCURRED?
+        switch(_hashMapRehashIfNeeded(
+            hashMapPtr, 
+            slotSize
+        )){
+            /* case 2a: rehash */
+            case _hashMapRehash:
+                /* need to find new slot */
+                firstEmptySlotPtr = 
+                    _findEmptySlotToInsert(
+                        hashMapPtr->_hashFunc(
+                            keyPtr
+                        ),
+                        hashMapPtr->_ptr,
+                        hashMapPtr->_capacity,
+                        slotSize
+                    );
+                /* FALL THROUGH */
+            /* case 2b: no rehash */
+            case _hashMapNoRehash:
+                /* place key in empty slot */
+                memcpy(
+                    _getKeyPtr(firstEmptySlotPtr),
+                    keyPtr,
+                    keySize
+                );
+                /* place value in empty slot */
+                memcpy(
+                    _getValuePtr(
+                        firstEmptySlotPtr,
+                        keySize
+                    ),
+                    valuePtr,
+                    valueSize
+                );
+                /* set empty slot to occupied */
+                _setOccupied(firstEmptySlotPtr);
+                break;
+            /* case 2c: error */
+            case _hashMapError:
+                pgError(
+                    "failed to rehash; "
+                    SRC_LOCATION
+                );
+                break;
+        }
     }
 }
 
+#ifndef _DEBUG
 /*
- * putPtr
+ * Copies the specified value into the given
+ * hashmap of the specified key and value types
+ * and associates it with the given
+ * key, possibly replacing its previously
+ * associated value; previously created
+ * pointers into the hashmap may become
+ * invalidated should a rehash operation occur
+ */
+#define hashMapPutPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR, \
+    VALUEPTR \
+) \
+    _hashMapPutPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        VALUEPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        sizeof(KEYTYPENAME), \
+        sizeof(VALUETYPENAME) \
+    )
+#else
+/*
+ * Copies the specified value into the given
+ * hashmap of the specified key and value types
+ * and associates it with the given
+ * key, possibly replacing its previously
+ * associated value; previously created
+ * pointers into the hashmap may become
+ * invalidated should a rehash operation occur
+ */
+#define hashMapPutPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR, \
+    VALUEPTR \
+) \
+    _hashMapPutPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        VALUEPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        sizeof(KEYTYPENAME), \
+        sizeof(VALUETYPENAME), \
+        #KEYTYPENAME, \
+        #VALUETYPENAME \
+    )
+#endif
+
+/* 
+ * Hashmap put must be done via macro because it
+ * expects values not pointers.
+ */
+#ifndef _DEBUG
+
+#else
+/*
+ * Inserts the given value into the given
+ * hashmap of hte specified key and value types
+ * and associates it with the given key, possibly
+ * replacing its previously associated value;
+ * previously created pointers into the hashmap
+ * may become invalidated should a rehash
+ * operation occur
+ */
+#define hashMapPut(
+    KEYTYPENAME,
+    VALUETYPENAME,
+    HASHMAPPTR,
+    KEY,
+    VALUE
+)
+    do{
+        _hashMapPtrTypeCheck(
+            KEYTYPENAME,
+            VALUETYPENAME,
+            HASHMAPPTR
+        );
+        //todo: temp vars for K/V? need pointers
+    } while(false)
+#endif
+
+/*
  * put
  * remove (can remove all graves if new size 0)
  * valueApply
