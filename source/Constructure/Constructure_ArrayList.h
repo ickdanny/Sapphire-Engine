@@ -1026,14 +1026,14 @@ extern inline void *_arrayListBackPtr(
 
 /* 
  * Apply must be done via macro because
- * it expects values not pointers.
+ * it expects pointers of the array type
  */
 #ifndef _DEBUG
 /* 
  * Applies the given function to each element
  * of the given arraylist sequentially from 
  * index 0; the function takes a pointer of
- * the arraylist type.
+ * the arraylist type
  */
 #define arrayListApply( \
     TYPENAME, \
@@ -1059,7 +1059,7 @@ extern inline void *_arrayListBackPtr(
  * Applies the given function to each element
  * of the given arraylist sequentially from 
  * index 0; the function takes a pointer of
- * the arraylist type.
+ * the arraylist type
  */
 #define arrayListApply( \
     TYPENAME, \

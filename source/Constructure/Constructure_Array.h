@@ -329,7 +329,7 @@ extern inline void _arraySetPtr(
 
 /* 
  * Apply must be done via macro because
- * it expects values not pointers.
+ * it expects pointers of the arraylist type
  */
 #ifndef _DEBUG
 /* 

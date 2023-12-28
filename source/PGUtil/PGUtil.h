@@ -7,10 +7,13 @@
 /* Various other utility functions */
 
 /* 
- * Does pointer arithmetic on void pointers by casting
- * to char
+ * Does pointer arithmetic on void pointers by
+ * casting to char
  */
-extern inline void *voidPtrAdd(void *voidPtr, int offset){
+extern inline void *voidPtrAdd(
+    void *voidPtr, 
+    int offset
+){
     return ((char *)voidPtr) + offset;
 }
 
