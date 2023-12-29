@@ -46,6 +46,13 @@ int main(){
         hashMapHasKeyPtr(int, char, &map, &a),
         "should now have such a value"
     );
+    assertTrue(
+        hashMapHasKey(int, char, &map, a),
+        "testing value passing"
+    );
+
+    hashMapClear(int, char, &map);
+    assertTrue(hashMapIsEmpty(&map), "should be cleared");
 
     hashMapFree(int, char, &map);
     assertTrue(hashMapIsEmpty(&map), "should be freed");

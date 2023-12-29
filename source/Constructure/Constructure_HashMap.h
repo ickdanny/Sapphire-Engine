@@ -697,7 +697,7 @@ extern inline bool _hashMapHasKeyPtr(
         KEYTYPENAME, \
         VALUETYPENAME, \
         HASHMAPPTR, \
-        &(KEY) /* equals takes void* anyway */ \
+        &(KEYTYPENAME){KEY} \
     )
 
 /*
