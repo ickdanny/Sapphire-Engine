@@ -6,10 +6,14 @@
 #include "PGUtil_Error.h"
 
 /* 
- * Returns a pointer to a newly allocated block which holds
- * the specified number of items, each of the given size.
+ * Returns a pointer to a newly allocated block which 
+ * holds the specified number of items, each of the 
+ * given size
  */
-extern inline void *pgAlloc(size_t numItems, size_t size){
+extern inline void *pgAlloc(
+    size_t numItems, 
+    size_t size
+){
     assertTrue(numItems > 0, "numItems must be > 0");
     assertTrue(size > 0, "size must be > 0");
     void *toRet = calloc(numItems, size);
@@ -18,10 +22,10 @@ extern inline void *pgAlloc(size_t numItems, size_t size){
 }
 
 /*
- * Returns a pointer to a reallocated block which holds
- * the specified number of items, each of the given size,
- * having the same data as was previously held in the specified
- * pointer.
+ * Returns a pointer to a reallocated block which 
+ * holds the specified number of items, each of the 
+ * given size, having the same data as was previously 
+ * held in the specified pointer
  */
 extern inline void *pgRealloc(
     void *ptr, 

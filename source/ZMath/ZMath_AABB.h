@@ -21,7 +21,10 @@ extern inline AABB aabbCopy(const AABB toCopy){
 }
 
 /* Copies the AABB source into destination */
-extern inline void aabbCopyInto(AABB *destination, const AABB *source){
+extern inline void aabbCopyInto(
+    AABB *destination, 
+    const AABB *source
+){
     memcpy(destination, source, sizeof(*source));
 }
 
@@ -95,8 +98,14 @@ extern inline void aabbSetY(AABB *aabbPtr, float y){
     aabbPtr->yHigh = y;
 }
 
-/* Returns a new AABB from adding the given Point to the given AABB */
-extern inline AABB aabbCenterAt(const AABB *aabbPtr, Point center){
+/* 
+ * Returns a new AABB from adding the given Point to 
+ * the given AABB 
+ */
+extern inline AABB aabbCenterAt(
+    const AABB *aabbPtr, 
+    Point center
+){
     AABB toRet = {0};
     aabbCopyInto(&toRet, aabbPtr);
     toRet.xLow += center.x;
@@ -106,21 +115,37 @@ extern inline AABB aabbCenterAt(const AABB *aabbPtr, Point center){
     return toRet;
 }
 
-/* Returns true if the given AABBs intersect, false otherwise */
-extern inline bool aabbCollides(const AABB *aabb1Ptr, const AABB *aabb2Ptr){
+/* 
+ * Returns true if the given AABBs intersect, 
+ * false otherwise 
+ */
+extern inline bool aabbCollides(
+    const AABB *aabb1Ptr, 
+    const AABB *aabb2Ptr
+){
     return aabb1Ptr->xLow <= aabb2Ptr->xHigh
         && aabb1Ptr->xHigh >= aabb2Ptr->xLow
         && aabb1Ptr->yLow <= aabb2Ptr->yHigh
         && aabb1Ptr->yHigh >= aabb2Ptr->yLow;
 }
 
-/* Returns a new AABB which is the smallest AABB containing both given AABBs */
-extern inline AABB aabbMakeEncompassing(const AABB *aabb1Ptr, const AABB *aabb2Ptr){
+/* 
+ * Returns a new AABB which is the smallest AABB 
+ * containing both given AABBs 
+ */
+extern inline AABB aabbMakeEncompassing(
+    const AABB *aabb1Ptr, 
+    const AABB *aabb2Ptr
+){
     AABB toRet = {0};
-    toRet.xLow = fminf(aabb1Ptr->xLow, aabb2Ptr->xLow);
-    toRet.xHigh = fmaxf(aabb1Ptr->xHigh, aabb2Ptr->xHigh);
-    toRet.yLow = fminf(aabb1Ptr->yLow, aabb2Ptr->yLow);
-    toRet.yHigh = fmaxf(aabb1Ptr->yHigh, aabb2Ptr->yHigh);
+    toRet.xLow 
+        = fminf(aabb1Ptr->xLow, aabb2Ptr->xLow);
+    toRet.xHigh 
+        = fmaxf(aabb1Ptr->xHigh, aabb2Ptr->xHigh);
+    toRet.yLow 
+        = fminf(aabb1Ptr->yLow, aabb2Ptr->yLow);
+    toRet.yHigh 
+        = fmaxf(aabb1Ptr->yHigh, aabb2Ptr->yHigh);
     return toRet;
 }
 

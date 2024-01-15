@@ -5,17 +5,18 @@
 
 #include "ZMath_Constants.h"
 
-/* The minimum value of angle representations inclusive */
+/* The min value of angle representations inclusive */
 #define z_minAngle 0.0f
 
-/* The maximum value of angle representations exclusive */
+/* The max value of angle representations exclusive */
 #define z_maxAngle 360.0f
 
 /* The range of possible values of angles */
 #define z_angleRange ((z_maxAngle) - (z_minAngle))
 
-/* The value of the angle which is halfway from min and max */
-#define z_halfAngle ((z_minAngle) + ((z_angleRange) / 2.0f))
+/* The value of the angle halfway from min and max */
+#define z_halfAngle ((z_minAngle) + ((z_angleRange) \
+    / 2.0f))
 
 /* Converts radians to degrees */
 extern inline float toDegrees(float radians){
@@ -39,8 +40,14 @@ extern inline float angleMod(float angle){
     return angle;
 }
 
-/* Returns the smaller angle between the two given angles */
-extern inline float angleSmallerDifference(float from, float to){
+/* 
+ * Returns the smaller angle between the two 
+ * given angles 
+ */
+extern inline float angleSmallerDifference(
+    float from, 
+    float to
+){
     float difference = from - to;
     if(difference > z_halfAngle){
         return -(z_maxAngle - difference);
@@ -51,13 +58,23 @@ extern inline float angleSmallerDifference(float from, float to){
     return difference;
 }
 
-/* Returns the larger angle between the two given angles */
-extern inline float angleLargerDifference(float from, float to){
+/* 
+ * Returns the larger angle between the two 
+ * given angles 
+ */
+extern inline float angleLargerDifference(
+    float from, 
+    float to
+){
     float difference = from - to;
-    if (difference < z_halfAngle && difference >= z_minAngle) {
+    if (difference < z_halfAngle 
+        && difference >= z_minAngle
+    ){
 		return -(z_maxAngle - difference);
 	}
-	if (difference > -z_halfAngle && difference <= z_minAngle) {
+	if (difference > -z_halfAngle 
+        && difference <= z_minAngle
+    ){
 		return z_maxAngle + difference;
 	}
 	return difference;
@@ -79,12 +96,18 @@ extern inline float angleNegate(float angle){
 }
 
 /* Adds the two given angles together */
-extern inline float angleAdd(float angle1, float angle2){
+extern inline float angleAdd(
+    float angle1, 
+    float angle2
+){
     return angleMod(angle1 + angle2);
 }
 
 /* Subtracts the second angle from the first */
-extern inline float angleSubtract(float angle1, float angle2){
+extern inline float angleSubtract(
+    float angle1, 
+    float angle2
+){
     return angleMod(angle1 - angle2);
 }
 

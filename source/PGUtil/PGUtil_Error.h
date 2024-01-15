@@ -55,8 +55,8 @@ extern inline void assertFalse(
 #define assertNotZero assertTrue
 
 /* 
- * Asserts that the given pointer is not null, printing
- * the given error message otherwise
+ * Asserts that the given pointer is not null, 
+ * printing the given error message otherwise
  */
 #define assertNotNull assertTrue
 

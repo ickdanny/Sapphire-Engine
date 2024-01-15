@@ -245,7 +245,10 @@ extern inline void _arraySetPtr(
 
     /* memcpy safe; elements shouldn't overlap */
     memcpy(
-        voidPtrAdd(arrayPtr->_ptr, index * elementSize),
+        voidPtrAdd(
+            arrayPtr->_ptr, 
+            index * elementSize
+        ),
         elementPtr,
         elementSize
     );

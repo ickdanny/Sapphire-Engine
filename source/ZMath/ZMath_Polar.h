@@ -19,19 +19,30 @@ extern inline Polar polarCopy(Polar toCopy){
 }
 
 /* Copies the Polar source into destination */
-extern inline void polarCopyInto(Polar *destination, const Polar *source){
+extern inline void polarCopyInto(
+    Polar *destination, 
+    const Polar *source
+){
     memcpy(destination, source, sizeof(*source));
 }
 
-/* Updates the internal Cartesian representation of the given Polar */
-extern inline void _polarUpdateVector(Polar *polarPtr){
+/* 
+ * Updates the internal Cartesian representation of 
+ * the given Polar 
+ */
+extern inline void _polarUpdateVector(
+    Polar *polarPtr
+){
     float radians = toRadians(polarPtr->angle);
     float magnitude = polarPtr->magnitude;
     polarPtr->asVector.x = magnitude * cosf(radians);
     polarPtr->asVector.y = -magnitude * sinf(radians);
 }
 
-/* Constructs a new Polar from a given Cartesian Vector */
+/* 
+ * Constructs a new Polar from a given 
+ * Cartesian Vector 
+ */
 extern inline Polar polarFromVector(Vector vector){
     Polar toRet = {0};
     toRet.magnitude = vectorMagnitude(vector);
@@ -50,18 +61,27 @@ extern inline void polarSetMagnitude(
 }
 
 /* Sets the angle of the given Polar in degrees*/
-extern inline void polarSetAngle(Polar *polarPtr, float angle){
+extern inline void polarSetAngle(
+    Polar *polarPtr, 
+    float angle
+){
     polarPtr->angle = angle;
     _polarUpdateVector(polarPtr);
 }
 
 /* Flips the given Polar halfway around */
 extern inline Polar polarNegate(Polar polar){
-    polarSetAngle(&polar, angleAdd(polar.angle, z_halfAngle));
+    polarSetAngle(
+        &polar, 
+        angleAdd(polar.angle, z_halfAngle)
+    );
     return polar;
 }
 
-/* Returns the Cartesian representation of the given Polar */
+/* 
+ * Returns the Cartesian representation of the 
+ * given Polar 
+ */
 extern inline Vector polarToVector(Polar *polarPtr){
     return polarPtr->asVector;
 }
