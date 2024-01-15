@@ -55,9 +55,9 @@ typedef struct HashMap{
 
     /*
      * A function pointer to the equals function to
-     * be used - equals functions must accept void*
-     * and return bool, and moreover must agree
-     * with the given hash function
+     * be used - equals functions must accept two
+     * void* and return bool, and moreover must 
+     * agree with the given hash function
      */
     bool (*_equalsFunc)(const void *, const void *);
 
@@ -750,12 +750,12 @@ extern inline void *_hashMapGetPtr(
     HASHMAPPTR, \
     KEYPTR \
 ) \
-    _hashMapGetPtr( \
+    ((VALUETYPENAME*)(_hashMapGetPtr( \
         HASHMAPPTR, \
         KEYPTR, \
         _slotSize(KEYTYPENAME, VALUETYPENAME), \
         sizeof(KEYTYPENAME) \
-    )
+    )))
 #else
 /*
  * Returns a pointer to the value associated
@@ -769,15 +769,34 @@ extern inline void *_hashMapGetPtr(
     HASHMAPPTR, \
     KEYPTR \
 ) \
-    _hashMapGetPtr( \
+    ((VALUETYPENAME*)(_hashMapGetPtr( \
         HASHMAPPTR, \
         KEYPTR, \
         _slotSize(KEYTYPENAME, VALUETYPENAME), \
         sizeof(KEYTYPENAME), \
         #KEYTYPENAME, \
         #VALUETYPENAME \
-    )
+    )))
 #endif
+
+/*
+ * Returns the value associated with the given
+ * key in the given hashmap of the specified key
+ * and value types or returns NULL if no such 
+ * value exists
+ */
+#define hashMapGet( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEY \
+) \
+    (*(hashMapGetPtr( \
+        KEYTYPENAME, \
+        VALUETYPENAME, \
+        HASHMAPPTR, \
+        &(KEYTYPENAME){KEY} \
+    )))
 
 /*
  * Copies the specified value into the given
@@ -955,13 +974,6 @@ extern inline void _hashMapPutPtr(
     )
 #endif
 
-/* 
- * Hashmap put must be done via macro because it
- * expects values not pointers.
- */
-#ifndef _DEBUG
-//TODO NOT DEBUG VERSION
-#else
 /*
  * Inserts the given value into the given
  * hashmap of the specified key and value types
@@ -975,174 +987,16 @@ extern inline void _hashMapPutPtr(
     KEYTYPENAME, \
     VALUETYPENAME, \
     HASHMAPPTR, \
-    KEY_OR_KEYPTR, \
+    KEY, \
     VALUE \
 ) \
-    do{ \
-        _hashMapPtrTypeCheck( \
-            KEYTYPENAME, \
-            VALUETYPENAME, \
-            HASHMAPPTR \
-        ); \
-        const KEYTYPENAME key; \
-        const KEYTYPENAME *keyPtr; \
-        switch(_Generic((KEY_OR_KEYPTR), \
-            KEYTYPENAME: 0u, \
-            KEYTYPENAME*: 1u, \
-            default: 2u \
-        )){ \
-            case 0u: \
-                key = KEY_OR_KEYPTR; \
-                keyPtr = &key; \
-                break; \
-            case 1u: \
-                keyPtr = KEY_OR_KEYPTR; \
-                break; \
-            default: \
-                pgError( \
-                    "default case in put; " \
-                    SRC_LOCATION \
-                ); \
-                break; \
-        } \
-        size_t slotSize = _slotSize( \
-            KEYTYPENAME, \
-            VALUETYPENAME \
-        ); \
-        size_t keySize = sizeof(KEYTYPENAME); \
-        void *firstEmptySlotPtr = NULL; \
-        void *slotPtr = _findSlotOfKey( \
-            HASHMAPPTR, \
-            keyPtr, \
-            slotSize, \
-            &firstEmptySlotPtr \
-        ); \
-        /* case 1: replace */ \
-        if(_isOccupied(slotPtr)){ \
-            /* \
-             * case 1a: replace value in \
-             * place \
-             */ \
-            if(!firstEmptySlotPtr){ \
-                *((VALUETYPENAME *) \
-                    _getValuePtr( \
-                        slotPtr, \
-                        keySize \
-                    ) \
-                ) = VALUE; \
-            } \
-            /*  \
-             * case 1b: replace in earlier \
-             * slot \
-             */ \
-            else{ \
-                /* \
-                 * set previous slot to \
-                 * grave \
-                 */ \
-                memset(slotPtr, 0, slotSize); \
-                _setGrave(slotPtr); \
-                /* \
-                 * place key in earlier \
-                 * slot \
-                 */ \
-                memcpy( \
-                    _getKeyPtr( \
-                        firstEmptySlotPtr \
-                    ), \
-                    keyPtr, \
-                    keySize \
-                ); \
-                /* \
-                 * place value in earlier \
-                 * slot \
-                 */ \
-                *((VALUETYPENAME *) \
-                    _getValuePtr( \
-                        firstEmptySlotPtr, \
-                        keySize \
-                    ) \
-                ) = VALUE; \
-                /* \
-                 * set earlier slot to \
-                 * occupied \
-                 */ \
-                _setOccupied( \
-                    firstEmptySlotPtr \
-                ); \
-            } \
-        } \
-        /* case 2: insert */ \
-        else{ \
-            switch(_hashMapRehashIfNeeded( \
-                HASHMAPPTR, \
-                slotSize \
-            )){ \
-                /* case 2a: rehash */ \
-                case _hashMapRehash \
-                    /* need to find new slot */ \
-                    firstEmptySlotPtr = \
-                        _findEmptySlotToInsert( \
-                            HASHMAPPTR \
-                                ->_hashFunc( \
-                                    keyPtr \
-                                ), \
-                            HASHMAPPTR \
-                                ->_ptr, \
-                            HASHMAPPTR \
-                                ->_capacity, \
-                            slotSize \
-                        ); \
-                    /* FALL THROUGH */ \
-                /* case 2b: no rehash */ \
-                case _hashMapNoRehash: \
-                    /* \
-                     * place key in empty \
-                     * slot \
-                     */ \
-                    memcpy( \
-                        _getKeyPtr( \
-                            firstEmptySlotPtr \
-                        ), \
-                        keyPtr, \
-                        keySize \
-                    ); \
-                    /* \
-                     * place value in empty \
-                     * slot \
-                     */ \
-                    *((VALUETYPENAME *) \
-                        _getValuePtr( \
-                            firstEmptySlotPtr, \
-                            keySize \
-                        ) \
-                    ) = VALUE; \
-                    /* \
-                     * set empty slot to \
-                     * occupied \
-                     */ \
-                    _setOccupied( \
-                        firstEmptySlotPtr \
-                    ); \
-                    /* \
-                     * increase size and touch \
-                     * count \
-                     */ \
-                    ++((HASHMAPPTR)->size); \
-                    ++((HASHMAPPTR) \
-                        ->_touchedCount); \
-                    break; \
-                /* case 2c: error */ \
-                case _hashMapError: \
-                    pgError( \
-                        "failed to rehash; " \
-                        SRC_LOCATION \
-                    ); \
-                    break; \
-            } \
-        } \
-    } while(false)
-#endif
+    hashMapPutPtr( \
+        KEYTYPENAME, \
+        VALUETYPENAME, \
+        HASHMAPPTR, \
+        &(KEYTYPENAME){KEY}, \
+        &(VALUETYPENAME){VALUE} \
+    )
 
 /*
  * Removes the value associated with the given
@@ -1233,6 +1087,24 @@ extern inline void _hashMapRemovePtr(
 #endif
 
 /*
+ * Removes the value associated with the given
+ * key from the given hashmap of the specified
+ * key and value types if such a value exists.
+ */
+#define hashMapRemove( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEY \
+) \
+    hashMapRemovePtr( \
+        KEYTYPENAME, \
+        VALUETYPENAME, \
+        HASHMAPPTR, \
+        &(KEYTYPENAME){KEY} \
+    )
+
+/*
  * Apply must be done via macro because
  * it expects pointers of the value type
  */
@@ -1291,8 +1163,9 @@ extern inline void _hashMapRemovePtr(
 ) \
     do{ \
         _hashMapPtrTypeCheck( \
-            KEYTYPENAME, \
-            VALUETYPENAME \
+            #KEYTYPENAME, \
+            #VALUETYPENAME, \
+            HASHMAPPTR \
         ); \
         size_t slotSize = _slotSize( \
             KEYTYPENAME, \

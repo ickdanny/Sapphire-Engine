@@ -24,6 +24,10 @@ bool intEquals(const void *intPtr1, const void *intPtr2){
     return *((int*)intPtr1) == *((int*)intPtr2);
 }
 
+void incrementChar(char *c){
+    ++(*c);
+}
+
 int main(){
     HashMap map = hashMapMake(
         int, char, 
@@ -49,6 +53,34 @@ int main(){
     assertTrue(
         hashMapHasKey(int, char, &map, a),
         "testing value passing"
+    );
+    assertFalse(
+        hashMapHasKey(int, char, &map, 3),
+        "should fail to find"
+    );
+
+    assertTrue(
+        z == *hashMapGetPtr(int, char, &map, &a),
+        "should get z"
+    );
+
+    hashMapPut(int, char, &map, 12, 'b');
+
+    assertTrue(
+        'b' == hashMapGet(int, char, &map, 12),
+        "should get b"
+    );
+
+    hashMapApply(int, char, &map, incrementChar);
+    assertTrue(
+        'c' == hashMapGet(int, char, &map, 12),
+        "should get c"
+    );
+
+    hashMapRemove(int, char, &map, a);
+    assertFalse(
+        hashMapHasKey(int, char, &map, a),
+        "should not have such a value anymore"
     );
 
     hashMapClear(int, char, &map);
