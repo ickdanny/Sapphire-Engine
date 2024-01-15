@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <wchar.h>
+#include <limits.h>
+#include <time.h>
 
 #include "ZMath.h"
 #include "Constructure.h"
@@ -24,70 +26,36 @@ bool intEquals(const void *intPtr1, const void *intPtr2){
     return *((int*)intPtr1) == *((int*)intPtr2);
 }
 
-void incrementChar(char *c){
-    ++(*c);
-}
+#define intToLong(i) ((long)i)
 
 int main(){
     HashMap map = hashMapMake(
-        int, char, 
+        int, long, 
         1, 
         intHash, 
         intEquals
     );
 
-    assertTrue(hashMapIsEmpty(&map), "should be empty");
-    
-    int a = 8;
-    char z = 'z';
-    assertFalse(
-        hashMapHasKeyPtr(int, char, &map, &a),
-        "should not have such a value"
-    );
+    srand(0);
 
-    hashMapPutPtr(int, char, &map, &a, &z);
-    assertTrue(
-        hashMapHasKeyPtr(int, char, &map, &a),
-        "should now have such a value"
-    );
-    assertTrue(
-        hashMapHasKey(int, char, &map, a),
-        "testing value passing"
-    );
-    assertFalse(
-        hashMapHasKey(int, char, &map, 3),
-        "should fail to find"
-    );
+    int randomInt;
+    for(int i = 0; i < 2000; ++i){
+        randomInt = rand();
+        hashMapPut(int, long, &map, randomInt, 
+            intToLong(randomInt));
+    }
+    clock_t start = clock();
+    for(int i = 0; i < INT_MAX; ++i){
+        hashMapHasKey(int, long, &map, i);
+    }
+    clock_t end = clock();
+    double time = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("time: %lf\n", time);
+    printf("time per check: %lf\n", time / INT_MAX);
 
-    assertTrue(
-        z == *hashMapGetPtr(int, char, &map, &a),
-        "should get z"
-    );
-
-    hashMapPut(int, char, &map, 12, 'b');
-
-    assertTrue(
-        'b' == hashMapGet(int, char, &map, 12),
-        "should get b"
-    );
-
-    hashMapApply(int, char, &map, incrementChar);
-    assertTrue(
-        'c' == hashMapGet(int, char, &map, 12),
-        "should get c"
-    );
-
-    hashMapRemove(int, char, &map, a);
-    assertFalse(
-        hashMapHasKey(int, char, &map, a),
-        "should not have such a value anymore"
-    );
-
-    hashMapClear(int, char, &map);
-    assertTrue(hashMapIsEmpty(&map), "should be cleared");
-
-    hashMapFree(int, char, &map);
-    assertTrue(hashMapIsEmpty(&map), "should be freed");
+    hashMapFree(int, long, &map);
+    assertTrue(hashMapIsEmpty(&map), 
+        "should be freed");
 
     printf("completed main!\n");
     return 0;

@@ -607,6 +607,9 @@ extern inline void *_findSlotOfKey(
      * finding an untouched slot means there is
      * no such element; return NULL in this case
      */
+    if(!firstEmptySlotPtr){
+        firstEmptySlotPtr = slotPtr;
+    }
     if(firstEmptySlotPtrPtr){
         *firstEmptySlotPtrPtr 
             = firstEmptySlotPtr;
@@ -782,8 +785,8 @@ extern inline void *_hashMapGetPtr(
 /*
  * Returns the value associated with the given
  * key in the given hashmap of the specified key
- * and value types or returns NULL if no such 
- * value exists
+ * and value types; will cause an error if there
+ * is no such value
  */
 #define hashMapGet( \
     KEYTYPENAME, \
