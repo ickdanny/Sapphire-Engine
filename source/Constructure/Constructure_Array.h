@@ -297,7 +297,7 @@ extern inline void _arraySetPtr(
 
 /* 
  * Array setting must be done via macro because
- * it expects values not pointers.
+ * it expects values not pointers
  */
 #ifndef _DEBUG
 /* 

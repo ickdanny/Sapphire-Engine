@@ -1,6 +1,8 @@
 #ifndef CONSTRUCTURE_SPARSESET_H
 #define CONSTRUCTURE_SPARSESET_H
 
+#include <limits.h> /* for UINT_MAX */
+
 #include "PGUtil.h"
 
 /* A sparse set maps size_t to elements */
@@ -8,7 +10,14 @@ typedef struct SparseSet{
     /* UINT_MAX will signal invalid index */
     size_t *_sparsePtr;
     void *_densePtr;
-    size_t size;
+    size_t capacity;
+    size_t _size;
+
+    /* 
+     * This type will not include a denseToSparse
+     * array; one can achieve the same effect via
+     * a sparse set of size_t
+     */
 
     #ifdef _DEBUG
     /* 
@@ -34,36 +43,37 @@ typedef struct SparseSet{
 
 /* Creates a sparse set and returns it by value */
 extern inline SparseSet _sparseSetMake(
-    size_t size,
+    size_t capacity,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
 ){
     assertTrue(
-        size > 0u, 
-        "size cannot be 0; " SRC_LOCATION
+        capacity > 0u, 
+        "capacity cannot be 0; " SRC_LOCATION
     );
     SparseSet toRet = {0};
 
     /* init sparse to invalid */
     toRet._sparsePtr = pgAlloc(
-        size, 
+        capacity, 
         sizeof(size_t)
     );
     memset(
         toRet._sparsePtr, 
         0xFF, 
-        size * sizeof(size_t)
+        capacity * sizeof(size_t)
     );
 
     /* allocate dense */
     toRet._densePtr = pgAlloc(
-        size,
+        capacity,
         elementSize
     );
 
-    toRet.size = size;
+    toRet.capacity = capacity;
+    toRet._size = 0u;
 
     #ifdef _DEBUG
     toRet._typeName = typeName;
@@ -104,13 +114,14 @@ extern inline SparseSet _sparseSetCopy(
     #endif
 
     SparseSet toRet = {0};
-    toRet.size = toCopyPtr->size;
+    toRet.capacity = toCopyPtr->capacity;
+    toRet._size = toCopyPtr->_size;
     toRet._sparsePtr = pgAlloc(
-        toRet.size,
+        toRet.capacity,
         sizeof(size_t)
     );
     toRet._densePtr = pgAlloc(
-        toRet.size,
+        toRet.capacity,
         elementSize
     );
 
@@ -118,12 +129,12 @@ extern inline SparseSet _sparseSetCopy(
     memcpy(
         toRet._sparsePtr,
         toCopyPtr->_sparsePtr,
-        toRet.size * sizeof(size_t)
+        toRet.capacity * sizeof(size_t)
     );
     memcpy(
         toRet._densePtr,
         toCopyPtr->_densePtr,
-        toRet.size * elementSize
+        toRet.capacity * elementSize
     );
 
     #ifdef _DEBUG
@@ -175,15 +186,17 @@ extern inline void _sparseSetClear(
     memset(
         setPtr->_sparsePtr, 
         0xFF, 
-        setPtr->size * sizeof(size_t)
+        setPtr->capacity * sizeof(size_t)
     );
 
     /* clear dense */
     memset(
         setPtr->_densePtr,
         0,
-        setPtr->size * elementSize
+        setPtr->capacity * elementSize
     );
+
+    setPtr->_size = 0u;
 }
 
 #ifndef _DEBUG
@@ -206,15 +219,174 @@ extern inline void _sparseSetClear(
     )
 #endif
 
+/* 
+ * Returns true if the given sparse set contains an
+ * element associated with the specified index,
+ * false otherwise
+ */
+extern inline bool _sparseSetContains(
+    const SparseSet *setPtr,
+    size_t sparseIndex
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _sparseSetPtrTypeCheck(typeName, setPtr);
+    #endif
+
+    return sparseIndex < setPtr->capacity
+        && setPtr->_sparsePtr[sparseIndex] 
+            != UINT_MAX;
+}
+
+#ifndef _DEBUG
+/* 
+ * Returns true if the given sparse set of the
+ * specified type contains an element associated
+ * with the specified index, false otherwise
+ */
+#define sparseSetContains( \
+    TYPENAME, \
+    SETPTR, \
+    SPARSEINDEX \
+) \
+    _sparseSetContains(SETPTR, SPARSEINDEX)
+#else
+/* 
+ * Returns true if the given sparse set of the
+ * specified type contains an element associated
+ * with the specified index, false otherwise
+ */
+#define sparseSetContains( \
+    TYPENAME, \
+    SETPTR, \
+    SPARSEINDEX \
+) \
+    _sparseSetContains(SETPTR, SPARSEINDEX, #TYPENAME)
+#endif
+
+/* 
+ * Copies the specified value into the element 
+ * associated with the given index in the given
+ * sparse set
+ */
+extern inline void _sparseSetSetPtr(
+    SparseSet *setPtr,
+    size_t sparseIndex,
+    void *valuePtr,
+    size_t elementSize
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _sparseSetPtrTypeCheck(typeName, setPtr);
+    #endif
+
+    /* error if bad index*/
+    assertTrue(
+        sparseIndex < setPtr->capacity,
+        "bad index; " SRC_LOCATION
+    );
+
+    /* copy the value into dense */
+    /* memcpy safe; elements shouldn't overlap */
+    memcpy(
+        voidPtrAdd(
+            setPtr->_densePtr,
+            elementSize * setPtr->_size
+        ),
+        valuePtr, 
+        elementSize
+    );
+    
+    /* set sparse */
+    setPtr->_sparsePtr[sparseIndex] = setPtr->_size;
+    ++(setPtr->_size);
+}
+
+#ifndef _DEBUG
+/* 
+ * Copies the specified value into the element 
+ * associated with the given index in the given
+ * sparse set of the specified type
+ */
+#define sparseSetSetPtr( \
+    TYPENAME, \
+    SETPTR, \
+    SPARSEINDEX, \
+    VALUEPTR \
+) \
+    _Generic(*ELEMENTPTR, \
+        TYPENAME: _sparseSetSetPtr( \
+            SETPTR, \
+            SPARSEINDEX, \
+            VALUEPTR, \
+            sizeof(TYPENAME) \
+        ) \
+    )
+#else
+/* 
+ * Copies the specified value into the element 
+ * associated with the given index in the given
+ * sparse set of the specified type
+ */
+#define sparseSetSetPtr( \
+    TYPENAME, \
+    SETPTR, \
+    SPARSEINDEX, \
+    VALUEPTR \
+) \
+    _Generic(*ELEMENTPTR, \
+        TYPENAME: _sparseSetSetPtr( \
+            SETPTR, \
+            SPARSEINDEX, \
+            VALUEPTR, \
+            sizeof(TYPENAME), \
+            #TYPENAME \
+        ) \
+    )
+#endif
+
+/* 
+ * Sparse set setting must be done via macro because
+ * it expects values not pointers
+ */
+
 /*
- * contains
  * set
- * setPtr
  * get
  * getPtr
  * remove
  * iteration somehow
- * free
  */
+
+/* Frees the given sparse set */
+extern inline void _sparseSetFree(
+    SparseSet *setPtr
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _sparseSetPtrTypeCheck(typeName, setPtr);
+    #endif
+
+    pgFree(setPtr->_sparsePtr);
+    pgFree(setPtr->_densePtr);
+    setPtr->capacity = 0u;
+    setPtr->_size = 0u;
+}
+
+#ifndef _DEBUG
+/* Frees the given sparse set of the specified type */
+#define sparseSetFree(TYPENAME, SETPTR) \
+    _sparseSetFree(SETPTR)
+#else
+/* Frees the given sparse set of the specified type */
+#define sparseSetFree(TYPENAME, SETPTR) \
+    _sparseSetFree(SETPTR, #TYPENAME)
+#endif
 
 #endif
