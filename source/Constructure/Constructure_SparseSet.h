@@ -1,8 +1,6 @@
 #ifndef CONSTRUCTURE_SPARSESET_H
 #define CONSTRUCTURE_SPARSESET_H
 
-#include <limits.h> /* for UINT_MAX */
-
 #include "PGUtil.h"
 
 /* max size_t will signal invalid index */
@@ -840,7 +838,7 @@ extern inline void _sparseSetFree(
     pgFree(setPtr->_sparsePtr);
     pgFree(setPtr->_densePtr);
     pgFree(setPtr->_reflectPtr);
-    
+
     setPtr->capacity = 0u;
     setPtr->_size = 0u;
 }
