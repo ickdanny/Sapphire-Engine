@@ -5,8 +5,8 @@
 
 #include "PGUtil.h"
 
-/* UINT_MAX will signal invalid index */
-#define invalidSparseIndex UINT_MAX
+/* max size_t will signal invalid index */
+#define invalidSparseIndex (~((size_t)0u))
 
 /* A sparse set maps size_t to elements */
 typedef struct SparseSet{
@@ -36,6 +36,16 @@ typedef struct SparseSet{
         TYPENAME, \
         (SETPTR)->_typeName, \
         "bad sparse set type; " SRC_LOCATION \
+    )
+/*
+ * Asserts that the given type matches that of the 
+ * given sparse set iterator pointer
+ */
+#define _sparseSetItrPtrTypeCheck(TYPENAME, ITRPTR) \
+    assertStringEqual( \
+        TYPENAME, \
+        (ITRPTR)->_typeName, \
+        "bad sparse set itr type; " SRC_LOCATION \
     )
 #endif
 
@@ -443,7 +453,7 @@ extern inline void _sparseSetSetPtr(
     SPARSEINDEX, \
     VALUEPTR \
 ) \
-    _Generic(*ELEMENTPTR, \
+    _Generic(*VALUEPTR, \
         TYPENAME: _sparseSetSetPtr( \
             SETPTR, \
             SPARSEINDEX, \
@@ -472,14 +482,14 @@ extern inline void _sparseSetSetPtr(
 ) \
     do{ \
         assertTrue( \
-            SPARSEINDEX < setPtr->capacity, \
+            SPARSEINDEX < (SETPTR)->capacity, \
             "bad index; " SRC_LOCATION \
-        ) \
+        ); \
         ((TYPENAME *)((SETPTR)->_densePtr))[ \
             (SETPTR)->_size \
         ] = VALUE; \
         (SETPTR)->_reflectPtr[(SETPTR)->_size] \
-            = (SPARSEINDEX) \
+            = (SPARSEINDEX); \
         (SETPTR)->_sparsePtr[SPARSEINDEX] \
             = (SETPTR)->_size; \
         ++((SETPTR)->_size); \
@@ -499,14 +509,14 @@ extern inline void _sparseSetSetPtr(
     do{ \
         _sparseSetPtrTypeCheck(#TYPENAME, SETPTR); \
         assertTrue( \
-            SPARSEINDEX < setPtr->capacity, \
+            SPARSEINDEX < (SETPTR)->capacity, \
             "bad index; " SRC_LOCATION \
-        ) \
+        ); \
         ((TYPENAME *)((SETPTR)->_densePtr))[ \
             (SETPTR)->_size \
         ] = VALUE; \
         (SETPTR)->_reflectPtr[(SETPTR)->_size] \
-            = (SPARSEINDEX) \
+            = (SPARSEINDEX); \
         (SETPTR)->_sparsePtr[SPARSEINDEX] \
             = (SETPTR)->_size; \
         ++((SETPTR)->_size); \
@@ -555,11 +565,11 @@ extern inline bool _sparseSetRemove(
         memcpy(
             voidPtrAdd(
                 setPtr->_densePtr,
-                denseIndex
+                denseIndex * elementSize
             ),
             voidPtrAdd(
                 setPtr->_densePtr,
-                setPtr->_size
+                setPtr->_size * elementSize
             ),
             elementSize
         );
@@ -618,9 +628,9 @@ extern inline bool _sparseSetRemove(
  */
 typedef struct SparseSetItr{
     /* Itr owns none of these; no need to free */
-    const void *_densePtr;
-    const size_t *_reflectPtr;
-    const size_t _size;
+    void *_densePtr;
+    size_t *_reflectPtr;
+    size_t _size;
     size_t _currentIndex;
 
     #ifdef _DEBUG
@@ -667,7 +677,6 @@ extern inline SparseSetItr _sparseSetItr(
     _sparseSetItr(SETPTR, #TYPENAME)
 #endif
 
-//todo: iterator functionality
 /*
  * Returns true if the given iterator has a next
  * element, false otherwise
@@ -679,12 +688,143 @@ extern inline bool _sparseSetItrHasNext(
     #endif
 ){
     #ifdef _DEBUG
-    //todo need a version to check the itr
-    _sparseSetPtrTypeCheck(typeName, setPtr);
+    _sparseSetItrPtrTypeCheck(typeName, itrPtr);
     #endif
 
     return itrPtr->_currentIndex < itrPtr->_size;
 }
+
+#ifndef _DEBUG
+/*
+ * Returns true if the given iterator of the specified
+ * type has a next element, false otherwise
+ */
+#define sparseSetItrHasNext(TYPENAME, ITRPTR) \
+    _sparseSetItrHasNext(ITRPTR)
+#else
+/*
+ * Returns true if the given iterator of the specified
+ * type has a next element, false otherwise
+ */
+#define sparseSetItrHasNext(TYPENAME, ITRPTR) \
+    _sparseSetItrHasNext(ITRPTR, #TYPENAME)
+#endif
+
+/*
+ * Returns a pointer to the next element from the
+ * given iterator, or NULL if no such element exists
+ */
+extern inline void *_sparseSetItrNextPtr(
+    SparseSetItr *itrPtr,
+    size_t elementSize
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _sparseSetItrPtrTypeCheck(typeName, itrPtr);
+    #endif
+
+    /* save a pointer to the current index if valid */
+    void *toRet = NULL;
+    if(itrPtr->_currentIndex < itrPtr->_size){
+        toRet = voidPtrAdd(
+            itrPtr->_densePtr,
+            itrPtr->_currentIndex * elementSize
+        );
+    }
+    /* advance current index */
+    ++(itrPtr->_currentIndex);
+
+    return toRet;
+}
+
+#ifndef _DEBUG
+/*
+ * Returns a pointer to the next element from the
+ * given iterator of the specified type, or NULL if no
+ * such element exists
+ */
+#define sparseSetItrNextPtr(TYPENAME, ITRPTR) \
+    ((TYPENAME*)_sparseSetItrNextPtr( \
+        ITRPTR, \
+        sizeof(TYPENAME) \
+    ))
+#else
+/*
+ * Returns a pointer to the next element from the
+ * given iterator of the specified type, or NULL if no
+ * such element exists
+ */
+#define sparseSetItrNextPtr(TYPENAME, ITRPTR) \
+    ((TYPENAME*)_sparseSetItrNextPtr( \
+        ITRPTR, \
+        sizeof(TYPENAME), \
+        #TYPENAME \
+    ))
+#endif
+
+/*
+ * Returns the value of the next element from the
+ * given iterator of the specified type
+ */
+#define sparseSetItrNext(TYPENAME, ITRPTR) \
+    ( \
+        (TYPENAME) \
+        (*sparseSetItrNextPtr( \
+            TYPENAME, \
+            ITRPTR \
+        )) \
+    )
+
+/*
+ * Returns the sparse index of the previous element
+ * iterated over by the given iterator; returns
+ * the invalid index if no elements have been iterated
+ * over
+ */
+extern inline size_t _sparseSetItrIndex(
+    const SparseSetItr *itrPtr
+    #ifdef _DEBUG 
+    , const char *typeName 
+    #endif
+){
+    #ifdef _DEBUG
+    _sparseSetItrPtrTypeCheck(typeName, itrPtr);
+    #endif
+
+    /* 
+     * if current index is 0, we have not iterated
+     * over anything
+     */
+    if(!itrPtr->_currentIndex){
+        return invalidSparseIndex;
+    }
+    /* return the previous element of reflect */
+    return itrPtr->_reflectPtr[
+        itrPtr->_currentIndex - 1
+    ];
+}
+
+#ifndef _DEBUG
+/*
+ * Returns the sparse index of the previous element
+ * iterated over by the given iterator of the
+ * specified type; returns the invalid index if no 
+ * elements have been iterated over
+ */
+#define sparseSetItrIndex(TYPENAME, ITRPTR) \
+    _sparseSetItrIndex(ITRPTR)
+#else
+/*
+ * Returns the sparse index of the previous element
+ * iterated over by the given iterator of the
+ * specified type; returns the invalid index if no 
+ * elements have been iterated over
+ */
+#define sparseSetItrIndex(TYPENAME, ITRPTR) \
+    _sparseSetItrIndex(ITRPTR, #TYPENAME)
+#endif
 
 /* Frees the given sparse set */
 extern inline void _sparseSetFree(
@@ -699,6 +839,8 @@ extern inline void _sparseSetFree(
 
     pgFree(setPtr->_sparsePtr);
     pgFree(setPtr->_densePtr);
+    pgFree(setPtr->_reflectPtr);
+    
     setPtr->capacity = 0u;
     setPtr->_size = 0u;
 }
