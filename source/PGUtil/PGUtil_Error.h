@@ -11,36 +11,22 @@
 #define SRC_LOCATION __FILE__ ":" TOSTRING(__LINE__)
 
 /* Prints the given error message */
-extern inline void pgError(const char *errorMsg){
-    fprintf(stderr, "%s\n", errorMsg);
-    exit(1);
-}
+void pgError(const char *errorMsg);
 
 /* 
  * Asserts that the given bool is true, printing the
  * given error message otherwise
  */
-extern inline void assertTrue(
-    bool assertion, 
-    const char *errorMsg
-){
-    if(!assertion){
-        pgError(errorMsg);
-    }
-}
+void assertTrue(bool assertion, const char *errorMsg);
 
 /*
  * Asserts that the given bool is false, printing the 
  * given error message otherwise 
  */
-extern inline void assertFalse(
+void assertFalse(
     bool assertion, 
     const char *errorMsg
-){
-    if(assertion){
-        pgError(errorMsg);
-    }
-}
+);
 
 /*
  * Asserts that the given value is zero, printing
@@ -70,12 +56,10 @@ extern inline void assertFalse(
  * Asserts that the two given strings are equal under
  * strcmp, printing the given error message otherwise
  */
-extern inline void assertStringEqual(
+void assertStringEqual(
     const char *str1, 
     const char *str2,
     const char *errorMsg
-){
-    assertFalse(strcmp(str1, str2), errorMsg);
-}
+);
 
 #endif
