@@ -35,29 +35,13 @@ typedef struct ArrayList{
 #endif
 
 /* Creates an arraylist and returns it by value */
-extern inline ArrayList _arrayListMake(
+ArrayList _arrayListMake(
     size_t initCapacity,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    assertTrue(
-        initCapacity > 0, 
-        "initCapacity cannot be 0; "
-        SRC_LOCATION
-    );
-    ArrayList toRet = {0};
-    toRet._capacity = initCapacity;
-    toRet._ptr = pgAlloc(initCapacity, elementSize);
-    toRet.size = 0u;
-
-    #ifdef _DEBUG
-    toRet._typeName = typeName;
-    #endif
-
-    return toRet;
-}
+);
 
 #ifndef _DEBUG
 /* 
@@ -83,38 +67,13 @@ extern inline ArrayList _arrayListMake(
  * Makes a one level deep copy of the given
  * arraylist and returns it by value
  */
-extern inline ArrayList _arrayListCopy(
+ArrayList _arrayListCopy(
     size_t elementSize,
     const ArrayList *toCopyPtr
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(typeName, toCopyPtr);
-    #endif
-
-    ArrayList toRet = {0};
-    toRet.size = toCopyPtr->size;
-    toRet._capacity = toCopyPtr->_capacity;
-    toRet._ptr = pgAlloc(
-        toRet._capacity, 
-        elementSize
-    );
-    /* may overflow */
-    memcpy(
-        toRet._ptr, 
-        toCopyPtr->_ptr, 
-        toRet._capacity * elementSize
-    );
-
-    #ifdef _DEBUG
-    /* safe to shallow copy; it is a literal */
-    toRet._typeName = toCopyPtr->_typeName;
-    #endif
-
-    return toRet;
-}
+);
 
 #ifndef _DEBUG
 /*
@@ -142,34 +101,18 @@ extern inline ArrayList _arrayListCopy(
  * Returns true if the given arraylist is empty,
  * false otherwise
  */
-extern inline bool arrayListIsEmpty(
+bool arrayListIsEmpty(
     const ArrayList *arrayListPtr
-){
-    return arrayListPtr->size == 0u;
-}
+);
 
 /* Removes all elements of the given arraylist */
-extern inline void _arrayListClear(
+void _arrayListClear(
     ArrayList *arrayListPtr,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    memset(
-        arrayListPtr->_ptr, 
-        0, 
-        arrayListPtr->_capacity * elementSize
-    );
-    arrayListPtr->size = 0u;
-}
+);
 
 #ifndef _DEBUG
 /* 
@@ -195,68 +138,23 @@ extern inline void _arrayListClear(
  * Grows the given arraylist if it is at capacity;
  * returns false as error code, true otherwise
  */
-extern inline bool _arrayListGrowIfNeeded(
+bool _arrayListGrowIfNeeded(
     ArrayList *arrayListPtr,
     size_t elementSize
-){
-    enum{ growRatio = 2u };
-
-    if(arrayListPtr->size 
-        == arrayListPtr->_capacity
-    ){
-        arrayListPtr->_capacity *= growRatio;
-        ++(arrayListPtr->_capacity);
-        arrayListPtr->_ptr = pgRealloc(
-            arrayListPtr->_ptr,
-            arrayListPtr->_capacity,
-            elementSize
-        );
-        if(!(arrayListPtr->_ptr)){
-            return false;
-        }
-    }
-    return true;  
-}
+);
 
 /* 
  * Pushes a copy of the specified element onto
  * the back of the given arraylist
  */
-extern inline void _arrayListPushBackPtr(
+void _arrayListPushBackPtr(
     ArrayList *arrayListPtr,
     const void *elementPtr,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertTrue(
-        _arrayListGrowIfNeeded(
-            arrayListPtr, 
-            elementSize
-        ),
-        "failed to grow for pushback; "
-        SRC_LOCATION
-    );
-
-    /* memcpy safe; elements shouldn't overlap */
-    memcpy(
-        voidPtrAdd(
-            arrayListPtr->_ptr, 
-            (arrayListPtr->size) * elementSize
-        ),
-        elementPtr,
-        elementSize
-    );
-    ++(arrayListPtr->size);
-}
+);
 
 #ifndef _DEBUG
 /* 
@@ -359,26 +257,12 @@ extern inline void _arrayListPushBackPtr(
  * Removes the back of the given arraylist; 
  * error if empty
  */
-extern inline void _arrayListPopBack(
+void _arrayListPopBack(
     ArrayList *arrayListPtr
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertFalse(
-        arrayListIsEmpty(arrayListPtr),
-        "empty in popback; " SRC_LOCATION
-    );
-
-    --(arrayListPtr->size);
-}
+);
 
 #ifndef _DEBUG
 /*
@@ -400,42 +284,14 @@ extern inline void _arrayListPopBack(
  * Erases the element of the given arraylist
  * at the given index
  */
-extern inline void _arrayListErase(
+void _arrayListErase(
     ArrayList *arrayListPtr,
     size_t index,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertTrue(
-        index < arrayListPtr->size,
-        "bad index; " SRC_LOCATION
-    );
-
-    --(arrayListPtr->size);
-
-    /* move all later elements 1 forward */
-    /* length is 0 if we remove back */
-    memmove(
-        voidPtrAdd(
-            arrayListPtr->_ptr, 
-            index * elementSize
-        ),
-        voidPtrAdd(
-            arrayListPtr->_ptr,
-            (index + 1) * elementSize
-        ),
-        (arrayListPtr->size - index) * elementSize
-    );  
-}
+);
 
 #ifndef _DEBUG
 /* 
@@ -474,30 +330,14 @@ extern inline void _arrayListErase(
  * Returns a pointer to the element of the given
  * arraylist at the given index
  */
-extern inline void *_arrayListGetPtr(
+void *_arrayListGetPtr(
     ArrayList *arrayListPtr,
     size_t index,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertTrue(
-        index < arrayListPtr->size,
-        "bad index; " SRC_LOCATION
-    );
-    return voidPtrAdd(
-        arrayListPtr->_ptr,
-        index * elementSize
-    );
-}
+);
 
 #ifndef _DEBUG
 /*
@@ -558,7 +398,7 @@ extern inline void *_arrayListGetPtr(
  * arraylist at the given index, replacing the
  * previous element
  */
-extern inline void _arrayListSetPtr(
+void _arrayListSetPtr(
     ArrayList *arrayListPtr,
     size_t index,
     const void *elementPtr,
@@ -566,29 +406,7 @@ extern inline void _arrayListSetPtr(
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertTrue(
-        index < arrayListPtr->size, 
-        "bad index; " SRC_LOCATION
-    );
-
-    /* memcpy safe; elements shouldn't overlap */
-    memcpy(
-        voidPtrAdd(
-            arrayListPtr->_ptr, 
-            index * elementSize
-        ),
-        elementPtr,
-        elementSize
-    );
-}
+);
 
 #ifndef _DEBUG
 /* 
@@ -688,7 +506,7 @@ extern inline void _arrayListSetPtr(
  * arraylist at the given index by making room
  * for the element
  */
-extern inline void _arrayListInsertPtr(
+void _arrayListInsertPtr(
     ArrayList *arrayListPtr,
     size_t index,
     const void *elementPtr,
@@ -696,54 +514,7 @@ extern inline void _arrayListInsertPtr(
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertTrue(
-        index <= arrayListPtr->size,
-        "bad index; " SRC_LOCATION
-    );
-
-    assertTrue(
-        _arrayListGrowIfNeeded(
-            arrayListPtr, 
-            elementSize
-        ),
-        "failed to grow for insert; "
-        SRC_LOCATION
-    );
-
-    /* move all later elements 1 back */
-    /* length is 0 if we insert as new back */
-    memmove(
-        voidPtrAdd(
-            arrayListPtr->_ptr,
-            (index + 1) * elementSize
-        ),
-        voidPtrAdd(
-            arrayListPtr->_ptr,
-            index * elementSize
-        ),
-        (arrayListPtr->size - index) * elementSize
-    );
-
-    /* memcpy safe; elements shouldn't overlap */
-    memcpy(
-        voidPtrAdd(
-            arrayListPtr->_ptr, 
-            index * elementSize
-        ),
-        elementPtr,
-        elementSize
-    );
-
-    ++(arrayListPtr->size);
-}
+);
 
 #ifndef _DEBUG
 /* 
@@ -884,25 +655,12 @@ extern inline void _arrayListInsertPtr(
  * Returns a pointer to the front element of 
  * the given arraylist
  */
-extern inline void *_arrayListFrontPtr(
+void *_arrayListFrontPtr(
     ArrayList *arrayListPtr
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertFalse(
-        arrayListIsEmpty(arrayListPtr),
-        "empty in front; " SRC_LOCATION
-    );
-    return arrayListPtr->_ptr;
-}
+);
 
 #ifndef _DEBUG
 /*
@@ -951,31 +709,13 @@ extern inline void *_arrayListFrontPtr(
  * Returns a pointer to the back element of 
  * the given arraylist
  */
-extern inline void *_arrayListBackPtr(
+void *_arrayListBackPtr(
     ArrayList *arrayListPtr,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    assertFalse(
-        arrayListIsEmpty(arrayListPtr),
-        "empty in back; " SRC_LOCATION
-    );
-
-    return voidPtrAdd(
-        arrayListPtr->_ptr,
-        (arrayListPtr->size - 1u) 
-            * elementSize
-    );
-}
+);
 
 #ifndef _DEBUG
 /*
@@ -1087,23 +827,12 @@ extern inline void *_arrayListBackPtr(
 #endif
 
 /* Frees the given arraylist */
-extern inline void _arrayListFree(
+void _arrayListFree(
     ArrayList *arrayListPtr
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
-){
-    #ifdef _DEBUG
-    _arrayListPtrTypeCheck(
-        typeName, 
-        arrayListPtr
-    );
-    #endif
-
-    pgFree(arrayListPtr->_ptr);
-    arrayListPtr->size = 0u;
-    arrayListPtr->_capacity = 0u;
-}
+);
 
 #ifndef _DEBUG
 /* 
