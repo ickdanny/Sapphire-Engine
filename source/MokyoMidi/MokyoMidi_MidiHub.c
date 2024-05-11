@@ -5,7 +5,7 @@
  * Should not be called more than once.
  */
 MidiHub midiHubMake(bool muted){
-    MidiHub toRet = new MidiHub{0};
+    MidiHub toRet = {0};
     //todo initialize midiOut
     //todo initialize midiSequencer by passing midiOut
     toRet.muted = muted;

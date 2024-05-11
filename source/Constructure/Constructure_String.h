@@ -538,23 +538,23 @@ void PREFIX##Free( \
 /* end of macro */
 
 CONSTRUCTURE_STRING_DECL(
-    String, 
-    string, 
+    String,
+    string,
     char
 )
 CONSTRUCTURE_STRING_DECL(
-    WideString, 
-    wideString, 
+    WideString,
+    wideString,
     wchar_t
 )
 CONSTRUCTURE_STRING_DECL(
-    String16, 
-    string16, 
+    String16,
+    string16,
     char16_t
 )
 CONSTRUCTURE_STRING_DECL(
-    String32, 
-    string32, 
+    String32,
+    string32,
     char32_t
 )
 

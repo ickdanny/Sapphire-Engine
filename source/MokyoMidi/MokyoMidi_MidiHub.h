@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "MokyoMidi_MidiOut.h"
+
 /* 
  * The MidiHub provides the interface for users to
  * play midi sequences.
