@@ -5,6 +5,8 @@
 
 #include "Constructure.h"
 
+#define _noLoopStart (~((size_t)0))
+
 /* Represents a single MIDI event */
 typedef struct _EventUnit{
     uint32_t deltaTime;
@@ -30,9 +32,20 @@ typedef struct MidiSequence{
 } MidiSequence;
 
 /*
+ * Constructs an empty MidiSequence with the specified
+ * initial event capacity and returns it by value
+ */
+MidiSequence midiSequenceMake(
+    size_t initEventCapacity
+);
+
+/*
  * Reads the specified midi file and returns a
  * MidiSequence by value, ready for playback
  */
 MidiSequence parseMidiFile(const char *filename);
+
+/* Frees the given MidiSequence */
+void midiSequenceFree(MidiSequence *midiSequencePtr);
 
 #endif
