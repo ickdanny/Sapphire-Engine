@@ -39,4 +39,8 @@ uint32_t fromBigEndian32(uint32_t i);
 /* Converts big endian long for the CPU */
 uint64_t fromBigEndian64(uint64_t i);
 
+/* Gets the ith byte from the given value */
+#define getByte(value, i) \
+    ((uint8_t)((value >> (i * 8)) & 0xFF))
+
 #endif

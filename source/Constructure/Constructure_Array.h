@@ -271,7 +271,7 @@ void _arraySetPtr(
             ++u \
         ){ \
             FUNC( \
-                ((TYPENAME*)((ARRAYPTR)->_ptr)) + u \
+                (((TYPENAME*)((ARRAYPTR)->_ptr)) + u) \
             ); \
         } \
     } while(false)
@@ -290,7 +290,7 @@ void _arraySetPtr(
             ++u \
         ){ \
             FUNC( \
-                ((TYPENAME*)((ARRAYPTR)->_ptr)) + u \
+                (((TYPENAME*)((ARRAYPTR)->_ptr)) + u) \
             ); \
         } \
     } while(false)

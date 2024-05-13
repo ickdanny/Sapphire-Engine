@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "MokyoMidi_MidiOut.h"
+#include "MokyoMidi_MidiSequence.h"
 
 /* 
  * The MidiHub provides the interface for users to

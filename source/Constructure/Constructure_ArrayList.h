@@ -787,10 +787,10 @@ void *_arrayListBackPtr(
             ++u \
         ){ \
             FUNC( \
-                ( \
+                (( \
                     (TYPENAME*) \
                     ((ARRAYLISTPTR)->_ptr) \
-                ) + u \
+                ) + u) \
             ); \
         } \
     } while(false)
@@ -817,10 +817,10 @@ void *_arrayListBackPtr(
             ++u \
         ){ \
             FUNC( \
-                ( \
+                (( \
                     (TYPENAME*) \
                     ((ARRAYLISTPTR)->_ptr) \
-                ) + u \
+                ) + u) \
             ); \
         } \
     } while(false)

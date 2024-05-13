@@ -32,14 +32,6 @@ typedef struct MidiSequence{
 } MidiSequence;
 
 /*
- * Constructs an empty MidiSequence with the specified
- * initial event capacity and returns it by value
- */
-MidiSequence midiSequenceMake(
-    size_t initEventCapacity
-);
-
-/*
  * Reads the specified midi file and returns a
  * MidiSequence by value, ready for playback
  */

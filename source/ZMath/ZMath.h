@@ -3,6 +3,7 @@
 
 #include "ZMath_AABB.h"
 #include "ZMath_Angle.h"
+#include "ZMath_Bitwise.h"
 #include "ZMath_Constants.h"
 #include "ZMath_Numeric.h"
 #include "ZMath_Point.h"

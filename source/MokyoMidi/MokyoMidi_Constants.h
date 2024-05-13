@@ -18,7 +18,7 @@
 #define mm_requiredTrackHeaderID ((uint32_t)0x4d54726b)
 	
 /* status codes */
-#define mm_statusMask ((uint8_t)0xF0);
+#define mm_statusMask ((uint8_t)0xF0)
 /* note: midi event last 4 bits are channel number */
 #define mm_noteOff ((uint8_t)0x80)
 #define mm_noteOn ((uint8_t)0x90)
@@ -27,7 +27,7 @@
 #define mm_programChange ((uint8_t)0xC0)
 #define mm_channelPressure ((uint8_t)0xD0)
 #define mm_pitchBendChange ((uint8_t)0xE0)
-#define mm_metaEventOrSystemExclusive ((uint8_t)0xF0)
+#define mm_metaEventOrSysex ((uint8_t)0xF0)
 /* meta events should not be sent to the synth */
 #define mm_metaEvent ((uint8_t)0xFF)
 /* 
@@ -39,7 +39,7 @@
  * used to end sysex, and also starts continuation
  * events and escape sequences
  */
-#define mm_sysexEnd ((uint8_t)0xF7);
+#define mm_sysexEnd ((uint8_t)0xF7)
 	
 /* meta events have a secondary status code */
 #define mm_metaSequenceNumber ((uint8_t)0x00)
