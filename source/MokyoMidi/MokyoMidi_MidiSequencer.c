@@ -11,6 +11,7 @@
 MidiSequencer midiSequencerMake(MidiOut *midiOutPtr){
     MidiSequencer toRet = {0};
     toRet.midiOutPtr = midiOutPtr;
+    atomic_init(&(toRet.running), false);
 
     return toRet;
 }
@@ -119,7 +120,11 @@ static void midiSequencerHandleMetaEvent(
 static void midiSequencerStopPlaybackThread(
     MidiSequencer *sequencerPtr
 ){
+    atomic_store(&(sequencerPtr->running), false);
 
+    //todo: wakeupSwitch.signal();
+    threadJoin(sequencerPtr->playbackThread);
+    //todo: wakeupSwitch.unsignal();
 }
 
 /*
@@ -303,13 +308,3 @@ void midiSequencerStop(MidiSequencer *sequencerPtr){
 		
 		//index now points to 1 past the last data entry
 	}
-	
-	void MidiSequencer::stopPlaybackThread() {
-		running.store(false);
-		if( playbackThread.joinable() ) {
-			wakeupSwitch.signal();
-			playbackThread.join();
-			wakeupSwitch.unsignal();
-		}
-	}
-}

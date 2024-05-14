@@ -2,14 +2,15 @@
 #define MOKYOMIDI_MIDISEQUENCER_H
 
 //todo: clean up 
+#include <stdatomic.h>
 #include <chrono>
-#include <mutex>
 #include "windowsInclude.h"
 #include "mmeInclude.h"
 
 #include "MokyoMidi_Constants.h"
 #include "MokyoMidi_MidiSequence.h"
 #include "MokyoMidi_MidiOut.h"
+#include "Trifecta_Concurrency.h"
 #include "Utility/Scheduling.h"
 
 /* 
@@ -33,6 +34,13 @@ typedef struct MidiSequencer{
     _EventUnit *loopPtr;
     uint32_t microsecondsPerBeat;
     uint32_t timePerTick100ns; //todo: platform depends
+
+    /* threading fields */
+    Thread playbackThread;
+    //todo: used to wake up the playback thread if it was sleeping
+    //even need? Can we kill the thread?
+    //utility::EventHandle wakeupSwitch {};
+    atomic_bool running;
 } MidiSequencer;
 
 /* 
