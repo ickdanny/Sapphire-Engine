@@ -16,6 +16,7 @@ MidiSequencer midiSequencerMake(MidiOut *midiOutPtr){
     return toRet;
 }
 
+static
 uint32_t convertMicrosecondsPerBeatToTimePerTick100ns(
 	uint32_t microsecondsPerBeat,
 	uint16_t ticks
@@ -23,6 +24,7 @@ uint32_t convertMicrosecondsPerBeatToTimePerTick100ns(
 	return (10 * microsecondsPerBeat) / ticks;
 }
 
+static
 uint32_t calculateInitialTimePerTick100ns(
     uint16_t ticks
 ){
@@ -45,13 +47,7 @@ uint32_t calculateInitialTimePerTick100ns(
 }
 
 static timePointType getCurrentTime(){
-    //windows: clockType::now() in c++
-}
-
-static void midiSequencerPlayback(
-    MidiSequencer *sequencerPtr
-){
-
+    //todo: windows: clockType::now() in c++
 }
 
 static void midiSequencerOutputMidiEvent(
@@ -142,12 +138,60 @@ static void midiSequencerResetPlaybackFields(
 	sequencerPtr->timePerTick100ns = 0;
 }
 
+/* 
+ * Sequences and outputs midi events for the given
+ * MidiSequencer
+ */
+static void midiSequencerPlayback(
+    MidiSequencer *sequencerPtr
+){
+    /* initialize playback */
+    midiOutReset(sequencerPtr->midiOutPtr);
+
+    /* timing variables */
+    sequencerPtr->microsecondsPerBeat
+        = mm_defaultMicrosecondsPerBeat;
+    sequencerPtr->timePerTick100ns
+        = calculateInitialTimePerTick100ns(
+            sequencerPtr->sequencePtr->ticks
+        );
+
+    /* cleanup after playback */
+    midiOutReset(sequencerPtr->midiOutPtr);
+    midiSequencerResetPlaybackFields(sequencerPtr);
+    sequencerPtr->running = false;
+}
+
+/* 
+ * A wrapper for midiSequencerPlayback() which can
+ * be used by threadCreate()
+ */
+static void* midiSeqeuncerPlaybackWrapper(void * arg){
+    midiSequencerPlayback((MidiSequencer*)arg);
+    return NULL;
+}
+
 /* Begins playing back the specified midi sequence */
 void midiSequencerStart(
     MidiSequencer *sequencerPtr,
     MidiSequence *sequencePtr
 ){
+    midiSequencerStopPlaybackThread(sequencerPtr);
+    sequencerPtr->sequencePtr = sequencePtr;
+    sequencerPtr->running = true;
 
+    /* Create and run the playback thread */
+    CreateReturn createReturn = threadCreate(
+        midiSeqeuncerPlaybackWrapper,
+        sequencerPtr
+    );
+    if(createReturn.success){
+        sequencerPtr->playbackThread
+            = createReturn.thread;
+    }
+    else{
+        pgError("Failed to create playback thread");
+    }
 }
 
 /* Stops playback */
@@ -162,27 +206,7 @@ void midiSequencerStop(MidiSequencer *sequencerPtr){
 //JOIFSAJFOIASJFOISAJOFIASJFOSAIJD
 
 	
-	
-	void MidiSequencer::start(std::shared_ptr<MidiSequence> midiSequencePointer) {
-		stopPlaybackThread();
-		this->midiSequencePointer = midiSequencePointer;
-		running.store(true);
-		playbackThread = std::thread {
-			[&] {
-				try {
-					this->playback();
-				}
-				catch( const std::exception& exception ) {
-					debug::log(exception.what());
-					std::exit(1);
-				}
-				catch( ... ) {
-					debug::log("Exception of unknown type caught on midi playback thread");
-					std::exit(1);
-				}
-			}
-		};
-	}
+
 	
 	void MidiSequencer::playback() {
 		using ratioTimePointTo100ns = std::ratio<

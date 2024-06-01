@@ -34,3 +34,8 @@ void midiOutControlChangeOnAllChannels(
 		mm_controlChange + (data << 16)
 	);
 }
+
+/* Resets the given MidiOut */
+void midiOutReset(MidiOut *midiOutPtr){
+    //todo
+}

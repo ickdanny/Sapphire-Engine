@@ -4,6 +4,26 @@
 
 #include <sys/errno.h>
 
+/* 
+ * Creates a new thread and returns its ID if
+ * successful
+ */
+CreateReturn threadCreate(
+    RunnableFuncPtr func,
+    void* arg
+){
+    CreateReturn toRet;
+    int result = pthread_create(
+        &(toRet.thread),
+        NULL,
+        func,
+        arg
+    );
+    toRet.success = (result == 0);
+
+    return toRet;
+}
+
 /* Attempts to join the specified thread */
 JoinReturnCode threadJoin(Thread thread){
     int result = pthread_join(thread, NULL);
