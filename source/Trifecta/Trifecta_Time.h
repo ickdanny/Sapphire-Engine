@@ -28,27 +28,13 @@ TimePoint addTimeNano(
  * first TimePoint is after the second, or 0 if
  * the two TimePoints are the same
  */
-int timePointCompare(TimePoint left, TimePoint right){
-    if(left.tv_sec < right.tv_sec){
-        return -1;
-    }
-    if(left.tv_sec > right.tv_sec){
-        return 1;
-    }
-    if(left.tv_nsec < right.tv_nsec){
-        return -1;
-    }
-    if(left.tv_nsec > right.tv_nsec){
-        return 1;
-    }
-    return 0;
-}
+int timePointCompare(TimePoint left, TimePoint right);
 
 /*
  * Returns the difference between the two specified
  * TimePoints in nanoseconds
  */
-uint64_t timePointDiffNano(
+int64_t timePointDiffNano(
     TimePoint left,
     TimePoint right
 );

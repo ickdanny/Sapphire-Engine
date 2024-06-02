@@ -5,6 +5,7 @@
 
 #include "MokyoMidi_MidiOut.h"
 #include "MokyoMidi_MidiSequence.h"
+#include "MokyoMidi_MidiSequencer.h"
 
 /* 
  * The MidiHub provides the interface for users to

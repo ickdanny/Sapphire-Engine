@@ -1,6 +1,7 @@
 #include "MokyoMidi_MidiSequencer.h"
 
 #include "ZMath.h"
+#include "Trifecta.h"
 
 #define ratio100nsToSeconds ((uint64_t)10000000)
 
@@ -17,7 +18,7 @@ MidiSequencer midiSequencerMake(MidiOut *midiOutPtr){
 }
 
 static
-uint32_t convertMicrosecondsPerBeatToTimePerTick100ns(
+uint32_t microsecondsPerBeatToTimePerTick100ns(
 	uint32_t microsecondsPerBeat,
 	uint16_t ticks
 ) {
@@ -40,14 +41,10 @@ uint32_t calculateInitialTimePerTick100ns(
 	}
 	/* a leading 0 means ticks per beat */
 	return
-        convertMicrosecondsPerBeatToTimePerTick100ns(
-	    	defaultMicrosecondsPerBeat,
+        microsecondsPerBeatToTimePerTick100ns(
+	    	mm_defaultMicrosecondsPerBeat,
 	    	ticks
 	    );
-}
-
-static timePointType getCurrentTime(){
-    //todo: windows: clockType::now() in c++
 }
 
 static void midiSequencerOutputMidiEvent(
@@ -59,10 +56,23 @@ static void midiSequencerOutputMidiEvent(
     );
 }
 
-static void midiSequencerOutputSystemExclusiveEvent(
+static void midiSequencerOutputSysexEvent(
     MidiSequencer *sequencerPtr
 ){
+    ++(sequencerPtr->currentPtr);
+    /* currentPtr now points to length block */
 
+    uint32_t byteLength
+        = sequencerPtr->currentPtr->deltaTime;
+	uint32_t indexLength
+        = sequencerPtr->currentPtr->event;
+    ++(sequencerPtr->currentPtr);
+    /* currentPtr now points to first data */
+
+    //todo: actually outputting sysex
+
+    (sequencerPtr->currentPtr) += indexLength;
+    /* currentPtr now points to 1 past last data */
 }
 
 static void midiSequencerHandleMetaEvent(
@@ -87,12 +97,15 @@ static void midiSequencerHandleMetaEvent(
     /* handle tempo event */
 	if(metaEventStatus == mm_metaTempo){
         /* grab the tempo data */
-		microsecondsPerBeat
-            = fromBigEndian32(iter->deltaTime) >> 8;
-		timePerTick100ns= convertMicrosecondsPerBeatToTimePerTick100ns(
-			microsecondsPerBeat,
-			midiSequencePointer->ticks
-		);
+		sequencerPtr->microsecondsPerBeat
+            = fromBigEndian32(
+                sequencerPtr->currentPtr->deltaTime
+            ) >> 8;
+		sequencerPtr->timePerTick100ns
+            = microsecondsPerBeatToTimePerTick100ns(
+			    sequencerPtr->microsecondsPerBeat,
+			    sequencerPtr->sequencePtr->ticks
+		    );
 	}
 
     else if(metaEventStatus == mm_metaMarker){
@@ -109,7 +122,7 @@ static void midiSequencerHandleMetaEvent(
         }
     }
 	
-	iter += indexLength;
+	sequencerPtr->currentPtr += indexLength;
 	//index now points to 1 past the last data entry
 }
 
@@ -155,6 +168,81 @@ static void midiSequencerPlayback(
         = calculateInitialTimePerTick100ns(
             sequencerPtr->sequencePtr->ticks
         );
+    ArrayList *eventTrackPtr
+        = &(sequencerPtr->sequencePtr->eventTrack);
+    /* points to next event */
+    int index = 0;
+    /* points to 1 past the last event */
+    int endIndex = eventTrackPtr->size;
+    _EventUnit eventUnit = {0};
+    uint64_t sleepDuration100ns = 0;
+    uint8_t status = 0;
+    
+    /* begin playback */
+    TimePoint targetTime = getCurrentTime();
+    while(index != endIndex){
+        /* sleep for delta time */
+        eventUnit = arrayListGet(_EventUnit,
+            eventTrackPtr,
+            index
+        );
+        if(eventUnit.deltaTime != 0){
+            sleepDuration100ns = eventUnit.deltaTime
+                * sequencerPtr->timePerTick100ns;
+            
+            /* check to see if need to exit */
+            if(!(sequencerPtr->running)){
+                /* do not output reset in this case */
+                midiSequencerResetPlaybackFields(
+                    sequencerPtr
+                );
+                return;
+            }
+
+            targetTime = addTimeNano(
+                targetTime,
+                sleepDuration100ns * 100
+            );
+            sleepUntil(targetTime);
+
+            /* also check running after sleep */
+            if(!(sequencerPtr->running)){
+                /* do not output reset in this case */
+                midiSequencerResetPlaybackFields(
+                    sequencerPtr
+                );
+                return;
+            }
+        }
+
+        /* handle event */
+        status = getByte(eventUnit.event, 0);
+        /* midi event case */
+        if((status & mm_statusMask)
+            != mm_metaEventOrSysex
+        ){
+            midiSequencerOutputMidiEvent(sequencerPtr);
+        }
+        /* meta event or sysex cases */
+        else{
+            switch(status){
+                case mm_metaEvent:
+                    /* may change tempo or loop back */
+                    midiSequencerHandleMetaEvent(
+                        sequencerPtr
+                    );
+                    break;
+                case mm_sysexStart:
+                case mm_sysexEnd:
+                    midiSequencerOutputSysexEvent(
+                        sequencerPtr
+                    );
+                    break;
+                default:
+                    pgError("error bad MIDI status");
+            }
+        }
+    }
 
     /* cleanup after playback */
     midiOutReset(sequencerPtr->midiOutPtr);
@@ -196,7 +284,7 @@ void midiSequencerStart(
 
 /* Stops playback */
 void midiSequencerStop(MidiSequencer *sequencerPtr){
-    stopPlaybackThread();
+    midiSequencerStopPlaybackThread(sequencerPtr);
     midiOutReset(sequencerPtr->midiOutPtr);
 }
 
@@ -205,110 +293,6 @@ void midiSequencerStop(MidiSequencer *sequencerPtr){
 
 //JOIFSAJFOIASJFOISAJOFIASJFOSAIJD
 
-	
-
-	
-	void MidiSequencer::playback() {
-		using ratioTimePointTo100ns = std::ratio<
-			clockType::period::num * ratio100nsToSeconds,
-			clockType::period::den
-		>;
-		
-		midiOutPointer->outputReset();
-		
-		//timing variables
-		microsecondsPerBeat = defaultMicrosecondsPerBeat;
-		timePerTick100ns = calculateInitialTimePerTick100ns(
-			midiSequencePointer->ticks
-		);
-		
-		timePointType prevTimeStamp { getCurrentTime() };
-		timePointType currentTimeStamp {};
-		
-		long long previousSleepDuration100ns { 0 };
-		
-		//loop variables
-		iter = midiSequencePointer->compiledTrack.begin();
-		auto endIter { midiSequencePointer->compiledTrack.end() };
-		loopPointIter = endIter;
-		
-		//helper function for calculating sleep duration
-		auto calculateSleepDuration100ns {
-			[&]() {
-				//calculate how long we should wait
-				long long sleepDuration100ns {
-					static_cast<long long>(iter->deltaTime) * timePerTick100ns
-				};
-				
-				//account for the time we spent already
-				currentTimeStamp = getCurrentTime();
-				long long timeElapsed {
-					((currentTimeStamp - prevTimeStamp).count()
-						* ratioTimePointTo100ns::num)
-						/ ratioTimePointTo100ns::den
-				};
-				long long timeLost { timeElapsed - previousSleepDuration100ns };
-				sleepDuration100ns -= timeLost;
-				
-				prevTimeStamp = currentTimeStamp;
-				return sleepDuration100ns;
-			}
-		};
-		
-		//begin playback
-		while( iter != endIter ) {
-			//sleep for delta time
-			if( iter->deltaTime != 0 ) {
-				long long sleepDuration100ns {
-					calculateSleepDuration100ns()
-				};
-				previousSleepDuration100ns = sleepDuration100ns;
-				
-				//check to see if need to exit before sleep
-				if( !running.load() ) {
-					//do not output reset in this case
-					resetPlaybackFields();
-					return;
-				}
-				
-				sleep100ns(sleepDuration100ns);
-				
-				//also check after sleep
-				if( !running.load() ) {
-					//do not output reset in this case
-					resetPlaybackFields();
-					return;
-				}
-			}
-			
-			//handle event
-			uint8_t status { getByte(iter->event, 1) };
-			//midi event case
-			if( (status & statusMask) != metaEventOrSystemExclusive ) {
-				outputMidiEvent();
-			}
-				//meta event or system exclusive cases
-			else {
-				switch( status ) {
-					case metaEvent:
-						//may change tempo or loop back
-						handleMetaEvent();
-						break;
-						//continuation events and escape sequences start with sysEx end
-						//the data is encoded the same way
-					case systemExclusiveStart:
-					case systemExclusiveEnd: outputSystemExclusiveEvent();
-						break;
-					default: throw std::runtime_error { "Error unrecognized MIDI status" };
-				}
-			}
-		}
-		
-		//output reset if we finish naturally
-		midiOutPointer->outputReset();
-		resetPlaybackFields();
-		running.store(false);
-	}
 
 	
 	void MidiSequencer::outputSystemExclusiveEvent() {

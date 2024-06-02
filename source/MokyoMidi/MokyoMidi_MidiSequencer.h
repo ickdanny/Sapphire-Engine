@@ -1,17 +1,13 @@
 #ifndef MOKYOMIDI_MIDISEQUENCER_H
 #define MOKYOMIDI_MIDISEQUENCER_H
 
-//todo: clean up 
 #include <stdatomic.h>
-#include <chrono>
-#include "windowsInclude.h"
-#include "mmeInclude.h"
+
+#include "Trifecta.h"
 
 #include "MokyoMidi_Constants.h"
 #include "MokyoMidi_MidiSequence.h"
 #include "MokyoMidi_MidiOut.h"
-#include "Trifecta_Concurrency.h"
-#include "Utility/Scheduling.h"
 
 /* 
  * A MidiSequener handles sending midi data to output
@@ -25,7 +21,7 @@ typedef struct MidiSequencer{
 
     /* a weak pointer to the midi sequence */
     MidiSequence *sequencePtr;
-    /* a poiter to the current event unit */
+    /* a pointer to the current event unit */
     _EventUnit *currentPtr;
     /* 
      * a pointer to the first event unit after the
@@ -33,7 +29,7 @@ typedef struct MidiSequencer{
      */
     _EventUnit *loopPtr;
     uint32_t microsecondsPerBeat;
-    uint32_t timePerTick100ns; //todo: platform depends
+    uint32_t timePerTick100ns;
 
     /* threading fields */
     Thread playbackThread;
@@ -57,17 +53,5 @@ void midiSequencerStart(
 
 /* Stops playback */
 void midiSequencerStop(MidiSequencer *sequencerPtr);
-
-	private:
-		//typedefs
-		
-		//on Windows, steady_clock wraps the performance counter
-		using clockType = std::chrono::steady_clock;
-		using timePointType = clockType::time_point;
-				
-		//threading fields
-		std::thread playbackThread {};
-		utility::EventHandle wakeupSwitch {};
-		std::atomic_bool running { false };        //our flag, synchronizes our threads
 
 #endif
