@@ -67,8 +67,8 @@ float aabbArea(const AABB *aabbPtr){
 }
 
 /* Returns the geometric center of the given AABB */
-Point aabbCenter(const AABB *aabbPtr){
-    Point toRet = {0};
+Point2D aabbCenter(const AABB *aabbPtr){
+    Point2D toRet = {0};
     toRet.x = (aabbPtr->xLow + aabbPtr->xHigh) / 2.0f;
     toRet.y = (aabbPtr->yLow + aabbPtr->yHigh) / 2.0f;
     return toRet;
@@ -87,10 +87,10 @@ void aabbSetY(AABB *aabbPtr, float y){
 }
 
 /* 
- * Returns a new AABB from adding the given Point to 
+ * Returns a new AABB from adding the given Point2D to 
  * the given AABB 
  */
-AABB aabbCenterAt(const AABB *aabbPtr, Point center){
+AABB aabbCenterAt(const AABB *aabbPtr, Point2D center){
     AABB toRet = {0};
     aabbCopyInto(&toRet, aabbPtr);
     toRet.xLow += center.x;

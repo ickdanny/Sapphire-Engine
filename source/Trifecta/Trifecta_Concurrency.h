@@ -36,6 +36,9 @@ CreateReturn threadCreate(
     void* arg
 );
 
+/* Kills the specified thread */
+void threadKill(Thread toKill);
+
 /* 
  * Represents the possible results from a call to
  * threadJoin()

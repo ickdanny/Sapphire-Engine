@@ -3,23 +3,37 @@
 
 #include <stdint.h>
 
+#ifdef __APPLE__
+
+#include <AudioUnit/AudioUnit.h>
+#include <AudioToolbox/AudioToolbox.h>
+
+#endif /* end __APPLE__ */
+
 /*
  * The MidiOut class provides wrapper functions for
  * basic midi output.
  */
 typedef struct MidiOut{
-
-
     #ifdef __APPLE__
-    
-    #endif
-    //todo
+
+    AUGraph graph;
+    AudioUnit synthUnit;
+
+    #endif /* end __APPLE__ */
+    //todo other platforms
 } MidiOut;
 
 /*
  * Constructs a new MidiOut and returns it by value.
  */
 MidiOut midiOutMake();
+
+/* Starts a MidiOut's output */
+void midiOutStart(MidiOut *midiOutPtr);
+
+/* Stops a MidiOut's output */
+void midiOutStop(MidiOut *midiOutPtr);
 
 /* Outputs a short message */
 void midiOutShortMsg(
@@ -40,12 +54,16 @@ void midiOutControlChangeOnAllChannels(
 );
 
 /* Outputs a system exclusive message */
-//todo interface
-void midiOutSystemExclusive(MIDIHDR* midiHDR);
+void midiOutSysex(
+    MidiOut *midiOutPtr,
+    const void* bufferPtr,
+    uint32_t byteLength
+);
 
 /* Resets the given MidiOut */
 void midiOutReset(MidiOut *midiOutPtr);
 
-//void midiOutOpen, void midiOutClose
+/* Frees the given MidiOut */
+void midiOutFree(MidiOut *midiOutPtr);
 
 #endif

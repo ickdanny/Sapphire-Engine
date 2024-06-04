@@ -469,9 +469,20 @@ void _arrayListSetPtr(
 ) \
     do{ \
         assertTrue( \
-            INDEX < (ARRAYLISTPTR)->size, \
+            INDEX <= (ARRAYLISTPTR)->size, \
             "bad index; " SRC_LOCATION \
         ); \
+        if(INDEX == (ARRAYLISTPTR)->size){ \
+            assertTrue( \
+                _arrayListGrowIfNeeded( \
+                    ARRAYLISTPTR, \
+                    sizeof(TYPENAME) \
+                ), \
+                "failed to grow for set; " \
+                SRC_LOCATION \
+            ); \
+            ++((ARRAYLISTPTR)->size); \
+        } \
         ((TYPENAME *)((ARRAYLISTPTR)->_ptr))[INDEX] \
             = ELEMENT; \
     } while(false)
@@ -493,9 +504,20 @@ void _arrayListSetPtr(
             ARRAYLISTPTR \
         ); \
         assertTrue( \
-            INDEX < (ARRAYLISTPTR)->size, \
+            INDEX <= (ARRAYLISTPTR)->size, \
             "bad index; " SRC_LOCATION \
         ); \
+        if(INDEX == (ARRAYLISTPTR)->size){ \
+            assertTrue( \
+                _arrayListGrowIfNeeded( \
+                    ARRAYLISTPTR, \
+                    sizeof(TYPENAME) \
+                ), \
+                "failed to grow for set; " \
+                SRC_LOCATION \
+            ); \
+            ++((ARRAYLISTPTR)->size); \
+        } \
         ((TYPENAME *)((ARRAYLISTPTR)->_ptr))[INDEX] \
             = ELEMENT; \
     } while(false)

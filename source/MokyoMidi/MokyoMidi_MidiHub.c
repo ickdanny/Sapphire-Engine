@@ -2,37 +2,42 @@
 
 /*
  * Constructs a new MidiHub and returns it by value.
- * Should not be called more than once.
+ * Should not be called more than once
  */
 MidiHub midiHubMake(bool muted){
     MidiHub toRet = {0};
-    //todo initialize midiOut
-    //todo initialize midiSequencer by passing midiOut
+    toRet.midiOut = midiOutMake();
+    toRet.midiSequencer = midiSequencerMake(
+        &toRet.midiOut
+    );
     toRet.muted = muted;
     return toRet;
 }
 
 /* 
  * Starts playing the given midi sequence. Replaces
- * the previously playing sequence.
+ * the previously playing sequence
  */
 void midiHubStart(
     MidiHub *midiHubPtr, 
     MidiSequence *midiSequencePtr
 ){
     if(!(midiHubPtr->muted)){
-        //todo midiSequencer.start(midiSequencePointer)
+        midiSequencerStart(
+            &(midiHubPtr->midiSequencer),
+            midiSequencePtr
+        );
     }
 }
 
-/* Stops playing the current midi sequence. */
+/* Stops playing the current midi sequence */
 void midiHubStop(MidiHub *midiHubPtr){
-    //todo midiSequencer.stop();
+    midiSequencerStop(&(midiHubPtr->midiSequencer));
 }
 
 /* 
  * If midi is currently muted, unmutes it. Otherwise,
- * mutes it.
+ * mutes it
  */
 void midiHubToggleMute(MidiHub *midiHubPtr){
     //if we are now muted
@@ -43,7 +48,7 @@ void midiHubToggleMute(MidiHub *midiHubPtr){
 
 /*
  * Returns true if midi is currently muted, false
- * otherwise.
+ * otherwise
  */
 bool midiHubIsMuted(const MidiHub *midiHubPtr){
     return midiHubPtr->muted;
@@ -52,8 +57,9 @@ bool midiHubIsMuted(const MidiHub *midiHubPtr){
 /*
  * Closes the given MidiHub and frees all associated
  * resources. Using a MidiHub after it has been closed
- * is undefined behavior.
+ * is undefined behavior
  */
-void midiHubClose(MidiHub *midiHubPtr){
-    //todo
+void midiHubFree(MidiHub *midiHubPtr){
+    midiSequencerFree(&(midiHubPtr->midiSequencer));
+    midiOutFree(&(midiHubPtr->midiOut));
 }

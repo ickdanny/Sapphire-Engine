@@ -44,3 +44,15 @@ include_directories(${PROJECT_DIRECTORIES})
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
+
+if(WIN32)
+    message("win32 detected")
+elseif(APPLE)
+    # https://stackoverflow.com/questions/17070101/why-i-cannot-link-the-mac-framework-file-with-cmake
+    set(LIBS "-framework CoreServices" "-framework AudioUnit" "-framework AudioToolbox")
+    target_link_libraries(OceanEngine ${LIBS})
+    set_target_properties(OceanEngine PROPERTIES LINK_FLAGS "-Wl,-F/Library/Frameworks")
+elseif(UNIX)
+    message("unix detected")
+endif()
+

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "ZMath_Point.h"
+#include "ZMath_Point2D.h"
 
 /* A 2D AABB stored as bounds, not width/height */
 typedef struct AABB{
@@ -46,7 +46,7 @@ float aabbHeight(const AABB *aabbPtr);
 float aabbArea(const AABB *aabbPtr);
 
 /* Returns the geometric center of the given AABB */
-Point aabbCenter(const AABB *aabbPtr);
+Point2D aabbCenter(const AABB *aabbPtr);
 
 /* Sets the x radius of the given AABB */
 void aabbSetX(AABB *aabbPtr, float x);
@@ -55,10 +55,10 @@ void aabbSetX(AABB *aabbPtr, float x);
 void aabbSetY(AABB *aabbPtr, float y);
 
 /* 
- * Returns a new AABB from adding the given Point to 
+ * Returns a new AABB from adding the given Point2D to 
  * the given AABB 
  */
-AABB aabbCenterAt(const AABB *aabbPtr, Point center);
+AABB aabbCenterAt(const AABB *aabbPtr, Point2D center);
 
 /* 
  * Returns true if the given AABBs intersect, 

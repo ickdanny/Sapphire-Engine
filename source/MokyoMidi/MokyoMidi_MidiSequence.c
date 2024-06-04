@@ -317,11 +317,8 @@ void loadMetaEvent(_LoadingData *loadingDataPtr){
         ++(loadingDataPtr->index);
 		
 		if(length > 0){
-            char *writeStartPtr 
-                = (char*)arrayListGetPtr(_EventUnit,
-                    loadingDataPtr->trackPtr,
-                    loadingDataPtr->index
-                );
+            uint32_t writeStartIndex
+                = loadingDataPtr->index;
 
             /* advance index by necessary amount */
 			loadingDataPtr->index += indexLength;
@@ -333,6 +330,12 @@ void loadMetaEvent(_LoadingData *loadingDataPtr){
                     dummy
                 );
             }
+
+            char *writeStartPtr 
+                = (char*)arrayListGetPtr(_EventUnit,
+                    loadingDataPtr->trackPtr,
+                    writeStartIndex
+                );
 
             /* read data into the translated track */
             fread(
@@ -397,11 +400,8 @@ void loadSysexEvent(
 	
     /* insert data */
 	if(length > 0){
-        char *writeStartPtr
-            = (char*)arrayListGetPtr(_EventUnit,
-                loadingDataPtr->trackPtr,
-                loadingDataPtr->index
-            );
+        uint32_t writeStartIndex
+            = loadingDataPtr->index;
 
         /* advance index by necessary amount */
 		loadingDataPtr->index += indexLength;
@@ -413,6 +413,12 @@ void loadSysexEvent(
                 dummy
             );
         }
+
+        char *writeStartPtr
+            = (char*)arrayListGetPtr(_EventUnit,
+                loadingDataPtr->trackPtr,
+                writeStartIndex
+            );
         
 		if(insertSystemExclusiveStart){
             /* insert F0 at beginning of data dump */

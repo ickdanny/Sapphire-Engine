@@ -279,9 +279,21 @@ void _arrayListSetPtr(
     #endif
 
     assertTrue(
-        index < arrayListPtr->size, 
+        index <= arrayListPtr->size, 
         "bad index; " SRC_LOCATION
     );
+
+    if(index == arrayListPtr->size){
+        assertTrue(
+            _arrayListGrowIfNeeded(
+                arrayListPtr, 
+                elementSize
+            ),
+            "failed to grow for set; "
+            SRC_LOCATION
+        );
+        ++(arrayListPtr->size);
+    }
 
     /* memcpy safe; elements shouldn't overlap */
     memcpy(

@@ -1,14 +1,14 @@
 #ifndef ZMATH_POLAR_H
 #define ZMATH_POLAR_H
 
-#include "ZMath_Vector.h"
+#include "ZMath_Vector2D.h"
 
 /* A 2D vector stored in polar form */
 typedef struct Polar{
     float magnitude;
     float angle;
     
-    Vector asVector;
+    Vector2D asVector;
 } Polar;
 
 /* Makes a value copy of the given Polar */
@@ -28,9 +28,9 @@ void _polarUpdateVector(Polar *polarPtr);
 
 /* 
  * Constructs a new Polar from a given 
- * Cartesian Vector 
+ * Cartesian Vector2D 
  */
-Polar polarFromVector(Vector vector);
+Polar polarFromVector(Vector2D vector);
 
 /* Sets the magnitude of the given Polar */
 void polarSetMagnitude(
@@ -48,7 +48,7 @@ Polar polarNegate(Polar polar);
  * Returns the Cartesian representation of the 
  * given Polar 
  */
-Vector polarToVector(Polar *polarPtr);
+Vector2D polarToVector(Polar *polarPtr);
 
 /* Prints the given Polar to the given C String */
 void printPolar(

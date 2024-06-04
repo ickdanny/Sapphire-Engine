@@ -33,9 +33,6 @@ typedef struct MidiSequencer{
 
     /* threading fields */
     Thread playbackThread;
-    //todo: used to wake up the playback thread if it was sleeping
-    //even need? Can we kill the thread?
-    //utility::EventHandle wakeupSwitch {};
     atomic_bool running;
 } MidiSequencer;
 
@@ -53,5 +50,8 @@ void midiSequencerStart(
 
 /* Stops playback */
 void midiSequencerStop(MidiSequencer *sequencerPtr);
+
+/* Frees the given MidiSequencer */
+void midiSequencerFree(MidiSequencer *sequencerPtr);
 
 #endif

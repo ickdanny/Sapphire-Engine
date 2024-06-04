@@ -29,12 +29,12 @@ void _polarUpdateVector(Polar *polarPtr){
 
 /* 
  * Constructs a new Polar from a given 
- * Cartesian Vector 
+ * Cartesian Vector2D 
  */
-Polar polarFromVector(Vector vector){
+Polar polarFromVector(Vector2D vector){
     Polar toRet = {0};
-    toRet.magnitude = vectorMagnitude(vector);
-    toRet.angle = vectorAngle(vector);
+    toRet.magnitude = vector2DMagnitude(vector);
+    toRet.angle = vector2DAngle(vector);
     toRet.asVector = vector;
     return toRet;
 }
@@ -67,7 +67,7 @@ Polar polarNegate(Polar polar){
  * Returns the Cartesian representation of the 
  * given Polar 
  */
-Vector polarToVector(Polar *polarPtr){
+Vector2D polarToVector(Polar *polarPtr){
     return polarPtr->asVector;
 }
 

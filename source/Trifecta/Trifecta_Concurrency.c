@@ -3,6 +3,7 @@
 #ifdef __APPLE__
 
 #include <sys/errno.h>
+#include <signal.h>
 
 /* 
  * Creates a new thread and returns its ID if
@@ -22,6 +23,11 @@ CreateReturn threadCreate(
     toRet.success = (result == 0);
 
     return toRet;
+}
+
+/* Kills the specified thread */
+void threadKill(Thread toKill){
+    pthread_kill(toKill, SIGTERM);
 }
 
 /* Attempts to join the specified thread */

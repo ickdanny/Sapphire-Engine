@@ -32,7 +32,7 @@ uint32_t calculateInitialTimePerTick100ns(
 	/* a leading 1 means SMPTE FPS time */
     if(ticks & 0x8000){
 		uint32_t fps = smpteFpsDecode(
-            getByte(ticks, 2)
+            getByte(ticks, 1)
         );
 		uint8_t subframeResolution = (uint8_t)ticks;
 		uint32_t subframesPerSecond
@@ -69,7 +69,11 @@ static void midiSequencerOutputSysexEvent(
     ++(sequencerPtr->currentPtr);
     /* currentPtr now points to first data */
 
-    //todo: actually outputting sysex
+    midiOutSysex(
+        sequencerPtr->midiOutPtr,
+        sequencerPtr->currentPtr,
+        byteLength
+    );
 
     (sequencerPtr->currentPtr) += indexLength;
     /* currentPtr now points to 1 past last data */
@@ -81,7 +85,7 @@ static void midiSequencerHandleMetaEvent(
     /* status is the second byte (following 0xFF) */
 	uint8_t metaEventStatus = getByte(
         sequencerPtr->currentPtr->event,
-        2
+        1
     );
 	++(sequencerPtr->currentPtr);
 
@@ -109,16 +113,37 @@ static void midiSequencerHandleMetaEvent(
 	}
 
     else if(metaEventStatus == mm_metaMarker){
-        //todo: test if loop start and end
         /* if loop start, set loop ptr */
-        if(is loop start){
-            sequencerPtr->loopPtr
-                = sequencerPtr->currentPtr;
+        if(byteLength == 9){
+            /* copy text to buffer */
+            char buffer[10] = {0};
+            strncpy(
+                buffer,
+                (char*)(sequencerPtr->currentPtr),
+                byteLength
+            );
+            /* check for string equivalence */
+            if(strncmp(buffer, "loopStart", 9) == 0){
+                /* found loopStart */
+                sequencerPtr->loopPtr
+                    = sequencerPtr->currentPtr;
+            }
         }
         /* if loop end, bring back to start */
-        else if(is loop end){
-            sequencerPtr->currentPtr
-                = sequencerPtr->loopPtr;
+        else if(byteLength == 7){
+            /* copy text to buffer */
+            char buffer[8] = {0};
+            strncpy(
+                buffer,
+                (char*)(sequencerPtr->currentPtr),
+                byteLength
+            );
+            /* check for string equivalence */
+            if(strncmp(buffer, "loopEnd", 7) == 0){
+                /* found loopEnd */
+                sequencerPtr->currentPtr
+                    = sequencerPtr->loopPtr;
+            }
         }
     }
 	
@@ -129,11 +154,11 @@ static void midiSequencerHandleMetaEvent(
 static void midiSequencerStopPlaybackThread(
     MidiSequencer *sequencerPtr
 ){
-    atomic_store(&(sequencerPtr->running), false);
-
-    //todo: wakeupSwitch.signal();
-    threadJoin(sequencerPtr->playbackThread);
-    //todo: wakeupSwitch.unsignal();
+    if(sequencerPtr->running){
+        atomic_store(&(sequencerPtr->running), false);
+        threadKill(sequencerPtr->playbackThread);
+        threadJoin(sequencerPtr->playbackThread);
+    }
 }
 
 /*
@@ -160,6 +185,10 @@ static void midiSequencerPlayback(
 ){
     /* initialize playback */
     midiOutReset(sequencerPtr->midiOutPtr);
+    sequencerPtr->currentPtr = arrayListFrontPtr(
+        _EventUnit,
+        &(sequencerPtr->sequencePtr->eventTrack)
+    );
 
     /* timing variables */
     sequencerPtr->microsecondsPerBeat
@@ -170,22 +199,19 @@ static void midiSequencerPlayback(
         );
     ArrayList *eventTrackPtr
         = &(sequencerPtr->sequencePtr->eventTrack);
-    /* points to next event */
-    int index = 0;
     /* points to 1 past the last event */
-    int endIndex = eventTrackPtr->size;
+    _EventUnit *endPtr 
+        = (sequencerPtr->currentPtr)
+            + eventTrackPtr->size;
     _EventUnit eventUnit = {0};
     uint64_t sleepDuration100ns = 0;
     uint8_t status = 0;
     
     /* begin playback */
     TimePoint targetTime = getCurrentTime();
-    while(index != endIndex){
+    while(sequencerPtr->currentPtr != endPtr){
         /* sleep for delta time */
-        eventUnit = arrayListGet(_EventUnit,
-            eventTrackPtr,
-            index
-        );
+        eventUnit = *(sequencerPtr->currentPtr);
         if(eventUnit.deltaTime != 0){
             sleepDuration100ns = eventUnit.deltaTime
                 * sequencerPtr->timePerTick100ns;
@@ -288,31 +314,7 @@ void midiSequencerStop(MidiSequencer *sequencerPtr){
     midiOutReset(sequencerPtr->midiOutPtr);
 }
 
-
-
-
-//JOIFSAJFOIASJFOISAJOFIASJFOSAIJD
-
-
-	
-	void MidiSequencer::outputSystemExclusiveEvent() {
-		++iter;
-		//index now points to the length block
-		
-		uint32_t byteLength { iter->deltaTime };
-		uint32_t indexLength { iter->event };
-		++iter;
-		//index now points to the first data entry
-		
-		//prepare data to be output from MIDIHDR
-		MIDIHDR midiHDR {};
-		midiHDR.lpData = reinterpret_cast<char*>(&(*iter)); //probably UB
-		midiHDR.dwBufferLength = byteLength;
-		midiHDR.dwBytesRecorded = byteLength;
-		
-		iter += indexLength;
-		
-		midiOutPointer->outputSystemExclusive(&midiHDR);
-		
-		//index now points to 1 past the last data entry
-	}
+/* Frees the given MidiSequencer */
+void midiSequencerFree(MidiSequencer *sequencerPtr){
+    midiSequencerStop(sequencerPtr);
+}
