@@ -67,48 +67,69 @@ MidiOut midiOutMake(){
     AudioComponentDescription compDesc = {0};
 	compDesc.componentManufacturer
         = kAudioUnitManufacturer_Apple;
+    OSStatus retCode = 0;
 
     /* make new audio graph */
-	NewAUGraph(&(toRet.graph));
+	retCode = NewAUGraph(&(toRet.graph));
+    assertZero(retCode, "failed to create AUGraph");
+    
     
     /* add the synth to the graph */
 	compDesc.componentType
         = kAudioUnitType_MusicDevice;
 	compDesc.componentSubType
         = kAudioUnitSubType_DLSSynth;
-	AUGraphAddNode(toRet.graph, &compDesc, &synthNode);
+	retCode = AUGraphAddNode(
+        toRet.graph,
+        &compDesc,
+        &synthNode
+    );
+    assertZero(retCode, "failed to add synth node");
 
     /* add the output to the graph */
 	compDesc.componentType = kAudioUnitType_Output;
 	compDesc.componentSubType
         = kAudioUnitSubType_DefaultOutput;  
-	AUGraphAddNode(toRet.graph, &compDesc, &outNode);
+	retCode = AUGraphAddNode(
+        toRet.graph,
+        &compDesc,
+        &outNode
+    );
+    assertZero(retCode, "failed to add out node");
 	
     /* open the graph */
-	AUGraphOpen(toRet.graph);
+	retCode = AUGraphOpen(toRet.graph);
+    assertZero(retCode, "failed to open AUGraph");
 	
     /* connect the synth to the output */
-	AUGraphConnectNodeInput(
+	retCode = AUGraphConnectNodeInput(
         toRet.graph,
         synthNode,
         0,
         outNode,
         0
     );
+    assertZero(
+        retCode,
+        "failed to connect synth to output"
+    );
 	
     /* retrieve the synth unit from the graph */
-	AUGraphNodeInfo(
+	retCode = AUGraphNodeInfo(
         toRet.graph,
         synthNode,
         0,
         &(toRet.synthUnit)
     );
+    assertZero(retCode, "failed to get synthUnit");
 
     /* initialize the graph */
-    AUGraphInitialize(toRet.graph);
+    retCode = AUGraphInitialize(toRet.graph);
+    assertZero(retCode, "failed to initialize AUGraph");
 
     /* start the graph */
-    AUGraphStart(toRet.graph);
+    retCode = AUGraphStart(toRet.graph);
+    assertZero(retCode, "failed to start AUGraph");
 
     return toRet;
 }
@@ -190,25 +211,25 @@ void midiOutControlChangeOnAllChannels(
 ){
     midiOutShortMsgOnAllChannels(
         midiOutPtr,
-		mm_controlChange + (data << 16)
+		(data << 8) + mm_controlChange
 	);
 }
 
 /* Resets the given MidiOut */
 void midiOutReset(MidiOut *midiOutPtr){
-    midiOutControlChangeOnAllChannels(
-        midiOutPtr,
-        mm_allSoundOff
-    );
-    midiOutControlChangeOnAllChannels(
-        midiOutPtr,
-        mm_allNotesOff
-    );
-
-	/* 
-     * Terminating a sysex message without sending an 
+    /* 
+     * Terminating a sysex message without sending an
 	 * EOX(end - of - exclusive) byte might cause
      * problems for the receiving device
      */ 
 	midiOutShortMsg(midiOutPtr, mm_sysexEnd);
+
+    midiOutControlChangeOnAllChannels(
+        midiOutPtr,
+        mm_allNotesOff
+    );
+    midiOutControlChangeOnAllChannels(
+        midiOutPtr,
+        mm_allSoundOff
+    );
 }

@@ -125,8 +125,16 @@ static void midiSequencerHandleMetaEvent(
             /* check for string equivalence */
             if(strncmp(buffer, "loopStart", 9) == 0){
                 /* found loopStart */
+                sequencerPtr->currentPtr
+                    += indexLength;
                 sequencerPtr->loopPtr
                     = sequencerPtr->currentPtr;
+                /* 
+                 * since we set current to 1 past
+                 * last data entry before setting
+                 * loop ptr, return
+                 */
+                return;
             }
         }
         /* if loop end, bring back to start */
@@ -143,6 +151,13 @@ static void midiSequencerHandleMetaEvent(
                 /* found loopEnd */
                 sequencerPtr->currentPtr
                     = sequencerPtr->loopPtr;
+                /* reset just in case */
+                midiOutReset(sequencerPtr->midiOutPtr);
+                /* 
+                 * since loop ptr points directly to
+                 * next event, return
+                 */
+                return;
             }
         }
     }
@@ -215,7 +230,6 @@ static void midiSequencerPlayback(
         if(eventUnit.deltaTime != 0){
             sleepDuration100ns = eventUnit.deltaTime
                 * sequencerPtr->timePerTick100ns;
-            
             /* check to see if need to exit */
             if(!(sequencerPtr->running)){
                 /* do not output reset in this case */
