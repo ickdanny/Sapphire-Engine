@@ -6,6 +6,7 @@
 #include "ZMath.h"
 #include "Constructure.h"
 #include "MokyoMidi.h"
+#include "Trifecta.h"
 
 #include <unistd.h>
 
@@ -35,16 +36,16 @@ bool intEquals(
 #define intToLong(i) ((long)i)
 
 int main(){
-    MidiHub midiHub = midiHubMake(false);
-    MidiSequence testSequence
-        = parseMidiFile("test.mid");
-    
-    midiHubStart(&midiHub, &testSequence);
+    TFWindow window = tfWindowMake(
+        true,
+        "OYCN",
+        640,
+        480
+    );
 
-    sleep(1000);
+    sleep(10);
 
-    midiHubFree(&midiHub);
-    midiSequenceFree(&testSequence);
+    tfWindowFree(&window);
 
     printf("main completed\n");
     return 0;

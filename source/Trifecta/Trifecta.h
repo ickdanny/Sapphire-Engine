@@ -4,5 +4,6 @@
 #include "Trifecta_Concurrency.h"
 #include "Trifecta_Time.h"
 #include "Trifecta_Uchar.h"
+#include "Trifecta_Window.h"
 
 #endif

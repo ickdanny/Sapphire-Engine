@@ -1,1 +1,1 @@
-C-based shmup engine
+C-based shmup engine using GLFW

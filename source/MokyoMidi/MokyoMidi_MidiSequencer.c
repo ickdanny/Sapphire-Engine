@@ -96,7 +96,7 @@ static void midiSequencerHandleMetaEvent(
         = sequencerPtr->currentPtr->event;
 	++(sequencerPtr->currentPtr);
 
-	//current now points to the first data entry
+	/* current now points to the first data entry */
 
     /* handle tempo event */
 	if(metaEventStatus == mm_metaTempo){
@@ -151,7 +151,7 @@ static void midiSequencerHandleMetaEvent(
                 /* found loopEnd */
                 sequencerPtr->currentPtr
                     = sequencerPtr->loopPtr;
-                /* reset just in case */
+                /* reset for stray note off events */
                 midiOutReset(sequencerPtr->midiOutPtr);
                 /* 
                  * since loop ptr points directly to
@@ -163,7 +163,7 @@ static void midiSequencerHandleMetaEvent(
     }
 	
 	sequencerPtr->currentPtr += indexLength;
-	//index now points to 1 past the last data entry
+	/* index now points 1 past the last data entry */
 }
 
 static void midiSequencerStopPlaybackThread(

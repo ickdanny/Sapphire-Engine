@@ -40,7 +40,7 @@ void midiHubStop(MidiHub *midiHubPtr){
  * mutes it
  */
 void midiHubToggleMute(MidiHub *midiHubPtr){
-    //if we are now muted
+    /* if we are now muted */
 	if((midiHubPtr->muted = !(midiHubPtr->muted))){
 		midiHubStop(midiHubPtr);
 	}

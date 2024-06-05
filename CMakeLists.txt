@@ -40,6 +40,7 @@ add_subdirectory(./source/PGUtil)
 add_subdirectory(./source/AAAgame)
 
 include_directories(${PROJECT_DIRECTORIES})
+include_directories(${CMAKE_SOURCE_DIR}/libraries/glfw/include/GLFW)
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
@@ -49,10 +50,17 @@ if(WIN32)
     message("win32 detected")
 elseif(APPLE)
     # https://stackoverflow.com/questions/17070101/why-i-cannot-link-the-mac-framework-file-with-cmake
-    set(LIBS "-framework CoreServices" "-framework AudioUnit" "-framework AudioToolbox")
+    set(LIBS 
+        "-framework CoreServices"
+        "-framework AudioUnit"
+        "-framework AudioToolbox"
+        "-framework IOKit"
+        "-framework CoreGraphics"
+        "-framework AppKit"
+        ${CMAKE_SOURCE_DIR}/libraries/glfw/lib-arm64/libglfw3.a
+    )
     target_link_libraries(OceanEngine ${LIBS})
     set_target_properties(OceanEngine PROPERTIES LINK_FLAGS "-Wl,-F/Library/Frameworks")
 elseif(UNIX)
     message("unix detected")
 endif()
-
