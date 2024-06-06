@@ -4,11 +4,28 @@
 #include <time.h>
 #include <stdint.h>
 
+#define _oneBillion (1000000000L)
+
+/* 
+ * Converts seconds to nanoseconds by multiplying by 
+ * one billion
+ */
+#define secondsToNano(SECONDS) (SECONDS * _oneBillion)
+
 #ifdef __APPLE__
 
 typedef struct timespec TimePoint;
 
 #endif /* end __APPLE__ */
+
+/* 
+ * Returns TimePoint representing the specified number
+ * of nanoseconds
+ */
+TimePoint makeTimeNano(uint64_t nanoseconds);
+
+/* Returns a TimePoint representing 0 time */
+#define makeTimeZero makeTimeNano(0)
 
 /* Returns the current time */
 TimePoint getCurrentTime();

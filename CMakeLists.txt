@@ -40,7 +40,7 @@ add_subdirectory(./source/PGUtil)
 add_subdirectory(./source/AAAgame)
 
 include_directories(${PROJECT_DIRECTORIES})
-include_directories(${CMAKE_SOURCE_DIR}/libraries/glfw/include/GLFW)
+include_directories(${CMAKE_SOURCE_DIR}/libraries/glfw/include)
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
@@ -57,6 +57,7 @@ elseif(APPLE)
         "-framework IOKit"
         "-framework CoreGraphics"
         "-framework AppKit"
+        "-framework OpenGL"
         ${CMAKE_SOURCE_DIR}/libraries/glfw/lib-arm64/libglfw3.a
     )
     target_link_libraries(OceanEngine ${LIBS})

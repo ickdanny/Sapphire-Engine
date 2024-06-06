@@ -2,13 +2,20 @@
 
 #include <stdbool.h>
 
-#define oneBillion (1000000000L)
-
 #ifdef __APPLE__
 
 #include <CoreServices/CoreServices.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
+
+/* 
+ * Returns TimePoint representing the specified number
+ * of nanoseconds
+ */
+TimePoint makeTimeNano(uint64_t nanoseconds){
+    TimePoint toRet = {0};
+    return addTimeNano(toRet, nanoseconds);
+}
 
 /* Returns the current time */
 TimePoint getCurrentTime(){
@@ -37,15 +44,15 @@ TimePoint addTimeNano(
     TimePoint timePoint,
     uint64_t timeNano
 ){
-    unsigned int secondsToAdd = timeNano / oneBillion;
-    uint64_t nanosecondsToAdd = timeNano % oneBillion;
+    unsigned int secondsToAdd = timeNano / _oneBillion;
+    uint64_t nanosecondsToAdd = timeNano % _oneBillion;
     timePoint.tv_sec += secondsToAdd;
     timePoint.tv_nsec += nanosecondsToAdd;
 
     /* carry if needed*/
-    if(timePoint.tv_nsec >= oneBillion){
+    if(timePoint.tv_nsec >= _oneBillion){
         ++(timePoint.tv_sec);
-        timePoint.tv_nsec -= oneBillion;
+        timePoint.tv_nsec -= _oneBillion;
     }
 
     return timePoint;
@@ -84,7 +91,7 @@ int64_t timePointDiffNano(
     int64_t secDiff = left.tv_sec - right.tv_sec;
     int64_t nanoDiff = left.tv_nsec - right.tv_nsec;
 
-    int64_t diff = (secDiff * oneBillion) + nanoDiff;
+    int64_t diff = (secDiff * _oneBillion) + nanoDiff;
     return diff;
 }
 
@@ -108,8 +115,8 @@ void sleepUntil(TimePoint timePoint){
         }
 
         /* otherwise nanosleep() */
-        waitTime.tv_sec = timeDiff / oneBillion;
-        waitTime.tv_nsec = timeDiff % oneBillion;
+        waitTime.tv_sec = timeDiff / _oneBillion;
+        waitTime.tv_nsec = timeDiff % _oneBillion;
         int retval = nanosleep(&waitTime, NULL);
 
         /* if nanosleep completed, return */
