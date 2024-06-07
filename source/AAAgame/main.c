@@ -49,6 +49,13 @@ typedef struct Engine{
     GameLoop gameLoop;
 } Engine;
 
+/* Frees the specified Engine */
+void engineFree(Engine *enginePtr){
+    //todo: more frees
+    tfWindowFree(&(enginePtr->window));
+    midiHubFree(&(enginePtr->midiHub));
+}
+
 /*
  * A callback which stops the gameloop in the
  * specified Engine passed as a void ptr
@@ -76,12 +83,20 @@ void renderCallback(void *voidPtr){
 int main(){
     Engine engine = {0};
     engine.window = tfWindowMake(
-        true, //todo fullscreen from settings
+        false, //todo fullscreen from settings
         config_windowName,
         config_graphicsWidth,
         config_graphicsHeight,
         &engine /* user ptr to engine for callbacks */
     );
+
+    /* init MIDI */
+    //todo: muted from settings
+    engine.midiHub = midiHubMake(false);
+
+    //todo: init game
+    //todo: set game fullscreen callback
+    //todo: set game write settings callback
 
     engine.gameLoop = gameLoopMake(
         config_updatesPerSecond,
@@ -103,8 +118,8 @@ int main(){
     tfWindowMakeVisible(&(engine.window));
     gameLoopRun(&(engine.gameLoop));
 
-    /* after game has ended clean up */
-    tfWindowFree(&(engine.window));
+    /* clean up after game ends*/
+    engineFree(&engine);
 
     //todo: write settings
 

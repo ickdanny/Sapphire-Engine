@@ -5,7 +5,10 @@
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl.h>
 
-//todo: draw instruction in this file? outside Trifecta?
+#include "Constructure.h"
+
+#include "Trifecta_Sprite.h"
+#include "Trifecta_GlyphMap.h"
 
 /* 
  * Represents a window which is capable of being
@@ -42,6 +45,41 @@ void tfWindowSetExitCallback(
 
 /* Has the specified TFWindow render */
 void tfWindowRender(TFWindow *windowPtr);
+
+/* Draws a sprite onto the specified TFWindow */
+void tfWindowDrawSprite(
+    TFWindow *windowPtr,
+    Point2D preOffsetCenter,
+    const TFSpriteInstruction *spriteInstrPtr
+);
+
+/*
+ * Draws a portion of a sprite onto the 
+ * specified TFWindow
+ */
+void tfWindowDrawSubSprite(
+    TFWindow *windowPtr,
+    Point2D preOffsetCenter,
+    const TFSpriteInstruction *spriteInstrPtr,
+    const Rectangle *srcRectPtr
+);
+
+/* Draws a tiled sprite onto the specified TFWindow */
+void tfWindowDrawTileSprite(
+    TFWindow *windowPtr,
+    const Rectangle *drawRectPtr,
+    const TFSpriteInstruction *spriteInstrPtr,
+    Point2D pixelOffset
+);
+
+/* Draws text onto the specified TFWindow */
+void tfWindowDrawText(
+    TFWindow *windowPtr,
+    Point2D pos,
+    const WideString *wideStringPtr,
+    int rightBound,
+    TFGlyphMap *glyphMapPtr
+);
 
 /* Frees the given TFWindow */
 void tfWindowFree(TFWindow *windowPtr);

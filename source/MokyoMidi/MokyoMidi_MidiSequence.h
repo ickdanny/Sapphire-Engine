@@ -35,7 +35,7 @@ typedef struct MidiSequence{
  * Reads the specified midi file and returns a
  * MidiSequence by value, ready for playback
  */
-MidiSequence parseMidiFile(const char *filename);
+MidiSequence parseMidiFile(const char *fileName);
 
 /* Frees the given MidiSequence */
 void midiSequenceFree(MidiSequence *midiSequencePtr);

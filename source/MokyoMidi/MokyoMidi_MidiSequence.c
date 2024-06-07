@@ -786,10 +786,10 @@ static ArrayList compileTracks(
  * Reads the specified midi file and returns a
  * MidiSequence by value, ready for playback
  */
-MidiSequence parseMidiFile(const char *filename){
+MidiSequence parseMidiFile(const char *fileName){
     /* open the midi file as binary read */
-    FILE *filePtr = fopen(filename, "rb");
-    assertNotNull(filePtr, filename);
+    FILE *filePtr = fopen(fileName, "rb");
+    assertNotNull(filePtr, fileName);
 
     /* initialize the midi sequence */
     MidiSequence midiSequence = midiSequenceMake();
