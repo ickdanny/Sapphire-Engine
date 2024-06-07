@@ -1,6 +1,8 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <stdbool.h>
+
 /* Stores the settings for the game */
 typedef struct Settings{
     bool muted;

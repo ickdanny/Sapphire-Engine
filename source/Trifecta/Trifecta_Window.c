@@ -25,7 +25,9 @@ static void exitCallbackFunc(
 TFWindow tfWindowMake(
     bool fullscreen,
     const char* windowName,
-    int graphicsWidth,
+    int windowWidth,
+    int windowHeight,
+    int graphicsWidth, //todo: what to do with graphics?
     int graphicsHeight,
     void *userPtr
 ){
@@ -54,15 +56,14 @@ TFWindow tfWindowMake(
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
-    //glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
     glfwWindowHint(
         GLFW_OPENGL_PROFILE,
         GLFW_OPENGL_CORE_PROFILE
     );
 
     toRet._windowPtr = glfwCreateWindow(
-        graphicsWidth,
-        graphicsHeight,
+        windowWidth,
+        windowHeight,
         windowName,
         fullscreen ? glfwGetPrimaryMonitor() : NULL,
         NULL

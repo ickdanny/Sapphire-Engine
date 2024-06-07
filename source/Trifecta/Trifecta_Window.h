@@ -24,6 +24,8 @@ typedef struct TFWindow{
 TFWindow tfWindowMake(
     bool fullscreen,
     const char* windowName,
+    int windowWidth,
+    int windowHeight,
     int graphicsWidth,
     int graphicsHeight,
     void *userPtr

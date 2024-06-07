@@ -10,6 +10,7 @@
 
 #include "Config.h"
 #include "GameLoop.h"
+#include "Settings.h"
 
 #include <unistd.h>
 
@@ -40,7 +41,7 @@ bool intEquals(
 
 /* A struct holding all the elements of the engine */
 typedef struct Engine{
-    /* todo: settings */
+    Settings settings;
     /* todo: resources */
     TFWindow window;
     /* todo: input */
@@ -51,6 +52,10 @@ typedef struct Engine{
 
 /* Frees the specified Engine */
 void engineFree(Engine *enginePtr){
+    writeSettingsToFile(
+        &(enginePtr->settings),
+        config_settingsFileName
+    );
     //todo: more frees
     tfWindowFree(&(enginePtr->window));
     midiHubFree(&(enginePtr->midiHub));
@@ -82,17 +87,27 @@ void renderCallback(void *voidPtr){
 /* The entry point for the game */
 int main(){
     Engine engine = {0};
+
+    /* read settings */
+    engine.settings = readOrCreateSettingsFromFile(
+        config_settingsFileName
+    );
+
+    /* init window */
     engine.window = tfWindowMake(
-        false, //todo fullscreen from settings
+        engine.settings.fullscreen,
         config_windowName,
+        config_windowWidth,
+        config_windowHeight,
         config_graphicsWidth,
         config_graphicsHeight,
         &engine /* user ptr to engine for callbacks */
     );
 
     /* init MIDI */
-    //todo: muted from settings
-    engine.midiHub = midiHubMake(false);
+    engine.midiHub = midiHubMake(
+        engine.settings.muted
+    );
 
     //todo: init game
     //todo: set game fullscreen callback
@@ -118,10 +133,8 @@ int main(){
     tfWindowMakeVisible(&(engine.window));
     gameLoopRun(&(engine.gameLoop));
 
-    /* clean up after game ends*/
+    /* clean up after game ends */
     engineFree(&engine);
-
-    //todo: write settings
 
     printf("main completed\n");
     return 0;
