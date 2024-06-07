@@ -75,6 +75,12 @@ TFWindow tfWindowMake(
 
     glfwMakeContextCurrent(toRet._windowPtr);
 
+    /* initialize graphics */
+    toRet._graphics = _tfGraphicsMake(
+        graphicsWidth,
+        graphicsHeight
+    );
+
     /* set the specified user ptr */
     toRet.userPtr = userPtr;
 
@@ -113,8 +119,12 @@ void tfWindowSetExitCallback(
 
 /* Has the specified TFWindow render */
 void tfWindowRender(TFWindow *windowPtr){
-    glClearColor(1.0, 0.5, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //todo openGL test
+
+    //glClearColor(1.0, 0.5, 1.0, 1.0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+
+    testDraw(&(windowPtr->_graphics));
 
     glfwSwapBuffers(windowPtr->_windowPtr);
     glfwPollEvents();

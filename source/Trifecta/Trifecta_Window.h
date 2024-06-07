@@ -1,6 +1,9 @@
 #ifndef TRIFECTA_WINDOW_H
 #define TRIFECTA_WINDOW_H
 
+/* define to silence OpenGL deprecation warnings */
+#define GL_SILENCE_DEPRECATION
+
 #include <stdbool.h>
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl.h>
@@ -9,6 +12,7 @@
 
 #include "Trifecta_Sprite.h"
 #include "Trifecta_GlyphMap.h"
+#include "_Trifecta_Graphics.h"
 
 /* 
  * Represents a window which is capable of being
@@ -16,6 +20,7 @@
  */
 typedef struct TFWindow{
     GLFWwindow* _windowPtr;
+    TFGraphics _graphics;
     void *userPtr;
     void (*exitCallback)(void*);
 } TFWindow;
