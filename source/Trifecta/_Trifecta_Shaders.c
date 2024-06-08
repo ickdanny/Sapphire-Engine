@@ -3,13 +3,22 @@
 #include "Constructure.h"
 
 /* source code for the vertex shader */
-static const char *vertexShaderSource = \
-""
+static const char *vertexShaderSource =
+    "#version 330 core \n"
+    "layout(location = 0) in vec3 vertexPos; \n"
+    "void main(){ \n"
+        "gl_Position.xyz = vertexPos; \n"
+        "gl_Position.w = 1.0; \n"
+    "} \n"
 ;
 
 /* source code for the fragment shader */
-static const char *fragmentShaderSource = \
-""
+static const char *fragmentShaderSource =
+    "#version 330 core \n"
+    "out vec3 color; \n"
+    "void main(){ \n"
+        "color = vec3(1, 0, 0); \n"
+    "} \n"
 ;
 
 /* Loads the shaders and returns the programID */
@@ -57,6 +66,7 @@ GLuint _loadShaders(){
                 NULL,
                 errorMsg._ptr
             );
+            pgWarning("error compiling vertex shader");
             pgError(errorMsg._ptr);
 	    }
     }
@@ -92,6 +102,7 @@ GLuint _loadShaders(){
                 NULL,
                 errorMsg._ptr
             );
+            pgWarning("error compiling frag shader");
             pgError(errorMsg._ptr);
 	    }
     }

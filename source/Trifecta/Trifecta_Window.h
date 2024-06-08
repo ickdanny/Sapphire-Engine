@@ -4,9 +4,12 @@
 /* define to silence OpenGL deprecation warnings */
 #define GL_SILENCE_DEPRECATION
 
+/* define to have glfw3 include gl3 not gl */
+#define GLFW_INCLUDE_GLCOREARB
+
 #include <stdbool.h>
 #include <GLFW/glfw3.h>
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 
 #include "Constructure.h"
 
@@ -20,7 +23,7 @@
  */
 typedef struct TFWindow{
     GLFWwindow* _windowPtr;
-    TFGraphics _graphics;
+    _TFGraphics _graphics;
     void *userPtr;
     void (*exitCallback)(void*);
 } TFWindow;

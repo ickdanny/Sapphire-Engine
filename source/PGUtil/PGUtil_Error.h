@@ -10,7 +10,10 @@
 #define TOSTRING(x) STRINGIFY(x)
 #define SRC_LOCATION __FILE__ ":" TOSTRING(__LINE__)
 
-/* Prints the given error message */
+/* Prints the given error message but does not exit */
+void pgWarning(const char *warningMsg);
+
+/* Prints the given error message and exits */
 void pgError(const char *errorMsg);
 
 /* 

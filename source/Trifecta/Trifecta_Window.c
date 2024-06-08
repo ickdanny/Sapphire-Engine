@@ -133,6 +133,7 @@ void tfWindowRender(TFWindow *windowPtr){
 /* Frees the given TFWindow */
 void tfWindowFree(TFWindow *windowPtr){
     if(windowPtr){
+        _tfGraphicsFree(&(windowPtr->_graphics));
         glfwDestroyWindow(windowPtr->_windowPtr);
         windowPtr->_windowPtr = NULL;
         glfwTerminate();

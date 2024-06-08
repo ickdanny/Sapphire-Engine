@@ -4,7 +4,7 @@
 /* define to silence OpenGL deprecation warnings */
 #define GL_SILENCE_DEPRECATION
 
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 
 /*
  * A Graphics object is capable of drawing graphics to
@@ -13,18 +13,23 @@
 typedef struct _TFGraphics{
     int _graphicsWidth;
     int _graphicsHeight;
-} TFGraphics;
+    GLuint _vaoID;
+    GLuint _programID;
+} _TFGraphics;
 
 /* 
  * Constructs, initializes, and returns a new
- * TFGraphics object by value
+ * _TFGraphics object by value
  */
-TFGraphics _tfGraphicsMake(
+_TFGraphics _tfGraphicsMake(
     int graphicsWidth,
     int graphicsHeight
 );
 
 //todo: temp function
-void testDraw(TFGraphics *graphicsPtr);
+void testDraw(_TFGraphics *graphicsPtr);
+
+/* Frees the specified _TFGraphics */
+void _tfGraphicsFree(_TFGraphics *graphicsPtr);
 
 #endif

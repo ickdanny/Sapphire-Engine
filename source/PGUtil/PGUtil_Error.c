@@ -5,7 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Prints the given error message */
+/* Prints the given error message but does not exit */
+void pgWarning(const char *warningMsg){
+    fprintf(stderr, "%s\n", warningMsg);
+}
+
+/* Prints the given error message and exits */
 void pgError(const char *errorMsg){
     fprintf(stderr, "%s\n", errorMsg);
     exit(1);
