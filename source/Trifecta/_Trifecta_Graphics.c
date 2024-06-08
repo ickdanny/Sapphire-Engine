@@ -21,21 +21,21 @@ static void checkGLError(){
             /* do nothing */
             break;
         case GL_INVALID_ENUM:
-            pgWarning("OpenGL invalid enum");
+            pgError("OpenGL invalid enum");
             break;
         case GL_INVALID_VALUE:
-            pgWarning("OpenGL invalid value");
+            pgError("OpenGL invalid value");
             break;
         case GL_INVALID_OPERATION:
-            pgWarning("OpenGL invalid operation");
+            pgError("OpenGL invalid operation");
             break;
         case GL_INVALID_FRAMEBUFFER_OPERATION:
-            pgWarning(
+            pgError(
                 "OpenGL invalid framebuffer operation"
             );
             break;
         case GL_OUT_OF_MEMORY:
-            pgWarning("OpenGL out of memory");
+            pgError("OpenGL out of memory");
             break;
             /*
         case GL_STACK_UNDERFLOW:
@@ -46,7 +46,7 @@ static void checkGLError(){
             break;
             */
         default:
-            pgWarning("OpenGL unknown error");
+            pgError("OpenGL unknown error");
             break;
     }
 }
@@ -69,17 +69,18 @@ _TFGraphics _tfGraphicsMake(
 
     /* load shaders */
     toRet._programID = _loadShaders();
+    glUseProgram(toRet._programID);
 
-    return toRet;
-}
-
-//todo: temp function
-void testDraw(_TFGraphics *graphicsPtr){
-    /* test triangle */
-    static const GLfloat vertexBufferData[] = {
-       -1.0f, -1.0f, 0.0f,
-       1.0f, -1.0f, 0.0f,
-       0.0f,  1.0f, 0.0f,
+    /* load the vertex buffer for quads */
+    static const GLfloat quadVertices[] = {
+        /* first triangle */
+        -1.0f, -1.0f, 0.0f,  /* bottom left */
+        -1.0f, 1.0f, 0.0f,   /* top left */
+        1.0f, 1.0f, 0.0f,    /* top right */
+        /* second triangle */
+        -1.0f, -1.0f, 0.0f,  /* bottom left */
+        1.0f, 1.0f, 0.0f,    /* top right */
+        1.0f, -1.0f, 0.0f,   /* bottom right*/
     };
     /* set up vertex buffer */
     GLuint vertexBufferID;
@@ -87,34 +88,37 @@ void testDraw(_TFGraphics *graphicsPtr){
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
     glBufferData(
         GL_ARRAY_BUFFER,
-        sizeof(vertexBufferData),
-        vertexBufferData,
+        sizeof(quadVertices),
+        quadVertices,
         GL_STATIC_DRAW
     );
-
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    /* use shaders */
-    glUseProgram(graphicsPtr->_programID);
-
     /* first attribute buffer is vertices */
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
     glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        (void*)0            // array buffer offset
+        0,          /* use attribute 0 */
+        3,          /* num components per vertex */
+        GL_FLOAT,   /* type of components */
+        GL_FALSE,   /* not normalized */
+        0,          /* stride 0: tightly packed */
+        (void*)0    /* array buffer offset */
     );
 
-    /* draw triangle starting from vertex 0 and with 3 total vertexes */
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    checkGLError();
+    return toRet;
+}
 
-    glDisableVertexAttribArray(0);
+/* Signals OpenGL to draw a quad */
+static void drawQuad(){
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 3, 3);  
+}
+
+//todo: temp function
+void testDraw(_TFGraphics *graphicsPtr){
+    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    drawQuad();
 }
 
 /* Frees the specified _TFGraphics */
@@ -126,6 +130,9 @@ void _tfGraphicsFree(_TFGraphics *graphicsPtr){
             1,
             &(graphicsPtr->_vaoID)
         );
+
+        /* disable vertex buffer */
+        glDisableVertexAttribArray(0);
 
 	    glDeleteProgram(graphicsPtr->_programID);
     }

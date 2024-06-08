@@ -19,7 +19,7 @@
 
 /* 
  * Represents a window which is capable of being
- * drawn to
+ * drawn on
  */
 typedef struct TFWindow{
     GLFWwindow* _windowPtr;

@@ -1,0 +1,23 @@
+#ifndef ZMATH_MATRIX4X4
+#define ZMATH_MATRIX4X4
+
+/* Represents a 4x4 matrix in row-major order */
+typedef struct Matrix4x4{
+    float matrix[4][4];
+} Matrix4x4;
+
+/* Constructs and returns the 4x4 identity matrix */
+Matrix4x4 matrix4x4MakeIdentity();
+
+/* Constructs and returns todo */
+
+/* 
+ * Returns the result of multiplying the left matrix
+ * by the right matrix
+ */
+Matrix4x4 matrix4x4Multiply(
+    const Matrix4x4 *leftPtr,
+    const Matrix4x4 *rightPtr
+);
+
+#endif
