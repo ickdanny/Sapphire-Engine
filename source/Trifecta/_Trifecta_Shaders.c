@@ -6,9 +6,11 @@
 static const char *vertexShaderSource =
     "#version 330 core \n"
     "layout(location = 0) in vec3 vertexPos; \n"
+    "uniform mat4 transform; \n"
     "void main(){ \n"
         "gl_Position.xyz = vertexPos; \n"
         "gl_Position.w = 1.0; \n"
+        "gl_Position = transform * gl_Position; \n"
     "} \n"
 ;
 

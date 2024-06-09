@@ -9,19 +9,40 @@
 
 /* Represents a 2D image */
 typedef struct TFSprite{
-    //todo: OpenGL texture
+    GLuint _textureHandle;
     uint32_t width;
     uint32_t height;
 } TFSprite;
 
 /* Specifies how a sprite is to be drawn */
 typedef struct TFSpriteInstruction{
+    /* The pointer to the actual texture */
     TFSprite *spritePtr;
+
+    /*
+     * The depth at which to draw the sprite
+     * (with respect to overlapping sprites)
+     */
     int depth;
+
+    /* 
+     * The offset to apply from the center of the
+     * entity to be drawn
+     */
     Vector2D offset;
+
+    /* The rotation angle in degrees CCW */
     float rotation;
+
+    /* 
+     * The scale factor to stretch the sprite in
+     * both directions 
+     */
     float scale;
 } TFSpriteInstruction;
+
+/* Loads a sprite from the specified .bmp file */
+TFSprite parseBitmapFile(const char *fileName);
 
 /* 
  * Constructs and returns a TFSpriteInstruction

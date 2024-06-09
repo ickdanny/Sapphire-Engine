@@ -99,6 +99,34 @@ float vector2DAngle(Vector2D vector){
 }
 
 /* 
+ * Returns the result of adding the given Vector2D
+ * to the specified Point2D
+ */
+Point2D point2DAddVector2D(
+    Point2D point,
+    Vector2D vector
+){
+    /* point is copied by value */
+    point.x += vector.x;
+    point.y += vector.y;
+    return point;
+}
+
+/* 
+ * Returns the result of subtracting the given 
+ * Vector2D from the specified Point2D
+ */
+Point2D point2DSubtractVector2D(
+    Point2D point,
+    Vector2D vector
+){
+    /* point is copied by value */
+    point.x -= vector.x;
+    point.y -= vector.y;
+    return point;
+}
+
+/* 
  * Constructs the vector which transforms 
  * Point2D A to B 
  */

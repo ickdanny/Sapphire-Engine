@@ -5,6 +5,7 @@
 #include "ZMath_Angle.h"
 #include "ZMath_Bitwise.h"
 #include "ZMath_Constants.h"
+#include "ZMath_Matrix4x4.h"
 #include "ZMath_Numeric.h"
 #include "ZMath_Point2D.h"
 #include "ZMath_Polar.h"

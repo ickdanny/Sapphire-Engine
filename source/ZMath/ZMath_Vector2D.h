@@ -67,6 +67,24 @@ float vector2DMagnitude(Vector2D vector);
 float vector2DAngle(Vector2D vector);
 
 /* 
+ * Returns the result of adding the given Vector2D
+ * to the specified Point2D
+ */
+Point2D point2DAddVector2D(
+    Point2D point,
+    Vector2D vector
+);
+
+/* 
+ * Returns the result of subtracting the given 
+ * Vector2D from the specified Point2D
+ */
+Point2D point2DSubtractVector2D(
+    Point2D point,
+    Vector2D vector
+);
+
+/* 
  * Constructs the vector which transforms 
  * Point2D A to B 
  */
