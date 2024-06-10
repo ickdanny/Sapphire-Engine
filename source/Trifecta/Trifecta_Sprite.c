@@ -82,13 +82,13 @@ static BitmapFileHeader parseBitmapHeader(
     FILE *filePtr
 ){
     assertNotNull(filePtr, "null bmp filePtr");
-    size_t bytesRead = 0;
+    size_t itemsRead = 0;
     BitmapFileHeader toRet = {0};
 
     /* read ID */
-    bytesRead = fread(&toRet.id[0], 1, 2, filePtr);
+    itemsRead = fread(&toRet.id[0], 1, 2, filePtr);
     assertTrue(
-        bytesRead == 2,
+        itemsRead == 2,
         "failed to read bmp id"
     );
     assertTrue(
@@ -97,9 +97,9 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read file size */
-    bytesRead = fread(&toRet.fileSize, 4, 1, filePtr);
+    itemsRead = fread(&toRet.fileSize, 4, 1, filePtr);
     assertTrue(
-        bytesRead == 4, //todo why only read 2 bytes?
+        itemsRead == 1,
         "failed to read bmp file size"
     );
     toRet.fileSize = fromLittleEndian32(
@@ -110,9 +110,9 @@ static BitmapFileHeader parseBitmapHeader(
     fseek(filePtr, 4, SEEK_CUR);
 
     /* read data offset */
-    bytesRead = fread(&toRet.dataOffset, 4, 1, filePtr);
+    itemsRead = fread(&toRet.dataOffset, 4, 1, filePtr);
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp data offset"
     );
     toRet.dataOffset = fromLittleEndian32(
@@ -120,49 +120,51 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read secondary header */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.secondaryHeaderSize,
         4,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp secondary header size"
     );
     toRet.secondaryHeaderSize = fromLittleEndian32(
         toRet.secondaryHeaderSize
     );
+    
     assertTrue(
-        toRet.secondaryHeaderSize == 40,
-        "error: only accept Windows BITMAPINFOHEADER"
+        toRet.secondaryHeaderSize == 40
+            || toRet.secondaryHeaderSize == 56,
+        "error: unsupported bmp header type"
     );
 
     /* read width */
-    bytesRead = fread(&toRet.width, 4, 1, filePtr);
+    itemsRead = fread(&toRet.width, 4, 1, filePtr);
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp width"
     );
     toRet.width = fromLittleEndian32(toRet.width);
 
     /* read height */
-    bytesRead = fread(&toRet.height, 4, 1, filePtr);
+    itemsRead = fread(&toRet.height, 4, 1, filePtr);
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp height"
     );
     toRet.height = fromLittleEndian32(toRet.height);
 
     /* read num color planes */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.numColorPlanes,
         2,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 2,
+        itemsRead == 1,
         "failed to read bmp num color planes"
     );
     toRet.numColorPlanes = fromLittleEndian16(
@@ -174,14 +176,14 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read bits per pixel */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.bitsPerPixel,
         2,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 2,
+        itemsRead == 1,
         "failed to read bmp bits per pixel"
     );
     toRet.bitsPerPixel = fromLittleEndian16(
@@ -189,14 +191,14 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read compression code */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.compressionCode,
         4,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp compression code"
     );
     toRet.compressionCode = fromLittleEndian32(
@@ -204,14 +206,14 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read image size */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.imageSize,
         4,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp image size"
     );
     toRet.imageSize = fromLittleEndian32(
@@ -224,14 +226,14 @@ static BitmapFileHeader parseBitmapHeader(
     }
 
     /* read horizontal resolution */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.horizontalResolution,
         4,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp horizontal resolution"
     );
     toRet.horizontalResolution = fromLittleEndian32(
@@ -239,14 +241,14 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read vertical resolution */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.verticalResolution,
         4,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp vertical resolution"
     );
     toRet.verticalResolution = fromLittleEndian32(
@@ -254,14 +256,14 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read num colors in palette */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.numColorsInPalette,
         4,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp num colors in palette"
     );
     toRet.numColorsInPalette = fromLittleEndian32(
@@ -269,14 +271,14 @@ static BitmapFileHeader parseBitmapHeader(
     );
 
     /* read num importnat colors */
-    bytesRead = fread(
+    itemsRead = fread(
         &toRet.numImportantColors,
         4,
         1,
         filePtr
     );
     assertTrue(
-        bytesRead == 4,
+        itemsRead == 1,
         "failed to read bmp num important colors"
     );
     toRet.numImportantColors = fromLittleEndian32(
@@ -296,47 +298,65 @@ TFSprite parseBitmapFile(const char *fileName){
         filePtr
     );
 
-    switch(header.compressionCode){
-        case compressionCodeRGB:
-            pgWarning("rgb");
-            break;
-        case compressionCodeRLE8:
-            pgWarning("rle8");
-            break;
-        case compressionCodeRLE4:
-            pgWarning("rle4");
-            break;
-        case compressionCodeBitfields:
-            pgWarning("bitfields");
-            break;
-        case compressionCodeJPEG:
-            pgWarning("jpeg");
-            break;
-        case compressionCodePNG:
-            pgWarning("png");
-            break;
-        case compressionCodeAlphaBitfields:
-            pgWarning("alpha bitfields");
-            break;
-        case compressionCodeCMYK:
-            pgWarning("cmyk");
-            break;
-        case compressionCodeCMYKRLE8:
-            pgWarning("cmykrle8");
-            break;
-        case compressionCodeCMYKRLE4:
-            pgWarning("cmykrle4");
-            break;
-    }
+    assertTrue(
+        header.compressionCode
+            == compressionCodeBitfields,
+        "error: only accept bitfields bmp compression"
+    );
 
-    /* ptr to actual data */
-    unsigned char *dataPtr;
+    /* seek to start of actual pixel data */
+    fseek(filePtr, header.dataOffset, SEEK_SET);
 
+    /* copy image data to memory */
+    unsigned char *pixelDataPtr = pgAlloc(
+        header.imageSize,
+        1
+    );
+    size_t itemsRead = fread(
+        pixelDataPtr,
+        1,
+        header.imageSize,
+        filePtr
+    );
+    assertTrue(
+        itemsRead == header.imageSize,
+        "failed to read bmp pixel data fully"
+    );
+    
+    fclose(filePtr);
+
+    /* load image as OpenGL texture */
     TFSprite toRet = {0};
+    glGenTextures(1, &(toRet._textureID));
+    glBindTexture(GL_TEXTURE_2D, toRet._textureID);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0, /* level of detail */
+        GL_RGBA, /* internal format */
+        header.width,
+        header.height,
+        0, /* border (value must be 0) */
+        GL_BGRA, /* pixel data format */
+        GL_UNSIGNED_BYTE, /* pixel data type */
+        pixelDataPtr
+    );
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MAG_FILTER,
+        GL_NEAREST
+    );
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MIN_FILTER,
+        GL_NEAREST
+    );
 
+    /* free pixel data after sent to OpenGL */
+    pgFree(pixelDataPtr);
 
+    toRet.width = header.width;
+    toRet.height = header.height;
 
-    //todo: load sprite
     return toRet;
 }
 

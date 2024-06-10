@@ -218,7 +218,7 @@ static Matrix4x4 makeTransformMatrix(
 
 //todo: temp function
 void testDraw(_TFGraphics *graphicsPtr){
-    TFSprite test = parseBitmapFile("test.bmp");
+    TFSprite sprite = parseBitmapFile("test2.bmp");
 
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -226,7 +226,6 @@ void testDraw(_TFGraphics *graphicsPtr){
     static float rotation = 0.0f;
     rotation += 1.0f;
     Vector2D offset = {0.0f, 0.0f};
-    TFSprite sprite = {100, 50};
     TFSpriteInstruction spriteInstr
         = tfSpriteInstructionMake(
             &sprite,

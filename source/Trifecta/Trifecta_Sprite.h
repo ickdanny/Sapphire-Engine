@@ -1,6 +1,9 @@
 #ifndef TRIFECTA_SPRITE
 #define TRIFECTA_SPRITE
 
+/* define to silence OpenGL deprecation warnings */
+#define GL_SILENCE_DEPRECATION
+
 #include <OpenGL/gl3.h>
 
 #include "ZMath.h"
@@ -11,7 +14,7 @@
 
 /* Represents a 2D image */
 typedef struct TFSprite{
-    GLuint _textureHandle;
+    GLuint _textureID;
     uint32_t width;
     uint32_t height;
 } TFSprite;
