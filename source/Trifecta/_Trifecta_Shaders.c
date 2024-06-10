@@ -6,20 +6,28 @@
 static const char *vertexShaderSource =
     "#version 330 core \n"
     "layout(location = 0) in vec3 vertexPos; \n"
+    "layout(location = 1) in vec2 vertexTexCoords; \n"
+    "out vec2 texCoords; \n"
     "uniform mat4 transform; \n"
     "void main(){ \n"
         "gl_Position.xyz = vertexPos; \n"
         "gl_Position.w = 1.0; \n"
         "gl_Position = transform * gl_Position; \n"
+        "texCoords = vertexTexCoords; \n"
     "} \n"
 ;
 
 /* source code for the fragment shader */
 static const char *fragmentShaderSource =
     "#version 330 core \n"
-    "out vec3 color; \n"
+    "in vec2 texCoords; \n"
+    "out vec4 color; \n"
+    "uniform sampler2D sampler; \n"
     "void main(){ \n"
-        "color = vec3(1, 0, 0); \n"
+        "color = texture(sampler, texCoords); \n"
+        "if(color.a < 1.0){ \n"
+            "discard; \n"
+        "} \n"
     "} \n"
 ;
 

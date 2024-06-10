@@ -379,3 +379,10 @@ TFSpriteInstruction tfSpriteInstructionMake(
     toRet.scale = scale;
     return toRet;
 }
+
+/* Frees the specified TFSprite */
+void tfSpriteFree(TFSprite *spritePtr){
+    if(spritePtr){
+        glDeleteTextures(1, &(spritePtr->_textureID));
+    }
+}

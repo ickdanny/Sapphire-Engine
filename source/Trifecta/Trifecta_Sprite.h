@@ -21,7 +21,7 @@ typedef struct TFSprite{
 
 /* Specifies how a sprite is to be drawn */
 typedef struct TFSpriteInstruction{
-    /* The pointer to the actual texture */
+    /* A weak pointer to the actual texture */
     TFSprite *spritePtr;
 
     /*
@@ -77,5 +77,8 @@ TFSpriteInstruction tfSpriteInstructionMake(
         _defaultRotation, \
         _defaultScale \
     )
+
+/* Frees the specified TFSprite */
+void tfSpriteFree(TFSprite *spritePtr);
 
 #endif

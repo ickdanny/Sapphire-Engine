@@ -4,16 +4,6 @@
 
 #include "_Trifecta_Shaders.h"
 
-/* todo: cmt out
-#ifdef __APPLE__
-
-#define glGenVertexArrays glGenVertexArraysAPPLE
-#define glBindVertexArray glBindVertexArrayAPPLE
-#define glDeleteVertexArrays glDeleteVertexArraysAPPLE
-
-#endif
-*/
-
 /* Debug function to check for OpenGL errors */
 static void checkGLError(){
     switch(glGetError()){
@@ -37,20 +27,54 @@ static void checkGLError(){
         case GL_OUT_OF_MEMORY:
             pgError("OpenGL out of memory");
             break;
-            //todo: cmt out
-            /*
-        case GL_STACK_UNDERFLOW:
-            pgWarning("OpenGL stack underflow");
-            break;
-        case GL_STACK_OVERFLOW:
-            pgWarning("OpenGL stack overflow");
-            break;
-            */
         default:
             pgError("OpenGL unknown error");
             break;
     }
 }
+
+/* 
+ * Updates the texCoord buffer to draw the specified
+ * Rectangle
+ */
+static void _tfGraphicsUpdateTexCoordBuffer(
+    const _TFGraphics *graphicsPtr,
+    Rectangle texCoordRect
+){
+    float uLow = texCoordRect.x;
+    float uHigh = uLow + texCoordRect.width;
+    float vLow = texCoordRect.y;
+    float vHigh = vLow + texCoordRect.height;
+    GLfloat quadTexCoords[] = {
+        /* first triangle */
+        uLow, vLow,     /* bottom left */
+        uLow, vHigh,    /* top left */
+        uHigh, vHigh,   /* top right */
+        /* second triangle */
+        uLow, vLow,     /* bottom left */
+        uHigh, vHigh,   /* top right */
+        uHigh, vLow,    /* bottom right*/
+    };
+    /* send the texCoord buffer */
+    glBindBuffer(
+        GL_ARRAY_BUFFER,
+        graphicsPtr->_texCoordBufferID
+    );
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(quadTexCoords),
+        quadTexCoords,
+        GL_STATIC_DRAW
+    );
+}
+
+/* The rectangle which represents the full texture */
+static const Rectangle fullTexRect = {
+    0.0f,
+    0.0f,
+    1.0f,
+    1.0f
+};
 
 /* 
  * Constructs, initializes, and returns a new
@@ -82,6 +106,14 @@ _TFGraphics _tfGraphicsMake(
         "transform"
     );
 
+    /* get sampler ID */
+    toRet._samplerID = glGetUniformLocation(
+        toRet._programID,
+        "sampler"
+    );
+    /* set sampler to use texture 0 */
+    glUniform1i(toRet._samplerID, 0);
+
     /* load the vertex buffer for quads */
     static const GLfloat quadVertices[] = {
         /* first triangle */
@@ -94,9 +126,11 @@ _TFGraphics _tfGraphicsMake(
         1.0f, -1.0f, 0.0f,   /* bottom right*/
     };
     /* set up vertex buffer */
-    GLuint vertexBufferID;
-    glGenBuffers(1, &vertexBufferID);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
+    glGenBuffers(1, &toRet._vertexBufferID);
+    glBindBuffer(
+        GL_ARRAY_BUFFER,
+        toRet._vertexBufferID
+    );
     glBufferData(
         GL_ARRAY_BUFFER,
         sizeof(quadVertices),
@@ -105,10 +139,36 @@ _TFGraphics _tfGraphicsMake(
     );
     /* first attribute buffer is vertices */
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
+    glBindBuffer(
+        GL_ARRAY_BUFFER,
+        toRet._vertexBufferID
+    );
     glVertexAttribPointer(
         0,          /* use attribute 0 */
         3,          /* num components per vertex */
+        GL_FLOAT,   /* type of components */
+        GL_FALSE,   /* not normalized */
+        0,          /* stride 0: tightly packed */
+        (void*)0    /* array buffer offset */
+    );
+
+    /* load the texCoord buffer for quads */
+    /* set up texCoord buffer */
+    glGenBuffers(1, &toRet._texCoordBufferID);
+    _tfGraphicsUpdateTexCoordBuffer(
+        &toRet,
+        fullTexRect
+    );
+    
+    /* second attribute buffer is texCoords */
+    glEnableVertexAttribArray(1);
+    glBindBuffer(
+        GL_ARRAY_BUFFER,
+        toRet._texCoordBufferID
+    );
+    glVertexAttribPointer(
+        1,          /* use attribute 1 */
+        2,          /* num components per vertex */
         GL_FLOAT,   /* type of components */
         GL_FALSE,   /* not normalized */
         0,          /* stride 0: tightly packed */
@@ -231,21 +291,30 @@ void testDraw(_TFGraphics *graphicsPtr){
             &sprite,
             0,
             offset,
-            rotation,
+            //rotation,
+            0.0f,
             sinf(toRadians(rotation))
+            //1.0f
         );
     Point2D center = {
         graphicsPtr->_graphicsWidth / 2,
         graphicsPtr->_graphicsHeight / 2
     };
-    _tfGraphicsDrawSprite(
+    Rectangle texCoordRect = {
+        0.0,
+        0.0,
+        160.0f,
+        120.0f
+    };
+    _tfGraphicsDrawSubSprite(
         graphicsPtr,
         center,
-        &spriteInstr
+        &spriteInstr,
+        &texCoordRect
     );
 }
 
-//todo: batched rendering?
+//todo: instanced rendering is possible optimization
 
 /* Draws a sprite with the specified _TFGraphics */
 void _tfGraphicsDrawSprite(
@@ -267,8 +336,14 @@ void _tfGraphicsDrawSprite(
         return;
     }
 
-    //todo: send texture (?)
-    //todo: send transform (?)
+    /* send texture to OpenGL (bind to 0) */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(
+        GL_TEXTURE_2D,
+        spriteInstrPtr->spritePtr->_textureID
+    );
+
+    /* send transform to OpenGL */
     Matrix4x4 transformMatrix = makeTransformMatrix(
         graphicsPtr->_graphicsWidth,
         graphicsPtr->_graphicsHeight,
@@ -289,7 +364,8 @@ void _tfGraphicsDrawSprite(
 
 /*
  * Draws a portion of a sprite with the specified
- * _TFGraphics
+ * _TFGraphics; scaling and rotation will apply to
+ * the new center of the sprite
  */
 void _tfGraphicsDrawSubSprite(
     _TFGraphics *graphicsPtr,
@@ -297,7 +373,79 @@ void _tfGraphicsDrawSubSprite(
     const TFSpriteInstruction *spriteInstrPtr,
     const Rectangle *srcRectPtr
 ){
-    //todo
+    /* if width or height are small, draw nothing */
+	if(srcRectPtr->width < 0.5f
+        || srcRectPtr->height < 0.5f
+    ){
+		return;
+	}
+	
+    /* change tex coords */
+	float fullWidth
+        = spriteInstrPtr->spritePtr->width;
+	float fullHeight
+        = spriteInstrPtr->spritePtr->height;
+    Rectangle texCoordRect = {0};
+	texCoordRect.x = srcRectPtr->x / fullWidth;
+	texCoordRect.y = srcRectPtr->y / fullHeight;
+
+    texCoordRect.width = srcRectPtr->width / fullWidth;
+    texCoordRect.height
+        = srcRectPtr->height / fullHeight;
+
+    /* send sub texCoords */
+    _tfGraphicsUpdateTexCoordBuffer(
+        graphicsPtr,
+        texCoordRect
+    );
+	
+	/* find the new center for the quad */
+	Point2D subCenter = {
+		srcRectPtr->x + srcRectPtr->width / 2.0f,
+		srcRectPtr->y + srcRectPtr->height / 2.0f
+	};
+	Point2D fullCenter = {
+        fullWidth / 2.0f,
+        fullHeight / 2.0f
+    };
+    Vector2D subOffset = vector2DFromAToB(
+        fullCenter,
+        subCenter
+    );
+    Point2D newPreOffsetCenter = point2DAddVector2D(
+        preOffsetCenter,
+        subOffset
+    );
+	
+    /* draw sprite */
+    /* send texture to OpenGL (bind to 0) */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(
+        GL_TEXTURE_2D,
+        spriteInstrPtr->spritePtr->_textureID
+    );
+    /* send transform to OpenGL */
+    Matrix4x4 transformMatrix = makeTransformMatrix(
+        graphicsPtr->_graphicsWidth,
+        graphicsPtr->_graphicsHeight,
+        newPreOffsetCenter,
+        spriteInstrPtr,
+        srcRectPtr->width,
+        srcRectPtr->height
+    );
+    glUniformMatrix4fv(
+        graphicsPtr->_transformID,
+        1,
+        GL_TRUE,
+        &(transformMatrix.matrix[0][0])
+    );
+	drawQuad();
+	
+	/* restore default texCoords */
+    _tfGraphicsUpdateTexCoordBuffer(
+        graphicsPtr,
+        fullTexRect
+    );
 }
 
 /* 
@@ -309,7 +457,7 @@ void _tfGraphicsDrawTileSprite(
     const TFSpriteInstruction *spriteInstrPtr,
     Point2D pixelOffset
 ){
-    //todo
+    //todo draw tile sprite
 }
 
 /* Draws text with the specified _TFGraphics */
@@ -320,7 +468,7 @@ void _tfGraphicsDrawText(
     int rightBound,
     TFGlyphMap *glyphMapPtr
 ){
-    //todo
+    //todo draw text
 }
 
 /* Frees the specified _TFGraphics */
@@ -333,8 +481,17 @@ void _tfGraphicsFree(_TFGraphics *graphicsPtr){
             &(graphicsPtr->_vaoID)
         );
 
-        /* disable vertex buffer */
+        /* clean up buffers */
         glDisableVertexAttribArray(0);
+        glDeleteBuffers(
+            1,
+            &(graphicsPtr->_vertexBufferID)
+        );
+        glDisableVertexAttribArray(1);
+        glDeleteBuffers(
+            1,
+            &(graphicsPtr->_texCoordBufferID)
+        );
 
 	    glDeleteProgram(graphicsPtr->_programID);
     }
