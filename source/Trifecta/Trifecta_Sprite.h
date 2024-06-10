@@ -1,6 +1,8 @@
 #ifndef TRIFECTA_SPRITE
 #define TRIFECTA_SPRITE
 
+#include <OpenGL/gl3.h>
+
 #include "ZMath.h"
 
 #define _minScale 0.01f

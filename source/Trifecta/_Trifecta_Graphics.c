@@ -71,7 +71,7 @@ _TFGraphics _tfGraphicsMake(
     /* load shaders */
     toRet._programID = _loadShaders();
     glUseProgram(toRet._programID);
-    
+
     /* enable depth buffer */
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -218,6 +218,8 @@ static Matrix4x4 makeTransformMatrix(
 
 //todo: temp function
 void testDraw(_TFGraphics *graphicsPtr){
+    TFSprite test = parseBitmapFile("test.bmp");
+
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
