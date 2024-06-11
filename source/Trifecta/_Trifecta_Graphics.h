@@ -65,11 +65,14 @@ void _tfGraphicsDrawTileSprite(
     Point2D pixelOffset
 );
 
-/* Draws text with the specified _TFGraphics */
+/* 
+ * Draws text (as a WideString) with the specified
+ * _TFGraphics
+ */
 void _tfGraphicsDrawText(
     _TFGraphics *graphicsPtr,
     Point2D pos,
-    const WideString *wideStringPtr,
+    const WideString *textPtr,
     int rightBound,
     TFGlyphMap *glyphMapPtr
 );

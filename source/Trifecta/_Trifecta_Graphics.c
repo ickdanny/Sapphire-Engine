@@ -291,26 +291,25 @@ void testDraw(_TFGraphics *graphicsPtr){
             &sprite,
             0,
             offset,
-            //rotation,
-            0.0f,
+            rotation,
             sinf(toRadians(rotation))
-            //1.0f
         );
     Point2D center = {
         graphicsPtr->_graphicsWidth / 2,
         graphicsPtr->_graphicsHeight / 2
     };
-    Rectangle texCoordRect = {
-        0.0,
-        0.0,
-        160.0f,
-        120.0f
+    Rectangle drawRect = {
+        -160.0,
+        -120.0,
+        640.0f,
+        480.0f
     };
-    _tfGraphicsDrawSubSprite(
+    Point2D pixelOffset = {0};
+    _tfGraphicsDrawTileSprite(
         graphicsPtr,
-        center,
+        &drawRect,
         &spriteInstr,
-        &texCoordRect
+        pixelOffset
     );
 }
 
@@ -457,18 +456,145 @@ void _tfGraphicsDrawTileSprite(
     const TFSpriteInstruction *spriteInstrPtr,
     Point2D pixelOffset
 ){
-    //todo draw tile sprite
+    /* 
+     * change texture coordinates to tile the draw
+     * rectangle
+     */
+	float tileWidth = spriteInstrPtr->spritePtr->width;
+	float tileHeight
+        = spriteInstrPtr->spritePtr->height;
+    Rectangle texCoordRect = {0};
+    texCoordRect.x = pixelOffset.x / tileWidth;
+    texCoordRect.y = pixelOffset.y / tileHeight;
+    texCoordRect.width
+        = drawRectPtr->width / tileWidth;
+    texCoordRect.height
+        = drawRectPtr->height / tileHeight;
+    
+    /* send tiled texCoords */
+	_tfGraphicsUpdateTexCoordBuffer(
+        graphicsPtr,
+        texCoordRect
+    );
+	
+    /* draw sprite covering draw rectangle */
+	Point2D preOffsetCenter = {
+		drawRectPtr->x + drawRectPtr->width / 2.0f,
+		drawRectPtr->y + drawRectPtr->height / 2.0f
+	};
+	
+    /* draw sprite */
+	/* send texture to OpenGL (bind to 0) */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(
+        GL_TEXTURE_2D,
+        spriteInstrPtr->spritePtr->_textureID
+    );
+    /* send transform to OpenGL */
+    Matrix4x4 transformMatrix = makeTransformMatrix(
+        graphicsPtr->_graphicsWidth,
+        graphicsPtr->_graphicsHeight,
+        preOffsetCenter,
+        spriteInstrPtr,
+        drawRectPtr->width,
+        drawRectPtr->height
+    );
+    glUniformMatrix4fv(
+        graphicsPtr->_transformID,
+        1,
+        GL_TRUE,
+        &(transformMatrix.matrix[0][0])
+    );
+	drawQuad();
+	
+    /* restore default texCoords */
+    _tfGraphicsUpdateTexCoordBuffer(
+        graphicsPtr,
+        fullTexRect
+    );
 }
 
-/* Draws text with the specified _TFGraphics */
+/* 
+ * Draws text (as a WideString) with the specified
+ * _TFGraphics
+ */
 void _tfGraphicsDrawText(
     _TFGraphics *graphicsPtr,
     Point2D pos,
-    const WideString *wideStringPtr,
+    const WideString *textPtr,
     int rightBound,
     TFGlyphMap *glyphMapPtr
 ){
-    //todo draw text
+    /* bail if string is empty */
+    if(wideStringIsEmpty(textPtr)){
+        return;
+    }
+
+    /* bail if right bound is invalid */
+    int startX = (int)pos.x;
+    if(startX >= rightBound){
+        pgWarning(
+            "cannot draw text: startX >= rightBound"
+        );
+        return;
+    }
+
+    int currentX = startX;
+    int currentY = (int)pos.y;
+    int horizontalSpacing
+        = glyphMapPtr->horizontalSpacing;
+    int verticalSpacing
+        = glyphMapPtr->verticalSpacing;
+    
+    /* helper function to calculate next coordinate */
+    #define stepCurrentCoordinates() \
+        do{ \
+            currentX += horizontalSpacing; \
+		    if(currentX >= rightBound){ \
+		    	currentX = startX; \
+		    	currentY -= verticalSpacing; \
+		    } \
+        } while(false);
+	
+    wchar_t currentChar = 0;
+	Point2D currentPos = {0};
+    int textLength = textPtr->length;
+	for(int stringPos = 0;
+        stringPos < textLength;
+        ++stringPos
+    ){
+		currentPos.x = (float)(currentX);
+		currentPos.y = (float)(currentY);
+        currentChar = wideStringCharAt(
+            textPtr,
+            stringPos
+        );
+		switch(currentChar){
+			case L' ':  /* space */
+				stepCurrentCoordinates();
+				continue;
+			case L'\t': /* tab */
+				stepCurrentCoordinates();
+				stepCurrentCoordinates();
+				stepCurrentCoordinates();
+				continue;
+			case L'\n':	/* new line */
+				currentX = startX;
+				currentY += verticalSpacing;
+			default:    /* all other chars*/
+				stepCurrentCoordinates();
+                _tfGraphicsDrawSprite(
+                    graphicsPtr,
+                    currentPos,
+                    tfGlyphMapGet(
+                        glyphMapPtr,
+                        currentChar
+                    )
+                );
+		} /* switch */
+	} /* loop */
+    
+    #undef stepCurrentCoordinates
 }
 
 /* Frees the specified _TFGraphics */
