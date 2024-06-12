@@ -41,6 +41,25 @@ uint64_t fromBigEndian64(uint64_t i);
 
 /* Gets the ith byte from the given value */
 #define getByte(value, i) \
-    ((uint8_t)((value >> (i * 8)) & 0xFF))
+    ((uint8_t)((value >> ((i) * 8)) & 0xFF))
+
+/* Gets the ith bit from the given value as a bool */
+#define getBit(value, i) (((value) >> (i)) & 1)
+
+/* Sets the ith bit in the given variable */
+#define setBit(variable, i) ((variable) |= (1 << (i)))
+
+/* Unsets the ith bit in the given variable */
+#define unsetBit(variable, i) \
+    /* flips all bits, sets bit, then unflips */ \
+    do{ \
+        (variable) = ~(variable); \
+        setBit(variable, i); \
+        (variable) = ~(variable); \
+    } while(false)
+
+/* Flips the ith bit in the given variable */
+#define flipBit(variable, i) \
+    ((variable) ^= (1 << (i)))
 
 #endif

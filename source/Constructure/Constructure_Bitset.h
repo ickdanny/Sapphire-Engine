@@ -49,29 +49,29 @@ bool bitsetAny(Bitset *bitsetPtr);
  * Returns true if no bits are set in the given bitset,
  * false otherwise
  */
-bool bitsetNone(Bitset *bitsetPtr);
+#define bitsetNone(bitsetPtr) (!(bitsetAny(bitsetPtr)))
 
 /* 
  * Returns the number of bits set in the given
  * bitset
  */
-bool bitsetCount(Bitset *bitsetPtr);
+size_t bitsetCount(Bitset *bitsetPtr);
 
 /* 
  * Sets the first bitset to the result of performing
- * binary AND with the second
+ * bitwise AND with the second
  */
 void bitsetAnd(Bitset *bitsetPtr, Bitset *otherPtr);
 
 /* 
  * Sets the first bitset to the result of performing
- * binary OR with the second
+ * bitwise OR with the second
  */
 void bitsetOr(Bitset *bitsetPtr, Bitset *otherPtr);
 
 /* 
  * Sets the first bitset to the result of performing
- * binary XOR with the second
+ * bitwise XOR with the second
  */
 void bitsetXor(Bitset *bitsetPtr, Bitset *otherPtr);
 
@@ -92,5 +92,8 @@ void bitsetRightShift(
  * bitset
  */
 void bitsetFree(Bitset *bitsetPtr);
+
+//todo: printing methods for debugging purposes
+//print until last 1 by starting from last 1 and reversing
 
 #endif

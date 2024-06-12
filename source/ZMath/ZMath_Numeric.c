@@ -10,25 +10,39 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-/* Returns the min int: evaluates operands once */
-int minInt(int a, int b){
-    return min(a, b);
+/* 
+ * The following min and max functions will evaluate
+ * their operands once
+ */
+
+#define MIN_MAX_FUNC_DEFINE(TYPENAME, SUFFIX) \
+TYPENAME min##SUFFIX(TYPENAME a, TYPENAME b){ \
+    return min(a, b); \
+} \
+TYPENAME max##SUFFIX(TYPENAME a, TYPENAME b){ \
+    return max(a, b); \
 }
 
-/* Returns the max int: evaluates operands once */
-int maxInt(int a, int b){
-    return max(a, b);
-}
+MIN_MAX_FUNC_DEFINE(char, Char)
+MIN_MAX_FUNC_DEFINE(short, Short)
+MIN_MAX_FUNC_DEFINE(int, Int)
+MIN_MAX_FUNC_DEFINE(long, Long)
 
-/* Returns the min float: evaluates operands once */
-float minFloat(float a, float b){
-    return min(a, b);
-}
+MIN_MAX_FUNC_DEFINE(size_t, SizeT)
 
-/* Returns the max float: evaluates operands once */
-float maxFloat(float a, float b){
-    return max(a, b);
-}
+MIN_MAX_FUNC_DEFINE(int8_t, Int8)
+MIN_MAX_FUNC_DEFINE(int16_t, Int16)
+MIN_MAX_FUNC_DEFINE(int32_t, Int32)
+MIN_MAX_FUNC_DEFINE(int64_t, Int64)
+MIN_MAX_FUNC_DEFINE(uint8_t, UInt8)
+MIN_MAX_FUNC_DEFINE(uint16_t, UInt16)
+MIN_MAX_FUNC_DEFINE(uint32_t, UInt32)
+MIN_MAX_FUNC_DEFINE(uint64_t, UInt64)
+
+MIN_MAX_FUNC_DEFINE(float, Float)
+MIN_MAX_FUNC_DEFINE(double, Double)
+
+#undef MIN_MAX_FUNC_DEFINE
 
 /* Returns ceiling of the quotient of x/y */
 int ceilingIntegerDivide(int x, int y){
