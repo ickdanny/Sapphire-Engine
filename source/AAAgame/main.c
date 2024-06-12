@@ -9,6 +9,7 @@
 #include "Trifecta.h"
 
 #include "Config.h"
+#include "Game.h"
 #include "GameLoop.h"
 #include "Settings.h"
 
@@ -44,9 +45,9 @@ typedef struct Engine{
     Settings settings;
     /* todo: resources */
     TFWindow window;
-    /* todo: input */
+    TFKeyTable keyTable;
     MidiHub midiHub;
-    /* todo: game */
+    Game game;
     GameLoop gameLoop;
 } Engine;
 
@@ -58,6 +59,7 @@ void engineFree(Engine *enginePtr){
     );
     //todo: more frees
     tfWindowFree(&(enginePtr->window));
+    tfKeyTableFree(&(enginePtr->keyTable));
     midiHubFree(&(enginePtr->midiHub));
 }
 
@@ -73,7 +75,7 @@ void stopGameLoopCallback(void *voidPtr){
 /* Updates the specified Engine passed as a void ptr */
 void updateCallback(void *voidPtr){
     Engine *enginePtr = (Engine*)voidPtr;
-    //todo: update game
+    gameUpdate(&(enginePtr->game));
     //todo: pump messages? idk
 }
 
@@ -104,12 +106,20 @@ int main(){
         &engine /* user ptr to engine for callbacks */
     );
 
+    /* init key table input */
+    engine.keyTable = tfKeyTableMake(&(engine.window));
+
     /* init MIDI */
     engine.midiHub = midiHubMake(
         engine.settings.muted
     );
 
-    //todo: init game
+    engine.game = gameMake(
+        &(engine.settings),
+        &(engine.window),
+        &(engine.keyTable),
+        &(engine.midiHub)
+    );
     //todo: set game fullscreen callback
     //todo: set game write settings callback
 

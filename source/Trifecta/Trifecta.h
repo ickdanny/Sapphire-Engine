@@ -3,6 +3,7 @@
 
 #include "Trifecta_Concurrency.h"
 #include "Trifecta_GlyphMap.h"
+#include "Trifecta_Input.h"
 #include "Trifecta_Sprite.h"
 #include "Trifecta_Time.h"
 #include "Trifecta_Uchar.h"

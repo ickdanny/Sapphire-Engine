@@ -63,7 +63,6 @@ typedef struct BitmapFileHeader{
      */
     uint32_t numImportantColors;
 
-    //todo: BI_BITFIELDS for transparency ??? compression
 } BitmapFileHeader;
 
 #define compressionCodeRGB 0

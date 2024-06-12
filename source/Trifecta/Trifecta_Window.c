@@ -27,7 +27,7 @@ TFWindow tfWindowMake(
     const char* windowName,
     int windowWidth,
     int windowHeight,
-    int graphicsWidth, //todo: what to do with graphics?
+    int graphicsWidth,
     int graphicsHeight,
     void *userPtr
 ){
