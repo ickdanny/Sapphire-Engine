@@ -119,7 +119,7 @@ void tfWindowSetExitCallback(
 
 /* Has the specified TFWindow render */
 void tfWindowRender(TFWindow *windowPtr){
-    //todo openGL test
+    //todo window rendering
 
     //glClearColor(1.0, 0.5, 1.0, 1.0);
     //glClear(GL_COLOR_BUFFER_BIT);
@@ -127,6 +127,14 @@ void tfWindowRender(TFWindow *windowPtr){
     testDraw(&(windowPtr->_graphics));
 
     glfwSwapBuffers(windowPtr->_windowPtr);
+    tfWindowPumpMessages(windowPtr);
+}
+
+/* 
+ * Has the specified TFWindow deal with queued events
+ * or messages
+ */
+void tfWindowPumpMessages(TFWindow *windowPtr){
     glfwPollEvents();
 }
 

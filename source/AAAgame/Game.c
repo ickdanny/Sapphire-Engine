@@ -33,8 +33,6 @@ static void updateSettings(Game *gamePtr){
     //todo game updateSettings
 }
 
-
-
 /* Updates the internal state of the game once */
 void gameUpdate(Game *gamePtr){
     //todo: game update
@@ -43,4 +41,17 @@ void gameUpdate(Game *gamePtr){
     updateInput(gamePtr);
     updateMusic(gamePtr);
     updateSettings(gamePtr);
+}
+
+/* Renders the game to the screen */
+void gameRender(Game *gamePtr){
+    //todo: game render
+}
+
+/* 
+ * Frees the memory associated with the 
+ * specified game
+ */
+void gameFree(Game *gamePtr){
+    //todo: game free
 }

@@ -57,10 +57,11 @@ void engineFree(Engine *enginePtr){
         &(enginePtr->settings),
         config_settingsFileName
     );
-    //todo: more frees
+    //todo: free resources
     tfWindowFree(&(enginePtr->window));
     tfKeyTableFree(&(enginePtr->keyTable));
     midiHubFree(&(enginePtr->midiHub));
+    gameFree(&(enginePtr->game));
 }
 
 /*
@@ -76,13 +77,13 @@ void stopGameLoopCallback(void *voidPtr){
 void updateCallback(void *voidPtr){
     Engine *enginePtr = (Engine*)voidPtr;
     gameUpdate(&(enginePtr->game));
-    //todo: pump messages? idk
+    tfWindowPumpMessages(&(enginePtr->window));
 }
 
 /* Draws the specified Engine passed as a void ptr */
 void renderCallback(void *voidPtr){
     Engine *enginePtr = (Engine*)voidPtr;
-    //todo: render game
+    gameRender(&(enginePtr->game));
     tfWindowRender(&(enginePtr->window));
 }
 

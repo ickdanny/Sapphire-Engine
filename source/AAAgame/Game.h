@@ -29,7 +29,19 @@ Game gameMake(
     MidiHub *midiHubPtr
 );
 
-/* Updates the internal state of the game once */
+/* 
+ * Updates the internal state of the specified 
+ * game once
+ */
 void gameUpdate(Game *gamePtr);
+
+/* Renders the specified game to the screen */
+void gameRender(Game *gamePtr);
+
+/* 
+ * Frees the memory associated with the 
+ * specified game
+ */
+void gameFree(Game *gamePtr);
 
 #endif

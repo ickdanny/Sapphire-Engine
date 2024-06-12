@@ -56,6 +56,12 @@ void tfWindowSetExitCallback(
 /* Has the specified TFWindow render */
 void tfWindowRender(TFWindow *windowPtr);
 
+/* 
+ * Has the specified TFWindow deal with queued events
+ * or messages
+ */
+void tfWindowPumpMessages(TFWindow *windowPtr);
+
 /* Draws a sprite onto the specified TFWindow */
 void tfWindowDrawSprite(
     TFWindow *windowPtr,
