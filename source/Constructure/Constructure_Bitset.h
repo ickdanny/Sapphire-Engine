@@ -15,6 +15,8 @@ typedef struct Bitset{
 /* Constructs and returns a new bitset by value */
 Bitset bitsetMake(size_t initBitCapacity);
 
+//todo: bitset copy
+
 /*
  * Sets the specified bit in the given bitset and 
  * returns the previous value of that bit
@@ -93,7 +95,11 @@ void bitsetRightShift(
  */
 void bitsetFree(Bitset *bitsetPtr);
 
-//todo: printing methods for debugging purposes
-//print until last 1 by starting from last 1 and reversing
+/* Prints the given bitset to the given C String */
+void printBitset(
+    Bitset *bitsetPtr,
+    char* charPtr,
+    int arraySize
+);
 
 #endif

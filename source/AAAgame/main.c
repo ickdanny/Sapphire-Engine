@@ -87,8 +87,83 @@ void renderCallback(void *voidPtr){
     tfWindowRender(&(enginePtr->window));
 }
 
+//todo test function
+static void testBitset(){
+    #define bufferSize 500
+    char buffer[bufferSize] = {0};
+    Bitset bitset = bitsetMake(0);
+    printBitset(&bitset, buffer, bufferSize);
+    printf("new bitset: %s\n", buffer);
+
+    bool prev = bitsetSet(&bitset, 32);
+    assertFalse(prev, "expect prev 0");
+    printBitset(&bitset, buffer, bufferSize);
+    printf("set 32: %s\n", buffer);
+    printf("size: %lu\n", bitset._blockArray.size);
+
+    prev = bitsetUnset(&bitset, 32);
+    assertTrue(prev, "expect prev 1");
+    printBitset(&bitset, buffer, bufferSize);
+    printf("unset 32: %s\n", buffer);
+    printf("size: %lu\n", bitset._blockArray.size);
+    
+    prev = bitsetFlip(&bitset, 73);
+    assertFalse(prev, "expect prev 0");
+    printBitset(&bitset, buffer, bufferSize);
+    printf("flip 73: %s\n", buffer);
+    printf("size: %lu\n", bitset._blockArray.size);
+
+    prev = bitsetFlip(&bitset, 73);
+    assertTrue(prev, "expect prev 1");
+    printBitset(&bitset, buffer, bufferSize);
+    printf("flip 73 again: %s\n", buffer);
+    printf("size: %lu\n", bitset._blockArray.size);
+
+    bitsetSet(&bitset, 14);
+    assertTrue(bitsetGet(&bitset, 14), "failed get");
+
+    bitsetSet(&bitset, 43);
+    bitsetClear(&bitset);
+    printBitset(&bitset, buffer, bufferSize);
+    printf("clear: %s\n", buffer);
+
+    assertFalse(bitsetAny(&bitset), "any fail");
+    bitsetSet(&bitset, 100);
+    assertTrue(bitsetAny(&bitset), "any fail 2");
+
+    bitsetClear(&bitset);
+
+    bitsetSet(&bitset, 0);
+    bitsetSet(&bitset, 13);
+    bitsetSet(&bitset, 100);
+    assertTrue(bitsetCount(&bitset) == 3, "count fail");
+    printBitset(&bitset, buffer, bufferSize);
+    printf("bitset 1: %s\n", buffer);
+
+    Bitset bitset2 = bitsetMake(0);
+    bitsetSet(&bitset2, 0);
+    bitsetSet(&bitset2, 5);
+    bitsetSet(&bitset2, 160);
+    printBitset(&bitset2, buffer, bufferSize);
+    printf("bitset 2: %s\n", buffer);
+
+    bitsetAnd(&bitset, &bitset2);
+    printBitset(&bitset, buffer, bufferSize);
+    printf("AND: %s\n", buffer);
+
+    //todo: more tests
+
+    bitsetFree(&bitset);
+
+    printf("test concluded\n");
+
+    #undef bufferSize
+}
+
 /* The entry point for the game */
 int main(){
+    testBitset();
+    exit(0);
     Engine engine = {0};
 
     /* read settings */

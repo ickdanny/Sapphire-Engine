@@ -1,6 +1,7 @@
 #include "Constructure_Bitset.h"
 
 #include "ZMath.h"
+#include "PGUtil.h"
 
 #define blockSize 32
 
@@ -22,10 +23,11 @@
 Bitset bitsetMake(size_t initBitCapacity){
     Bitset toRet = {0};
     size_t initBlockCapacity
-        = initBitCapacity / blockSize;
+        = (initBitCapacity / blockSize) + 1;
     toRet._blockArray = arrayListMake(BlockType,
         initBlockCapacity
     );
+    return toRet;
 }
 
 /* 
@@ -380,8 +382,8 @@ void bitsetLeftShift(
     size_t leftShiftAmount
 ){
     /* bail if size is 0 */
-    size_t oldBlockSize = bitsetPtr->_blockArray.size;
-    if(oldBlockSize == 0){
+    size_t oldNumBlocks = bitsetPtr->_blockArray.size;
+    if(oldNumBlocks == 0){
         return;
     }
     /* bail if bitset was all 0s */
@@ -415,7 +417,7 @@ void bitsetLeftShift(
          * going backwards starting at last originally
          * present index, stopping after index 0
          */
-        for(size_t i = oldBlockSize - 1;
+        for(size_t i = oldNumBlocks - 1;
             i != SIZE_MAX;
             --i
         ){
@@ -450,7 +452,22 @@ void bitsetLeftShift(
          * then copy bits over from the previous
          * block 
          */
-        //todo
+        BlockType *frontPtr = arrayListFrontPtr(
+            BlockType,
+            &(bitsetPtr->_blockArray)
+        );
+        for(size_t i = bitsetPtr->_blockArray.size - 1;
+            i > 0;
+            --i
+        ){
+            /* shift block left */
+            frontPtr[i] <<= subShiftAmount;
+            /* copy bits from prev block */
+            frontPtr[i] |= (frontPtr[i - 1]
+                >> (blockSize - subShiftAmount));
+        }
+        /* finally shift first block */
+        frontPtr[0] <<= subShiftAmount;
     }
 }
 
@@ -458,14 +475,206 @@ void bitsetLeftShift(
 void bitsetRightShift(
     Bitset *bitsetPtr,
     size_t rightShiftAmount
-);
+){
+    /* bail if size is 0 */
+    size_t numBlocks = bitsetPtr->_blockArray.size;
+    if(numBlocks == 0){
+        return;
+    }
+    /* bail if bitset was all 0s */
+    if(bitsetNone(bitsetPtr)){
+        return;
+    }
+
+    size_t blockShiftAmount
+        = rightShiftAmount / blockSize;
+    size_t subShiftAmount
+        = rightShiftAmount % blockSize;
+
+    /* if block shift >= numBlocks, simply clear */
+    if(blockShiftAmount >= numBlocks){
+        bitsetClear(bitsetPtr);
+        return;
+    }
+
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(bitsetPtr->_blockArray)
+    );
+
+    /* 
+     * destroy blocks at start of block array for each
+     * block shift
+     */
+    if(blockShiftAmount > 0){
+        /* copy data into earlier blocks */
+        for(size_t i = 0;
+            i < numBlocks - blockShiftAmount;
+            ++i
+        ){
+            frontPtr[i]
+                = frontPtr[i + blockShiftAmount];
+        }
+
+        /* zero out blocks at the end */
+        memset(
+            frontPtr + (numBlocks - blockShiftAmount),
+            0,
+            sizeof(BlockType) * blockShiftAmount
+        );
+    }
+
+    /* shift bits between blocks for subshift */
+    if(subShiftAmount > 0){
+        /* 
+         * going forwards, first shift the block,
+         * then copy bits over from the next
+         * block 
+         */
+        size_t i = 0;
+        for(i = 0;
+            i < (bitsetPtr->_blockArray.size - 1);
+            ++i
+        ){
+            /* shift block right */
+            frontPtr[i] >>= subShiftAmount;
+            /* copy bits from next block */
+            frontPtr[i] |= (frontPtr[i + 1]
+                << (blockSize - subShiftAmount));
+        }
+        /* finally shift last block */
+        frontPtr[i] <<= subShiftAmount;
+    }
+}
 
 /* 
  * Frees the memory associated with the specified
  * bitset
  */
 void bitsetFree(Bitset *bitsetPtr){
-    arrayListFree(blockType,
+    arrayListFree(BlockType,
         &(bitsetPtr->_blockArray)
     );
+}
+
+/* Prints the given bitset to the given C String */
+
+void printBitset(
+    Bitset *bitsetPtr,
+    char* charPtr,
+    int arraySize
+){
+    assertNotNull(
+        bitsetPtr,
+        "null bitset ptr in printBitset"
+    );
+    assertNotNull(
+        bitsetPtr,
+        "null string ptr in printBitset"
+    );
+
+    /* write '0' if bitset has no blocks */
+    if(bitsetPtr->_blockArray.size == 0){
+        snprintf(charPtr, arraySize, "0");
+        return;
+    }
+    /* find last set block */
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(bitsetPtr->_blockArray)
+    );
+    size_t lastBlockIndex 
+        = bitsetPtr->_blockArray.size - 1;
+    size_t lastSetBlockIndex = 0;
+    for(lastSetBlockIndex = lastBlockIndex;
+        lastSetBlockIndex != SIZE_MAX;
+        --lastSetBlockIndex
+    ){
+        if(frontPtr[lastSetBlockIndex] != 0){
+            break;
+        }
+    }
+    /* write '0' if no set blocks */
+    if(lastSetBlockIndex == SIZE_MAX){
+        snprintf(charPtr, arraySize, "0");
+        return;
+    }
+
+    /* find last set bit */
+    BlockType lastSetBlock
+        = frontPtr[lastSetBlockIndex];
+    size_t lastSetBitIndex = 0;
+    for(lastSetBitIndex = blockSize - 1;
+        lastSetBitIndex != SIZE_MAX;
+        --lastSetBitIndex
+    ){
+        if(getBit(lastSetBlock, lastSetBitIndex)){
+            break;
+        }
+    }
+    assertFalse(
+        lastSetBitIndex == SIZE_MAX,
+        "failed to find bit when block was set"
+    );
+
+    size_t numBitsToPrint = lastSetBitIndex + 1
+        + (lastSetBlockIndex * blockSize);
+    
+    /* allocate space to write n number of bits */
+    char *tempStorage = pgAlloc(
+        numBitsToPrint,
+        sizeof(char)
+    );
+    size_t nextCharToWriteIndex = 0;
+
+    /* write the bits in the last set block */
+    for(size_t i = lastSetBitIndex;
+        i != SIZE_MAX;
+        --i
+    ){
+        if(getBit(lastSetBlock, i)){
+            tempStorage[nextCharToWriteIndex++] = '1';
+        }
+        else{
+            tempStorage[nextCharToWriteIndex++] = '0';
+        }
+    }
+
+    /* for each other block, write bits backwards */
+    BlockType currentBlock = 0;
+    for(size_t blockIndex = lastSetBlockIndex - 1;
+        blockIndex != SIZE_MAX;
+        --blockIndex
+    ){
+        currentBlock = frontPtr[blockIndex];
+        for(size_t i = blockSize - 1;
+            i != SIZE_MAX;
+            --i
+        ){
+            if(getBit(currentBlock, i)){
+                tempStorage[nextCharToWriteIndex++]
+                    = '1';
+            }
+            else{
+                tempStorage[nextCharToWriteIndex++]
+                    = '0';
+            }
+        }
+    }
+
+    /* print in reverse */
+    size_t nextCharToPrintIndex
+        = nextCharToWriteIndex - 1;
+    int nextWriteIndex = 0;
+    while(nextWriteIndex < arraySize - 1 
+        && nextCharToPrintIndex != SIZE_MAX
+    ){
+        charPtr[nextWriteIndex]
+            = tempStorage[nextCharToPrintIndex];
+        ++nextWriteIndex;
+        --nextCharToPrintIndex;
+    }
+    /* print null terminator */
+    charPtr[nextWriteIndex] = '\0';
+
+    /* free temp storage */
+    pgFree(tempStorage);
 }
