@@ -31,6 +31,18 @@ Bitset bitsetMake(size_t initBitCapacity){
 }
 
 /* 
+ * Makes a deep copy of the given bitset 
+ * and returns it by value
+ */
+Bitset bitsetCopy(const Bitset *toCopyPtr){
+    Bitset toRet = {0};
+    toRet._blockArray = arrayListCopy(BlockType,
+        &(toCopyPtr->_blockArray)
+    );
+    return toRet;
+}
+
+/* 
  * Adds new blocks to the block array of the specified
  * bitset if necessary to access the given bitIndex
  */
@@ -410,7 +422,8 @@ void bitsetLeftShift(
         }
 
         /* copy data into later blocks */
-        BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        BlockType *frontPtr = arrayListFrontPtr(
+            BlockType,
             &(bitsetPtr->_blockArray)
         );
         /*
@@ -439,8 +452,8 @@ void bitsetLeftShift(
          * sub shift may require 1 additional block,
          * which is added if the last block is nonempty
          */
-        if(arrayListBack(BlockType, 
-            &(bitsetPtr->_blockArray)) != 0
+        if(*(arrayListBackPtr(BlockType,
+            &(bitsetPtr->_blockArray))) != 0
         ){
             arrayListPushBack(BlockType,
                 &(bitsetPtr->_blockArray),
@@ -620,7 +633,7 @@ void printBitset(
     
     /* allocate space to write n number of bits */
     char *tempStorage = pgAlloc(
-        numBitsToPrint,
+        numBitsToPrint + 1, /* for null terminator */
         sizeof(char)
     );
     size_t nextCharToWriteIndex = 0;
@@ -660,20 +673,13 @@ void printBitset(
         }
     }
 
-    /* print in reverse */
-    size_t nextCharToPrintIndex
-        = nextCharToWriteIndex - 1;
-    int nextWriteIndex = 0;
-    while(nextWriteIndex < arraySize - 1 
-        && nextCharToPrintIndex != SIZE_MAX
-    ){
-        charPtr[nextWriteIndex]
-            = tempStorage[nextCharToPrintIndex];
-        ++nextWriteIndex;
-        --nextCharToPrintIndex;
-    }
-    /* print null terminator */
-    charPtr[nextWriteIndex] = '\0';
+    /* print to string */
+    snprintf(
+        charPtr,
+        arraySize,
+        "%s",
+        tempStorage
+    );
 
     /* free temp storage */
     pgFree(tempStorage);

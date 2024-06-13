@@ -137,23 +137,73 @@ static void testBitset(){
     bitsetSet(&bitset, 13);
     bitsetSet(&bitset, 100);
     assertTrue(bitsetCount(&bitset) == 3, "count fail");
-    printBitset(&bitset, buffer, bufferSize);
+
+    Bitset bitset1 = bitsetCopy(&bitset);
+    printBitset(&bitset1, buffer, bufferSize);
     printf("bitset 1: %s\n", buffer);
 
     Bitset bitset2 = bitsetMake(0);
     bitsetSet(&bitset2, 0);
     bitsetSet(&bitset2, 5);
+    bitsetSet(&bitset2, 13);
     bitsetSet(&bitset2, 160);
     printBitset(&bitset2, buffer, bufferSize);
     printf("bitset 2: %s\n", buffer);
 
-    bitsetAnd(&bitset, &bitset2);
-    printBitset(&bitset, buffer, bufferSize);
+    bitsetAnd(&bitset1, &bitset2);
+    printBitset(&bitset1, buffer, bufferSize);
     printf("AND: %s\n", buffer);
+
+    bitsetFree(&bitset1);
+    bitset1 = bitsetCopy(&bitset);
+    printBitset(&bitset1, buffer, bufferSize);
+    printf("bitset 1: %s\n", buffer);
+    printBitset(&bitset2, buffer, bufferSize);
+    printf("bitset 2: %s\n", buffer);
+
+    bitsetOr(&bitset1, &bitset2);
+    printBitset(&bitset1, buffer, bufferSize);
+    printf("OR: %s\n", buffer);
+
+    bitsetFree(&bitset1);
+    bitset1 = bitsetCopy(&bitset);
+    printBitset(&bitset1, buffer, bufferSize);
+    printf("bitset 1: %s\n", buffer);
+    printBitset(&bitset2, buffer, bufferSize);
+    printf("bitset 2: %s\n", buffer);
+
+    bitsetXor(&bitset1, &bitset2);
+    printBitset(&bitset1, buffer, bufferSize);
+    printf("XOR: %s\n", buffer);
+
+    Bitset bitset3 = bitsetMake(0);
+    bitsetSet(&bitset3, 0);
+    bitsetSet(&bitset3, 3);
+    bitsetSet(&bitset3, 4);
+    bitsetSet(&bitset3, 8);
+    bitsetSet(&bitset3, 14);
+    bitsetSet(&bitset3, 23);
+    bitsetSet(&bitset3, 24);
+    bitsetSet(&bitset3, 33);
+    bitsetSet(&bitset3, 35);
+    bitsetSet(&bitset3, 38);
+    printBitset(&bitset3, buffer, bufferSize);
+    printf("bitset 3: %s\n", buffer);
+
+    bitsetLeftShift(&bitset3, 35);
+    printBitset(&bitset3, buffer, bufferSize);
+    printf("left shift 35: %s\n", buffer);
+
+    bitsetRightShift(&bitset3, 40);
+    printBitset(&bitset3, buffer, bufferSize);
+    printf("right shift 40: %s\n", buffer);
 
     //todo: more tests
 
     bitsetFree(&bitset);
+    bitsetFree(&bitset1);
+    bitsetFree(&bitset2);
+    bitsetFree(&bitset3);
 
     printf("test concluded\n");
 

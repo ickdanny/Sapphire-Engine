@@ -15,7 +15,11 @@ typedef struct Bitset{
 /* Constructs and returns a new bitset by value */
 Bitset bitsetMake(size_t initBitCapacity);
 
-//todo: bitset copy
+/* 
+ * Makes a deep copy of the given bitset 
+ * and returns it by value
+ */
+Bitset bitsetCopy(const Bitset *toCopyPtr);
 
 /*
  * Sets the specified bit in the given bitset and 
