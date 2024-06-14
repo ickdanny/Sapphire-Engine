@@ -117,21 +117,31 @@ int8_t zmtCharDie(
     int8_t lowInclusive,
     int8_t highInclusive
 ){
-    if(lowInclusive == highInclusive){
-        return lowInclusive;
-    }
+    /* check if range is invalid */
     if(lowInclusive > highInclusive){
         pgError("low bound > high bound char die!");
     }
-    /* If the range is the entire type */
+    /* check if range is 0 */
+    if(lowInclusive == highInclusive){
+        return lowInclusive;
+    }
+    /* check if range is the entire type */
     if(highInclusive == lowInclusive - 1){
-        return randChar(zmtPtr);
+        return zmtRandChar(zmtPtr);
     }
     /* use larger type to account for overflows */
-    uint32_t range = highInclusive - lowInclusive;
+    int32_t range
+        = ((int32_t)highInclusive) - lowInclusive;
     ++range;
     int8_t randOffset = randUInt32(zmtPtr) % range;
-    return lowInclusive + randOffset;
+    int8_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure char die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
@@ -151,21 +161,31 @@ uint8_t zmtUCharDie(
     uint8_t lowInclusive,
     uint8_t highInclusive
 ){
-    if(lowInclusive == highInclusive){
-        return lowInclusive;
-    }
+    /* check if range is invalid */
     if(lowInclusive > highInclusive){
         pgError("low bound > high bound uchar die!");
     }
-    /* If the range is the entire type */
+    /* check if range is 0 */
+    if(lowInclusive == highInclusive){
+        return lowInclusive;
+    }
+    /* check if range is the entire type */
     if(highInclusive == lowInclusive - 1){
-        return randChar(zmtPtr);
+        return zmtRandUChar(zmtPtr);
     }
     /* use larger type to account for overflows */
-    uint32_t range = highInclusive - lowInclusive;
+    int32_t range
+        = ((int32_t)highInclusive) - lowInclusive;
     ++range;
     uint8_t randOffset = randUInt32(zmtPtr) % range;
-    return lowInclusive + randOffset;
+    uint8_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure uchar die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
@@ -185,21 +205,31 @@ int16_t zmtShortDie(
     int16_t lowInclusive,
     int16_t highInclusive
 ){
-    if(lowInclusive == highInclusive){
-        return lowInclusive;
-    }
+    /* check if range is invalid */
     if(lowInclusive > highInclusive){
         pgError("low bound > high bound short die!");
     }
-    /* If the range is the entire type */
+    /* check if range is 0 */
+    if(lowInclusive == highInclusive){
+        return lowInclusive;
+    }
+    /* check if range is the entire type */
     if(highInclusive == lowInclusive - 1){
-        return randChar(zmtPtr);
+        return zmtRandShort(zmtPtr);
     }
     /* use larger type to account for overflows */
-    uint32_t range = highInclusive - lowInclusive;
+    int32_t range
+        = ((int32_t)highInclusive) - lowInclusive;
     ++range;
     int16_t randOffset = randUInt32(zmtPtr) % range;
-    return lowInclusive + randOffset;
+    int16_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure short die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
@@ -219,21 +249,31 @@ uint16_t zmtUShortDie(
     uint16_t lowInclusive,
     uint16_t highInclusive
 ){
+    /* check if range is invalid */
+    if(lowInclusive > highInclusive){
+        pgError("low bound > high bound ushort die!");
+    }
+    /* check if range is 0 */
     if(lowInclusive == highInclusive){
         return lowInclusive;
     }
-    if(lowInclusive > highInclusive){
-        pgError("low bound > high bound uchar die!");
-    }
-    /* If the range is the entire type */
+    /* check if range is the entire type */
     if(highInclusive == lowInclusive - 1){
-        return randChar(zmtPtr);
+        return zmtRandUShort(zmtPtr);
     }
     /* use larger type to account for overflows */
-    uint32_t range = highInclusive - lowInclusive;
+    int32_t range
+        = ((int32_t)highInclusive) - lowInclusive;
     ++range;
     uint16_t randOffset = randUInt32(zmtPtr) % range;
-    return lowInclusive + randOffset;
+    uint16_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure ushort die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
@@ -253,7 +293,31 @@ int32_t zmtIntDie(
     int32_t lowInclusive,
     int32_t highInclusive
 ){
-    //todo will have to use long range?
+    /* check if range is invalid */
+    if(lowInclusive > highInclusive){
+        pgError("low bound > high bound int die!");
+    }
+    /* check if range is 0 */
+    if(lowInclusive == highInclusive){
+        return lowInclusive;
+    }
+    /* check if range is the entire type */
+    if(highInclusive == lowInclusive - 1){
+        return zmtRandInt(zmtPtr);
+    }
+    /* use larger type to account for overflows */
+    int64_t range
+        = ((int64_t)highInclusive) - lowInclusive;
+    ++range;
+    int32_t randOffset = zmtRandULong(zmtPtr) % range;
+    int32_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure int die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
@@ -273,7 +337,31 @@ uint32_t zmtUIntDie(
     uint32_t lowInclusive,
     uint32_t highInclusive
 ){
-    //todo
+    /* check if range is invalid */
+    if(lowInclusive > highInclusive){
+        pgError("low bound > high bound uint die!");
+    }
+    /* check if range is 0 */
+    if(lowInclusive == highInclusive){
+        return lowInclusive;
+    }
+    /* check if range is the entire type */
+    if(highInclusive == lowInclusive - 1){
+        return zmtRandUInt(zmtPtr);
+    }
+    /* use larger type to account for overflows */
+    int64_t range
+        = ((int64_t)highInclusive) - lowInclusive;
+    ++range;
+    uint32_t randOffset = zmtRandULong(zmtPtr) % range;
+    uint32_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure uint die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
@@ -283,7 +371,7 @@ uint32_t zmtUIntDie(
 int64_t zmtRandLong(ZMT *zmtPtr){
     int64_t upperHalf = randUInt32(zmtPtr);
     upperHalf <<= 32;
-    int64_t lowerHalf = randUint32(zmtPtr);
+    int64_t lowerHalf = randUInt32(zmtPtr);
     return upperHalf | lowerHalf;
 }
 
@@ -296,7 +384,35 @@ int64_t zmtLongDie(
     int64_t lowInclusive,
     int64_t highInclusive
 ){
-    //todo
+    /* check if range is invalid */
+    if(lowInclusive > highInclusive){
+        pgError("low bound > high bound long die!");
+    }
+    /* check if range is 0 */
+    if(lowInclusive == highInclusive){
+        return lowInclusive;
+    }
+    /* check if range is the entire type */
+    if(highInclusive == lowInclusive - 1){
+        return zmtRandLong(zmtPtr);
+    }
+    /* range is always representable as ulong */
+    uint64_t range = highInclusive - lowInclusive;
+    /* add one to range for modulo to work correctly */
+    ++range;
+    uint64_t randOffset = zmtRandULong(zmtPtr) % range;
+    /*
+     * adding will work even if range is not
+     * representable as a long
+     */
+    int64_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure long die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
@@ -306,7 +422,7 @@ int64_t zmtLongDie(
 uint64_t zmtRandULong(ZMT *zmtPtr){
     uint64_t upperHalf = randUInt32(zmtPtr);
     upperHalf <<= 32;
-    uint64_t lowerHalf = randUint32(zmtPtr);
+    uint64_t lowerHalf = randUInt32(zmtPtr);
     return upperHalf | lowerHalf;
 }
 
@@ -319,7 +435,31 @@ uint64_t zmtULongDie(
     uint64_t lowInclusive,
     uint64_t highInclusive
 ){
-    //todo
+    /* check if range is invalid */
+    if(lowInclusive > highInclusive){
+        pgError("low bound > high bound ulong die!");
+    }
+    /* check if range is 0 */
+    if(lowInclusive == highInclusive){
+        return lowInclusive;
+    }
+    /* check if range is the entire type */
+    if(highInclusive == lowInclusive - 1){
+        return zmtRandULong(zmtPtr);
+    }
+    /* range calculation cannot overflow */
+    uint64_t range = highInclusive - lowInclusive;
+    /* add one to range for modulo to work correctly */
+    ++range;
+    uint64_t randOffset = zmtRandULong(zmtPtr) % range;
+    uint64_t toRet = lowInclusive + randOffset;
+    #ifdef _DEBUG
+    assertFalse(
+        toRet < lowInclusive || toRet > highInclusive,
+        "limit failure ulong die"
+    );
+    #endif
+    return toRet;
 }
 
 /*
