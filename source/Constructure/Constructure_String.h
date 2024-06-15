@@ -38,6 +38,7 @@
  * fixed width character array on the heap \
  */ \
 typedef struct TYPENAME{ \
+    /* null terminated */ \
     CHARTYPE *_ptr; \
 \
     /* does not include null terminator */ \

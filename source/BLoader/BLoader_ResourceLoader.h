@@ -14,8 +14,10 @@ typedef void (*BLParsingFunction)(const char*, void*);
  * pointer which is set in the resource type
  */
 typedef struct BLResourceType{
+    /* the file extension is not owned by the type */
     char *_fileExtension;
     BLParsingFunction _parsingFunction;
+    /* the user ptr is not owned by the type */
     void *_userPtr;
 } BLResourceType;
 

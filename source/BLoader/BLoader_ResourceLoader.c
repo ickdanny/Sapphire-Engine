@@ -177,6 +177,12 @@ void blResourceLoaderParseDirectory(
  * BLResourceLoader
  */
 void blResourceLoaderFree(BLResourceLoader *loaderPtr){
+    /*
+     * Resource Types do not own any of their data,
+     * and the key cStrings are not owned by the
+     * hashmap (they are string literals), so no need
+     * to apply a free func to the hashmap
+     */
     hashMapFree(
         char *,
         blResourceType,

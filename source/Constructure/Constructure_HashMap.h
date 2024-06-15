@@ -762,6 +762,89 @@ void _hashMapRemovePtr(
     } while(false)
 #endif
 
+/*
+ * KeyApply must be done via macro because
+ * it expects pointers of the key type
+ */
+#ifndef _DEBUG
+/*
+ * Applies the given function to each key in the given
+ * hashmap in no guaranteed order; the function takes
+ * a pointer of the key type
+ */
+#define hashMapKeyApply( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    FUNC \
+) \
+    do{ \
+        size_t slotSize = _slotSize( \
+            KEYTYPENAME, \
+            VALUETYPENAME \
+        ); \
+        void *currentSlot \
+            = (HASHMAPPTR)->_ptr; \
+        for( \
+            size_t u = 0u; \
+            u < (HASHMAPPTR)->_capacity; \
+            ++u \
+        ){ \
+            if(_isOccupied(currentSlot)){ \
+                FUNC( \
+                    (KEYTYPENAME*) \
+                    (_getKeyPtr(currentSlot)) \
+                ); \
+            } \
+            currentSlot = voidPtrAdd( \
+                currentSlot, \
+                slotSize \
+            ); \
+        } \
+    } while(false)
+#else
+/*
+ * Applies the given function to each key in the given
+ * hashmap in no guaranteed order; the function takes
+ * a pointer of the key type
+ */
+#define hashMapKeyApply( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    FUNC \
+) \
+    do{ \
+        _hashMapPtrTypeCheck( \
+            #KEYTYPENAME, \
+            #VALUETYPENAME, \
+            HASHMAPPTR \
+        ); \
+        size_t slotSize = _slotSize( \
+            KEYTYPENAME, \
+            VALUETYPENAME \
+        ); \
+        void *currentSlot \
+            = (HASHMAPPTR)->_ptr; \
+        for( \
+            size_t u = 0u; \
+            u < (HASHMAPPTR)->_capacity; \
+            ++u \
+        ){ \
+            if(_isOccupied(currentSlot)){ \
+                FUNC( \
+                    (KEYTYPENAME*) \
+                    (_getKeyPtr(currentSlot)) \
+                ); \
+            } \
+            currentSlot = voidPtrAdd( \
+                currentSlot, \
+                slotSize \
+            ); \
+        } \
+    } while(false)
+#endif
+
 /* Frees the given hashmap */
 void _hashMapFree(
     HashMap *hashMapPtr
