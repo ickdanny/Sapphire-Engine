@@ -2,6 +2,7 @@
 #define TRIFECTA_H
 
 #include "Trifecta_Concurrency.h"
+#include "Trifecta_Directory.h"
 #include "Trifecta_GlyphMap.h"
 #include "Trifecta_Input.h"
 #include "Trifecta_Sprite.h"

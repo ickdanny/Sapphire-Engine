@@ -7,6 +7,7 @@
 #include "Constructure.h"
 #include "MokyoMidi.h"
 #include "Trifecta.h"
+#include "BLoader.h"
 
 #include "Config.h"
 #include "Game.h"
@@ -25,17 +26,6 @@ void printString(const String *toPrint){
 
 void printWideString(const WideString *toPrint){
     printf("%ls\n", toPrint->_ptr);
-}
-
-size_t intHash(const void *intPtr){
-    return *((int*)intPtr);
-}
-
-bool intEquals(
-    const void *intPtr1, 
-    const void *intPtr2
-){
-    return *((int*)intPtr1) == *((int*)intPtr2);
 }
 
 #define intToLong(i) ((long)i)
@@ -88,26 +78,14 @@ void renderCallback(void *voidPtr){
 }
 
 //todo test func
-static void testMT(){
-    ZMT prng = zmtMake(time(NULL));
-    #define LOW 100000
-    #define HIGH (((~((uint64_t)0)) / 4) * 3)
-    int n = 1000;
-    uint64_t randNum = 0;
-    for(int i = 0; i < n; ++i){
-        randNum = zmtULongDie(&prng, LOW, HIGH);
-        printf("%3d: %lu\n", i, randNum);
-        if(randNum < LOW || randNum > HIGH){
-            pgError("limit failure");
-        }
-    }
-
-    zmtFree(&prng);
+void testResourceLoader(){
+    BLResourceLoader loader = blResourceLoaderMake();
+    blResourceLoaderParseDirectory(&loader, ".");
 }
 
 /* The entry point for the game */
 int main(){
-    testMT();
+    testResourceLoader();
     exit(0);
     Engine engine = {0};
 

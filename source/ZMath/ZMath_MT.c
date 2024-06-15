@@ -377,7 +377,10 @@ int64_t zmtRandLong(ZMT *zmtPtr){
 
 /*
  * Generates a random long from the given 
- * Mersenne Twister in the specified range inclusive
+ * Mersenne Twister in the specified range inclusive;
+ * undefined behavior if highInclusive - lowInclusive
+ * exceeds the representable values of int64_t, but
+ * will work on most machines
  */
 int64_t zmtLongDie(
     ZMT *zmtPtr,
@@ -475,6 +478,7 @@ float zmtRandFloat(ZMT *zmtPtr){
      * 0.0 and 1.0
      */
     toRet /= ((float)uLongMax);
+    return toRet;
 }
 
 /*
@@ -490,6 +494,7 @@ double zmtRandDouble(ZMT *zmtPtr){
      * 0.0 and 1.0
      */
     toRet /= ((double)uLongMax);
+    return toRet;
 }
 
 /*
