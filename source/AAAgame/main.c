@@ -12,6 +12,7 @@
 #include "Config.h"
 #include "Game.h"
 #include "GameLoop.h"
+#include "Resources.h"
 #include "Settings.h"
 
 #include <unistd.h>
@@ -33,7 +34,7 @@ void printWideString(const WideString *toPrint){
 /* A struct holding all the elements of the engine */
 typedef struct Engine{
     Settings settings;
-    /* todo: resources */
+    Resources resources;
     TFWindow window;
     TFKeyTable keyTable;
     MidiHub midiHub;
@@ -47,7 +48,7 @@ void engineFree(Engine *enginePtr){
         &(enginePtr->settings),
         config_settingsFileName
     );
-    //todo: free resources
+    resourcesFree(&(enginePtr->resources));
     tfWindowFree(&(enginePtr->window));
     tfKeyTableFree(&(enginePtr->keyTable));
     midiHubFree(&(enginePtr->midiHub));
@@ -77,16 +78,8 @@ void renderCallback(void *voidPtr){
     tfWindowRender(&(enginePtr->window));
 }
 
-//todo test func
-void testResourceLoader(){
-    BLResourceLoader loader = blResourceLoaderMake();
-    blResourceLoaderParseDirectory(&loader, ".");
-}
-
 /* The entry point for the game */
 int main(){
-    testResourceLoader();
-    exit(0);
     Engine engine = {0};
 
     /* read settings */
@@ -108,6 +101,29 @@ int main(){
     /* init key table input */
     engine.keyTable = tfKeyTableMake(&(engine.window));
 
+    /* init resources (after window for OpenGL) */
+    engine.resources = resourcesMake();
+    resourcesLoadDirectory(
+        &(engine.resources),
+        "res/image"
+    );
+    resourcesLoadDirectory(
+        &(engine.resources),
+        "res/midi"
+    );
+    //todo: load more directories as needed
+
+    //todo: test
+    WideString spriteID = wideStringMakeCharC("test");
+    testSpritePtr = resourcesGetSprite(
+        &engine.resources,
+        &spriteID
+    );
+    wideStringFree(&spriteID);
+    if(!testSpritePtr){
+        pgError("failed to get sprite");
+    }
+
     /* init MIDI */
     engine.midiHub = midiHubMake(
         engine.settings.muted
@@ -119,6 +135,14 @@ int main(){
         &(engine.keyTable),
         &(engine.midiHub)
     );
+
+    //todo: more testing
+    WideString midiID = wideStringMakeCharC("test");
+    midiHubStart(&engine.midiHub, resourcesGetMidi(
+        &engine.resources,
+        &midiID
+    ));
+
     //todo: set game fullscreen callback
     //todo: set game write settings callback
 
@@ -145,6 +169,9 @@ int main(){
     /* clean up after game ends */
     engineFree(&engine);
 
+    #ifdef _DEBUG
     printf("main completed\n");
+    #endif
+
     return 0;
 }

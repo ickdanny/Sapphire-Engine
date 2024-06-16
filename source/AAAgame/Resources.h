@@ -8,8 +8,8 @@
 /* Stores all file resources for the game */
 typedef struct Resources{
     BLResourceLoader _loader;
-    HashMap _imageMap;
-    HashMap _midiMap;
+    HashMap *_imageMapPtr;
+    HashMap *_midiMapPtr;
     //todo other fields for other resources
 } Resources;
 
@@ -23,9 +23,9 @@ Resources resourcesMake();
  * Nonrecursively loads all the files in the specified
  * directory into the given Resources object
  */
-Resources resoucesLoadDirectory(
+void resourcesLoadDirectory(
     Resources *resourcesPtr,
-    char *dirName
+    char *directoryName
 );
 
 /*

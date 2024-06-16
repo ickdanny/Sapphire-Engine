@@ -32,7 +32,7 @@ bool intEquals(
 
 /* hash func for C strings */
 size_t cStringHash(const void *stringPtr){
-    const char *charPtr = stringPtr;
+    const char *charPtr = *((char**)stringPtr);
     NULL_TERMINATED_STRING_HASH_ALGORITHM(charPtr);
 }
 

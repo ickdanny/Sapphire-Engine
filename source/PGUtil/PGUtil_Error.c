@@ -48,5 +48,9 @@ void assertStringEqual(
     const char *str2,
     const char *errorMsg
 ){
-    assertFalse(strcmp(str1, str2), errorMsg);
+    if(strcmp(str1, str2) != 0){
+        pgWarning(str1);
+        pgWarning(str2);
+        pgError(errorMsg);
+    }
 }

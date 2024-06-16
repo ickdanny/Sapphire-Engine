@@ -40,7 +40,8 @@ size_t _##PREFIX##CLength( \
 \
 /* \
  * Creates a string copy of the given null \
- * terminated C string and returns it by value \
+ * terminated C string of the character type \
+ * and returns it by value \
  */ \
 TYPENAME PREFIX##MakeC( \
     const CHARTYPE *cStringPtr \
@@ -66,6 +67,30 @@ TYPENAME PREFIX##MakeC( \
         cStringPtr,  \
         toRet._capacity * sizeof(CHARTYPE) \
     ); \
+    return toRet; \
+} \
+\
+/* \
+ * Creates a string copy of the given null \
+ * terminated C string of type "char" and returns \
+ * it by value \
+ */ \
+TYPENAME PREFIX##MakeCharC( \
+    const char *cStringPtr \
+){ \
+    TYPENAME toRet = {0}; \
+    toRet.length = strlen(cStringPtr); \
+    toRet._capacity = lengthIncludingNull( \
+        toRet.length \
+    ); \
+    toRet._ptr = (CHARTYPE *)pgAlloc( \
+        toRet._capacity,  \
+        sizeof(CHARTYPE) \
+    ); \
+    /* copy chars 1 by 1 into possibly larger type */ \
+    for(size_t i = 0; i < toRet.length; ++i){ \
+        toRet._ptr[i] = cStringPtr[i]; \
+    } \
     return toRet; \
 } \
 \

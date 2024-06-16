@@ -58,10 +58,20 @@ size_t _##PREFIX##CLength( \
 \
 /* \
  * Creates a string copy of the given null \
- * terminated C string and returns it by value \
+ * terminated C string of the character type \
+ * and returns it by value \
  */ \
 TYPENAME PREFIX##MakeC( \
     const CHARTYPE *cStringPtr \
+); \
+\
+/* \
+ * Creates a string copy of the given null \
+ * terminated C string of type "char" and returns \
+ * it by value \
+ */ \
+TYPENAME PREFIX##MakeCharC( \
+    const char *cStringPtr \
 ); \
 \
 /* \

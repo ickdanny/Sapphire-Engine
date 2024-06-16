@@ -52,52 +52,59 @@ WideString isolateFileName(const char *fileName){
             fileName[i]
         );
     }
+
+    return toRet;
 }
 
 /* Image loading callback */
 static void loadImageIntoResources(
     const char *fileName,
-    void *resourcesVoidPtr
+    void *imageMapVoidPtr
 ){
-    Resources *resourcesPtr = resourcesVoidPtr;
+    HashMap *imageMapPtr = imageMapVoidPtr;
 
     TFSprite sprite = parseBitmapFile(fileName);
     WideString stringID = isolateFileName(fileName);
     if(hashMapHasKeyPtr(WideString, TFSprite,
-        &(resourcesPtr->_imageMap),
+        imageMapPtr,
         &stringID
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same image");
     }
     hashMapPutPtr(WideString, TFSprite,
-        &(resourcesPtr->_imageMap),
+        imageMapPtr,
         &stringID,
         &sprite
     );
+    //todo: remove printf
+    printf("loaded image: %s\n", fileName);
 }
 
 /* Midi loading callback */
 static void loadMidiIntoResources(
     const char *fileName,
-    void *resourcesVoidPtr
+    void *midiMapVoidPtr
 ){
-    Resources *resourcesPtr = resourcesVoidPtr;
+    HashMap *midiMapPtr = midiMapVoidPtr;
 
     MidiSequence midi = parseMidiFile(fileName);
     WideString stringID = isolateFileName(fileName);
     if(hashMapHasKeyPtr(WideString, MidiSequence,
-        &(resourcesPtr->_midiMap),
+        midiMapPtr,
         &stringID
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same midi");
     }
     hashMapPutPtr(WideString, MidiSequence,
-        &(resourcesPtr->_midiMap),
+        midiMapPtr,
         &stringID,
         &midi
     );
+
+    //todo: remove printf
+    printf("loaded midi: %s\n", fileName);
 }
 
 /*
@@ -106,24 +113,48 @@ static void loadMidiIntoResources(
  */
 Resources resourcesMake(){
     Resources toRet = {0};
+    
+    /* create maps */
+    toRet._imageMapPtr = pgAlloc(
+        1,
+        sizeof(*(toRet._imageMapPtr))
+    );
+    toRet._midiMapPtr = pgAlloc(
+        1,
+        sizeof(*(toRet._midiMapPtr))
+    );
+    (*toRet._imageMapPtr) = hashMapMake(
+        WideString, TFSprite,
+        initImageCapacity,
+        constructureWideStringHash,
+        constructureWideStringEquals
+    );
+    (*toRet._midiMapPtr) = hashMapMake(
+        WideString, MidiSequence,
+        initMidiCapacity,
+        constructureWideStringHash,
+        constructureWideStringEquals
+    );
+
     /* create and configure loader */
     toRet._loader = blResourceLoaderMake();
     BLResourceType imageType = blResourceTypeMake(
         "bmp",
         loadImageIntoResources,
-        &toRet //todo: this is a DANGLING POINTER
-    )
-
-    //todo: configure loader
-    toRet._imageMap = hashMapMake(WideString, TFSprite,
-        initImageCapacity,
-        constructureWideStringHash,
-        constructureWideStringEquals
+        toRet._imageMapPtr
     );
-    toRet._midiMap = hashMapMake(WideString, TFSprite,
-        initMidiCapacity,
-        constructureWideStringHash,
-        constructureWideStringEquals
+    BLResourceType midiType = blResourceTypeMake(
+        "mid",
+        loadMidiIntoResources,
+        toRet._midiMapPtr
+    );
+    blResourceLoaderRegisterType(
+        &(toRet._loader),
+        &imageType
+    );
+    blResourceLoaderRegisterType(
+        &(toRet._loader),
+        &midiType
     );
 
     return toRet;
@@ -133,11 +164,14 @@ Resources resourcesMake(){
  * Nonrecursively loads all the files in the specified
  * directory into the given Resources object
  */
-Resources resoucesLoadDirectory(
+void resourcesLoadDirectory(
     Resources *resourcesPtr,
-    char *dirName
+    char *directoryName
 ){
-    //todo
+    blResourceLoaderParseDirectory(
+        &(resourcesPtr->_loader),
+        directoryName
+    );
 }
 
 /*
@@ -150,7 +184,7 @@ TFSprite *resourcesGetSprite(
     WideString *wideStringPtr
 ){
     return hashMapGetPtr(WideString, TFSprite,
-        &(resourcesPtr->_imageMap),
+        resourcesPtr->_imageMapPtr,
         wideStringPtr
     );
 }
@@ -165,7 +199,7 @@ MidiSequence *resourcesGetMidi(
     WideString *wideStringPtr
 ){
     return hashMapGetPtr(WideString, MidiSequence,
-        &(resourcesPtr->_midiMap),
+        resourcesPtr->_midiMapPtr,
         wideStringPtr
     );
 }
@@ -182,29 +216,31 @@ void resourcesFree(Resources *resourcesPtr){
 
     /* free image map */
     hashMapApply(WideString, TFSprite,
-        &(resourcesPtr->_imageMap),
+        resourcesPtr->_imageMapPtr,
         tfSpriteFree
     );
     hashMapKeyApply(WideString, TFSprite,
-        &(resourcesPtr->_imageMap),
+        resourcesPtr->_imageMapPtr,
         wideStringFree
     );
     hashMapFree(WideString, TFSprite,
-        &(resourcesPtr->_imageMap)
+        resourcesPtr->_imageMapPtr
     );
+    pgFree(resourcesPtr->_imageMapPtr);
 
     /* free midi map */
     hashMapApply(WideString, MidiSequence,
-        &(resourcesPtr->_midiMap),
+        resourcesPtr->_midiMapPtr,
         midiSequenceFree
     );
     hashMapKeyApply(WideString, MidiSequence,
-        &(resourcesPtr->_midiMap),
+        resourcesPtr->_midiMapPtr,
         wideStringFree
     );
     hashMapFree(WideString, MidiSequence,
-        &(resourcesPtr->_midiMap)
+        resourcesPtr->_midiMapPtr
     );
+    pgFree(resourcesPtr->_midiMapPtr);
 
     //todo free other resource types
 }

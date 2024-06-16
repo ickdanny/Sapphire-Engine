@@ -185,7 +185,7 @@ void blResourceLoaderFree(BLResourceLoader *loaderPtr){
      */
     hashMapFree(
         char *,
-        blResourceType,
+        BLResourceType,
         &(loaderPtr->_fileExtensionToTypeMap)
     );
 }
