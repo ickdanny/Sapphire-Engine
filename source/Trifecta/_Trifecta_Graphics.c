@@ -276,41 +276,6 @@ static Matrix4x4 makeTransformMatrix(
     return transformMatrix;
 }
 
-//todo: temp function
-void testDraw(_TFGraphics *graphicsPtr){
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    static float rotation = 0.0f;
-    rotation += 1.0f;
-    Vector2D offset = {0.0f, 0.0f};
-    TFSpriteInstruction spriteInstr
-        = tfSpriteInstructionMake(
-            testSpritePtr,
-            0,
-            offset,
-            rotation,
-            sinf(toRadians(rotation))
-        );
-    Point2D center = {
-        graphicsPtr->_graphicsWidth / 2,
-        graphicsPtr->_graphicsHeight / 2
-    };
-    Rectangle drawRect = {
-        -160.0,
-        -120.0,
-        640.0f,
-        480.0f
-    };
-    Point2D pixelOffset = {0};
-    _tfGraphicsDrawTileSprite(
-        graphicsPtr,
-        &drawRect,
-        &spriteInstr,
-        pixelOffset
-    );
-}
-
 //todo: instanced rendering is possible optimization
 
 /* Draws a sprite with the specified _TFGraphics */

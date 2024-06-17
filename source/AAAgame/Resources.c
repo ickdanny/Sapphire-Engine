@@ -77,8 +77,6 @@ static void loadImageIntoResources(
         &stringID,
         &sprite
     );
-    //todo: remove printf
-    printf("loaded image: %s\n", fileName);
 }
 
 /* Midi loading callback */
@@ -102,9 +100,6 @@ static void loadMidiIntoResources(
         &stringID,
         &midi
     );
-
-    //todo: remove printf
-    printf("loaded midi: %s\n", fileName);
 }
 
 /*

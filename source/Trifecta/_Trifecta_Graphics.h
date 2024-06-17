@@ -10,9 +10,6 @@
 #include "Trifecta_Sprite.h"
 #include "Trifecta_GlyphMap.h"
 
-//todo: temp test global variable
-TFSprite *testSpritePtr;
-
 /*
  * A Graphics object is capable of drawing graphics to
  * the screen
@@ -36,9 +33,6 @@ _TFGraphics _tfGraphicsMake(
     int graphicsWidth,
     int graphicsHeight
 );
-
-//todo: temp function
-void testDraw(_TFGraphics *graphicsPtr);
 
 /* Draws a sprite with the specified _TFGraphics */
 void _tfGraphicsDrawSprite(

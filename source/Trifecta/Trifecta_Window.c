@@ -120,13 +120,11 @@ void tfWindowSetExitCallback(
 /* Has the specified TFWindow render */
 void tfWindowRender(TFWindow *windowPtr){
     //todo window rendering
-
-    //glClearColor(1.0, 0.5, 1.0, 1.0);
-    //glClear(GL_COLOR_BUFFER_BIT);
-
-    testDraw(&(windowPtr->_graphics));
-
     glfwSwapBuffers(windowPtr->_windowPtr);
+
+    glClearColor(1.0, 0.5, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     tfWindowPumpMessages(windowPtr);
 }
 

@@ -6,6 +6,8 @@
 /* A sparse set maps size_t to elements */
 typedef struct SparseSet{
     size_t *_sparsePtr;
+
+    //todo: make this dynamically growable
     void *_densePtr;
     /* need a mapping of dense to sparse for remove */
     size_t *_reflectPtr;

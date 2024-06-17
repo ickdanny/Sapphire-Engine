@@ -113,17 +113,6 @@ int main(){
     );
     //todo: load more directories as needed
 
-    //todo: test
-    WideString spriteID = wideStringMakeCharC("test");
-    testSpritePtr = resourcesGetSprite(
-        &engine.resources,
-        &spriteID
-    );
-    wideStringFree(&spriteID);
-    if(!testSpritePtr){
-        pgError("failed to get sprite");
-    }
-
     /* init MIDI */
     engine.midiHub = midiHubMake(
         engine.settings.muted
@@ -135,13 +124,6 @@ int main(){
         &(engine.keyTable),
         &(engine.midiHub)
     );
-
-    //todo: more testing
-    WideString midiID = wideStringMakeCharC("test");
-    midiHubStart(&engine.midiHub, resourcesGetMidi(
-        &engine.resources,
-        &midiID
-    ));
 
     //todo: set game fullscreen callback
     //todo: set game write settings callback
@@ -160,7 +142,7 @@ int main(){
         &(engine.window),
         stopGameLoopCallback
     );
-    /* todo: game set exit callback */
+    // todo: game set exit callback
 
     /* make visible and start running */
     tfWindowMakeVisible(&(engine.window));
