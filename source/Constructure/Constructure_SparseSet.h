@@ -11,7 +11,11 @@ typedef struct SparseSet{
     void *_densePtr;
     /* need a mapping of dense to sparse for remove */
     size_t *_reflectPtr;
-    size_t capacity;
+    /* The number of sparse indices supported */
+    size_t sparseCapacity;
+    /* Internal capacity of dense and reflect arrays */
+    size_t _denseCapacity;
+    /* Current number of elements*/
     size_t _size;
 
     #ifdef _DEBUG
@@ -48,7 +52,8 @@ typedef struct SparseSet{
 
 /* Creates a sparse set and returns it by value */
 SparseSet _sparseSetMake(
-    size_t capacity,
+    size_t sparseCapacity,
+    size_t initDenseCapacity,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
@@ -60,15 +65,32 @@ SparseSet _sparseSetMake(
  * Creates a sparse set of the specified type
  * and returns it by value
  */
-#define sparseSetMake(TYPENAME, SIZE) \
-    _sparseSetMake(SIZE, sizeof(TYPENAME))
+#define sparseSetMake( \
+    TYPENAME, \
+    SPARSECAPACITY, \
+    INITDENSECAPACITY \
+) \
+    _sparseSetMake( \
+        SPARSECAPACITY, \
+        INITDENSECAPACITY, \
+        sizeof(TYPENAME) \
+    )
 #else
 /* 
  * Creates a sparse set of the specified type
  * and returns it by value
  */
-#define sparseSetMake(TYPENAME, SIZE) \
-    _sparseSetMake(SIZE, sizeof(TYPENAME), #TYPENAME)
+#define sparseSetMake( \
+    TYPENAME, \
+    SPARSECAPACITY, \
+    INITDENSECAPACITY \
+) \
+    _sparseSetMake( \
+        SPARSECAPACITY, \
+        INITDENSECAPACITY, \
+        sizeof(TYPENAME), \
+        #TYPENAME \
+    )
 #endif
 
 /*
@@ -241,6 +263,15 @@ void *_sparseSetGetPtr(
     )
 
 /* 
+ * Grows the given sparse set if it is at capacity;
+ * returns false as error code, true otherwise
+ */
+bool _sparseSetGrowIfNeeded(
+    SparseSet *setPtr,
+    size_t elementSize
+);
+
+/* 
  * Copies the specified value into the element 
  * associated with the given index in the given
  * sparse set
@@ -316,8 +347,16 @@ void _sparseSetSetPtr(
 ) \
     do{ \
         assertTrue( \
-            SPARSEINDEX < (SETPTR)->capacity, \
+            SPARSEINDEX < (SETPTR)->sparseCapacity, \
             "bad index; " SRC_LOCATION \
+        ); \
+        assertTrue( \
+            _sparseSetGrowIfNeeded( \
+                SETPTR, \
+                sizeof(TYPENAME) \
+            ), \
+            "sparse set failed to grow; " \
+            SRC_LOCATION \
         ); \
         ((TYPENAME *)((SETPTR)->_densePtr))[ \
             (SETPTR)->_size \
@@ -343,8 +382,16 @@ void _sparseSetSetPtr(
     do{ \
         _sparseSetPtrTypeCheck(#TYPENAME, SETPTR); \
         assertTrue( \
-            SPARSEINDEX < (SETPTR)->capacity, \
+            SPARSEINDEX < (SETPTR)->sparseCapacity, \
             "bad index; " SRC_LOCATION \
+        ); \
+        assertTrue( \
+            _sparseSetGrowIfNeeded( \
+                SETPTR, \
+                sizeof(TYPENAME) \
+            ), \
+            "sparse set failed to grow; " \
+            SRC_LOCATION \
         ); \
         ((TYPENAME *)((SETPTR)->_densePtr))[ \
             (SETPTR)->_size \

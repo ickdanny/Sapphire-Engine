@@ -5,42 +5,54 @@
 
 /* Creates a sparse set and returns it by value */
 SparseSet _sparseSetMake(
-    size_t capacity,
+    size_t sparseCapacity,
+    size_t initDenseCapacity,
     size_t elementSize
     #ifdef _DEBUG 
     , const char *typeName 
     #endif
 ){
     assertTrue(
-        capacity > 0u, 
-        "capacity cannot be 0; " SRC_LOCATION
+        sparseCapacity > 0u, 
+        "sparseCapacity cannot be 0; " SRC_LOCATION
     );
+    assertTrue(
+        initDenseCapacity > 0u,
+        "init dense capacity cannot be 0;"
+        SRC_LOCATION
+    );
+
     SparseSet toRet = {0};
+
+    if(initDenseCapacity > sparseCapacity){
+        initDenseCapacity = sparseCapacity;
+    }
 
     /* init sparse to invalid */
     toRet._sparsePtr = pgAlloc(
-        capacity, 
+        sparseCapacity, 
         sizeof(size_t)
     );
     memset(
         toRet._sparsePtr, 
         0xFF, 
-        capacity * sizeof(size_t)
+        sparseCapacity * sizeof(size_t)
     );
 
     /* allocate dense */
     toRet._densePtr = pgAlloc(
-        capacity,
+        initDenseCapacity,
         elementSize
     );
 
     /* allocate reflect */
     toRet._reflectPtr = pgAlloc(
-        capacity,
-        sizeof(size_t)
+        initDenseCapacity,
+        sizeof(*(toRet._reflectPtr))
     );
 
-    toRet.capacity = capacity;
+    toRet.sparseCapacity = sparseCapacity;
+    toRet._denseCapacity = initDenseCapacity;
     toRet._size = 0u;
 
     #ifdef _DEBUG
@@ -66,18 +78,19 @@ SparseSet _sparseSetCopy(
     #endif
 
     SparseSet toRet = {0};
-    toRet.capacity = toCopyPtr->capacity;
+    toRet.sparseCapacity = toCopyPtr->sparseCapacity;
+    toRet._denseCapacity = toCopyPtr->_denseCapacity;
     toRet._size = toCopyPtr->_size;
     toRet._sparsePtr = pgAlloc(
-        toRet.capacity,
+        toRet.sparseCapacity,
         sizeof(size_t)
     );
     toRet._densePtr = pgAlloc(
-        toRet.capacity,
+        toRet._denseCapacity,
         elementSize
     );
     toRet._reflectPtr = pgAlloc(
-        toRet.capacity,
+        toRet._denseCapacity,
         sizeof(size_t)
     );
 
@@ -85,17 +98,17 @@ SparseSet _sparseSetCopy(
     memcpy(
         toRet._sparsePtr,
         toCopyPtr->_sparsePtr,
-        toRet.capacity * sizeof(size_t)
+        toRet.sparseCapacity * sizeof(size_t)
     );
     memcpy(
         toRet._densePtr,
         toCopyPtr->_densePtr,
-        toRet.capacity * elementSize
+        toRet._denseCapacity * elementSize
     );
     memcpy(
         toRet._reflectPtr,
         toCopyPtr->_reflectPtr,
-        toRet.capacity * sizeof(size_t)
+        toRet._denseCapacity * sizeof(size_t)
     );
 
     #ifdef _DEBUG
@@ -125,21 +138,21 @@ void _sparseSetClear(
     memset(
         setPtr->_sparsePtr, 
         0xFF, 
-        setPtr->capacity * sizeof(size_t)
+        setPtr->sparseCapacity * sizeof(size_t)
     );
 
     /* clear dense */
     memset(
         setPtr->_densePtr,
         0,
-        setPtr->capacity * elementSize
+        setPtr->_denseCapacity * elementSize
     );
 
     /* clear reflect */
     memset(
         setPtr->_reflectPtr,
         0,
-        setPtr->capacity * sizeof(size_t)
+        setPtr->_denseCapacity * sizeof(size_t)
     );
 
     setPtr->_size = 0u;
@@ -161,7 +174,7 @@ bool _sparseSetContains(
     _sparseSetPtrTypeCheck(typeName, setPtr);
     #endif
 
-    return sparseIndex < setPtr->capacity
+    return sparseIndex < setPtr->sparseCapacity
         && setPtr->_sparsePtr[sparseIndex] 
             != invalidSparseIndex;
 }
@@ -185,18 +198,77 @@ void *_sparseSetGetPtr(
 
     /* error if bad index*/
     assertTrue(
-        sparseIndex < setPtr->capacity,
+        sparseIndex < setPtr->sparseCapacity,
         "bad index; " SRC_LOCATION
     );
 
     size_t denseIndex 
         = setPtr->_sparsePtr[sparseIndex];
+    assertTrue(denseIndex < setPtr->_denseCapacity,
+        "index gotten is larger than dense capacity; "
+        SRC_LOCATION
+    );
     return denseIndex == invalidSparseIndex
         ? NULL
         : voidPtrAdd(
             setPtr->_densePtr,
             elementSize * denseIndex
         );
+}
+
+/* 
+ * Grows the given sparse set if it is at capacity;
+ * returns false as error code, true otherwise
+ */
+bool _sparseSetGrowIfNeeded(
+    SparseSet *setPtr,
+    size_t elementSize
+){
+    enum{ growRatio = 2u };
+
+    /* 
+     * error out if size is >= sparse capacity; should
+     * never occur
+     */
+    if(setPtr->_size >= setPtr->sparseCapacity){
+        return false;
+    }
+    /*
+     * if size is equal to capacity, that means the
+     * next added element will go into the index which
+     * is equal to capacity, which is out of range
+     */
+    if(setPtr->_size == setPtr->_denseCapacity){
+        setPtr->_denseCapacity *= growRatio;
+        ++(setPtr->_denseCapacity);
+        if(setPtr->_denseCapacity
+            > (setPtr->sparseCapacity / 2)
+        ){
+            setPtr->_denseCapacity
+                = setPtr->sparseCapacity;
+        }
+        /* realloc the dense array */
+        setPtr->_densePtr = pgRealloc(
+            setPtr->_densePtr,
+            setPtr->_denseCapacity,
+            elementSize
+        );
+        if(!(setPtr->_densePtr)){
+            return false;
+        }
+        /* realloc the reflect array */
+        setPtr->_reflectPtr = pgRealloc(
+            setPtr->_reflectPtr,
+            setPtr->_denseCapacity,
+            sizeof(*(setPtr->_reflectPtr))
+        );
+        if(!(setPtr->_reflectPtr)){
+            return false;
+        }
+    }
+
+    printf("sparse set grow to %d\n", setPtr->_denseCapacity);
+    return true;  
 }
 
 /* 
@@ -217,9 +289,15 @@ void _sparseSetSetPtr(
     _sparseSetPtrTypeCheck(typeName, setPtr);
     #endif
 
+    /* grow dense and reflect arrays if needed */
+    assertTrue(
+        _sparseSetGrowIfNeeded(setPtr, elementSize),
+        "sparse set failed to grow; " SRC_LOCATION
+    );
+
     /* error if bad index*/
     assertTrue(
-        sparseIndex < setPtr->capacity,
+        sparseIndex < setPtr->sparseCapacity,
         "bad index; " SRC_LOCATION
     );
 
@@ -260,7 +338,7 @@ bool _sparseSetRemove(
 
     /* error if bad sparse index*/
     assertTrue(
-        sparseIndex < setPtr->capacity,
+        sparseIndex < setPtr->sparseCapacity,
         "bad index; " SRC_LOCATION
     );
 
@@ -419,6 +497,7 @@ void _sparseSetFree(
     pgFree(setPtr->_densePtr);
     pgFree(setPtr->_reflectPtr);
 
-    setPtr->capacity = 0u;
+    setPtr->sparseCapacity = 0u;
+    setPtr->_denseCapacity = 0u;
     setPtr->_size = 0u;
 }
