@@ -9,11 +9,36 @@
 typedef struct _WindEntityMetadata{
     /*
      * Each set bit in the bitset represents a
-     * component type which the entity has
+     * component type which the entity has; the
+     * bitset is owned by the metadata
      */
     Bitset _componentSet;
     WindEntityGenerationType _generation;
 } _WindEntityMetadata;
+
+/*
+ * Constructs and returns a new _WindEntityMetadata
+ * by value
+ */
+_WindEntityMetadata _windEntityMetadataMake(
+    size_t numComponents
+);
+
+/*
+ * Prepares the state of the specified
+ * _WindEntityMetadata for the next generation
+ */
+void _windEntityMetadataReset(
+    _WindEntityMetadata *metadataPtr
+);
+
+/*
+ * Frees the memory associated with the specified
+ * _WindEntityMetadata
+ */
+void _windEntityMetadataFree(
+    _WindEntityMetadata *metadataPtr
+);
 
 /*
  * Stores data pertaining to the state of all entities;
@@ -39,7 +64,8 @@ typedef struct _WindEntities{
  * Constructs and returns a new _WindEntities by value
  */
 _WindEntities _windEntitiesMake(
-    WindEntityIDType numEntityIDs
+    WindEntityIDType numEntityIDs,
+    size_t numComponents
 );
 
 /* Creates a new entity and returns its handle */
@@ -49,7 +75,7 @@ WindEntity _windEntitiesCreate(
 
 /*
  * Reclaims an entity and puts its ID back into the
- * pool
+ * pool; error if the entity is not alive
  */
 void _windEntitiesReclaim(
     _WindEntities *entitiesPtr,

@@ -63,6 +63,24 @@ bool bitsetAny(Bitset *bitsetPtr);
  */
 size_t bitsetCount(Bitset *bitsetPtr);
 
+/*
+ * Returns the index of the first set bit in the
+ * given bitset or -1 if no bits are set
+ */
+int bitsetFirstSet(Bitset *bitsetPtr);
+
+/*
+ * Returns the index of the last set bit in the
+ * given bitset or -1 if no bits are set
+ */
+int bitsetLastSet(Bitset *bitsetPtr);
+
+/*
+ * Returns the index of the first unset bit in the
+ * given bitset
+ */
+int bitsetFirstUnset(Bitset *bitsetPtr);
+
 /* 
  * Sets the first bitset to the result of performing
  * bitwise AND with the second

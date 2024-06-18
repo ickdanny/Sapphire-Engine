@@ -19,6 +19,9 @@
  */
 #define getSubIndex(BITINDEX) (BITINDEX % blockSize)
 
+/* The block with all bits set */
+#define fullBlock (~((BlockType)0))
+
 /* Constructs and returns a new bitset by value */
 Bitset bitsetMake(size_t initBitCapacity){
     Bitset toRet = {0};
@@ -227,6 +230,174 @@ size_t bitsetCount(Bitset *bitsetPtr){
     }
 
     return count;
+}
+
+/*
+ * Returns the index of the first set bit in the
+ * given bitset or -1 if no bits are set
+ */
+int bitsetFirstSet(Bitset *bitsetPtr){
+    /* return -1 if array is empty */
+    size_t blockArraySize
+        = bitsetPtr->_blockArray.size;
+    if(blockArraySize == 0){
+        return -1;
+    }
+
+    /* find first set block */
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(bitsetPtr->_blockArray)
+    );
+    size_t firstSetBlockIndex = 0;
+    for(firstSetBlockIndex = 0;
+        firstSetBlockIndex < blockArraySize;
+        ++firstSetBlockIndex
+    ){
+        if(frontPtr[firstSetBlockIndex] != 0){
+            break;
+        }
+    }
+    /* return -1 if no set blocks */
+    if(firstSetBlockIndex == blockArraySize){
+        return -1;
+    }
+
+    /* find first set bit in the block */
+    BlockType firstSetBlock
+        = frontPtr[firstSetBlockIndex];
+    size_t firstSetBitSubIndex = 0;
+    for(firstSetBitSubIndex = 0;
+        firstSetBitSubIndex < blockSize;
+        ++firstSetBitSubIndex
+    ){
+        if(getBit(firstSetBlock, firstSetBitSubIndex)){
+            break;
+        }
+    }
+    assertFalse(
+        firstSetBitSubIndex == blockSize,
+        "failed to find first bit when block was set"
+        SRC_LOCATION
+    );
+
+    /* calculate total index and return */
+    return (firstSetBlockIndex * blockSize)
+        + firstSetBitSubIndex;
+}
+
+/*
+ * Returns the index of the last set bit in the
+ * given bitset or -1 if no bits are set
+ */
+int bitsetLastSet(Bitset *bitsetPtr){
+    /* return -1 if array is empty */
+    if(bitsetPtr->_blockArray.size == 0){
+        return -1;
+    }
+
+    /* find last set block */
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(bitsetPtr->_blockArray)
+    );
+    size_t lastBlockIndex 
+        = bitsetPtr->_blockArray.size - 1;
+    size_t lastSetBlockIndex = 0;
+    for(lastSetBlockIndex = lastBlockIndex;
+        lastSetBlockIndex != SIZE_MAX;
+        --lastSetBlockIndex
+    ){
+        if(frontPtr[lastSetBlockIndex] != 0){
+            break;
+        }
+    }
+    /* return -1 if no set blocks */
+    if(lastSetBlockIndex == SIZE_MAX){
+        return -1;
+    }
+
+    /* find last set bit in the block */
+    BlockType lastSetBlock
+        = frontPtr[lastSetBlockIndex];
+    size_t lastSetBitSubIndex = 0;
+    for(lastSetBitSubIndex = blockSize - 1;
+        lastSetBitSubIndex != SIZE_MAX;
+        --lastSetBitSubIndex
+    ){
+        if(getBit(lastSetBlock, lastSetBitSubIndex)){
+            break;
+        }
+    }
+    assertFalse(
+        lastSetBitSubIndex == SIZE_MAX,
+        "failed to find last bit when block was set"
+    );
+
+    /* calculate total index and return */
+    return (lastSetBlockIndex * blockSize)
+        + lastSetBitSubIndex;
+}
+
+/*
+ * Returns the index of the first unset bit in the
+ * given bitset
+ */
+int bitsetFirstUnset(Bitset *bitsetPtr){
+    /* return 0 if array is empty */
+    size_t blockArraySize
+        = bitsetPtr->_blockArray.size;
+    if(blockArraySize == 0){
+        return 0;
+    }
+
+    /* find first non-full block */
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(bitsetPtr->_blockArray)
+    );
+    size_t firstNonFullBlockIndex = 0;
+    for(firstNonFullBlockIndex = 0;
+        firstNonFullBlockIndex < blockArraySize;
+        ++firstNonFullBlockIndex
+    ){
+        if(frontPtr[firstNonFullBlockIndex]
+            != fullBlock
+        ){
+            break;
+        }
+    }
+    /*
+     * return the first bit after the last block if all
+     * blocks are full
+     */
+    if(firstNonFullBlockIndex == blockArraySize){
+        return (firstNonFullBlockIndex * blockSize)
+            + 1;
+    }
+
+    /* find first unset bit in the block */
+    BlockType firstNonFullBlock
+        = frontPtr[firstNonFullBlockIndex];
+    size_t firstUnsetBitSubIndex = 0;
+    for(firstUnsetBitSubIndex = 0;
+        firstUnsetBitSubIndex < blockSize;
+        ++firstUnsetBitSubIndex
+    ){
+        if(!getBit(
+            firstNonFullBlock,
+            firstUnsetBitSubIndex
+        )){
+            break;
+        }
+    }
+    assertFalse(
+        firstUnsetBitSubIndex == blockSize,
+        "failed to find first unset bit when block "
+        "was not full"
+        SRC_LOCATION
+    );
+
+    /* calculate total index and return */
+    return (firstNonFullBlockIndex * blockSize)
+        + firstUnsetBitSubIndex;
 }
 
 /* 
@@ -570,7 +741,6 @@ void bitsetFree(Bitset *bitsetPtr){
 }
 
 /* Prints the given bitset to the given C String */
-
 void printBitset(
     Bitset *bitsetPtr,
     char* charPtr,
@@ -585,50 +755,21 @@ void printBitset(
         "null string ptr in printBitset"
     );
 
-    /* write '0' if bitset has no blocks */
-    if(bitsetPtr->_blockArray.size == 0){
+    /* get index of last bit */
+    int lastSetBitIndex = bitsetLastSet(bitsetPtr);
+    /* if no bits, write '0' */
+    if(lastSetBitIndex == -1){
         snprintf(charPtr, arraySize, "0");
         return;
     }
-    /* find last set block */
-    BlockType *frontPtr = arrayListFrontPtr(BlockType,
-        &(bitsetPtr->_blockArray)
+    int lastSetBlockIndex = getBlockIndex(
+        lastSetBitIndex
     );
-    size_t lastBlockIndex 
-        = bitsetPtr->_blockArray.size - 1;
-    size_t lastSetBlockIndex = 0;
-    for(lastSetBlockIndex = lastBlockIndex;
-        lastSetBlockIndex != SIZE_MAX;
-        --lastSetBlockIndex
-    ){
-        if(frontPtr[lastSetBlockIndex] != 0){
-            break;
-        }
-    }
-    /* write '0' if no set blocks */
-    if(lastSetBlockIndex == SIZE_MAX){
-        snprintf(charPtr, arraySize, "0");
-        return;
-    }
-
-    /* find last set bit */
-    BlockType lastSetBlock
-        = frontPtr[lastSetBlockIndex];
-    size_t lastSetBitIndex = 0;
-    for(lastSetBitIndex = blockSize - 1;
-        lastSetBitIndex != SIZE_MAX;
-        --lastSetBitIndex
-    ){
-        if(getBit(lastSetBlock, lastSetBitIndex)){
-            break;
-        }
-    }
-    assertFalse(
-        lastSetBitIndex == SIZE_MAX,
-        "failed to find bit when block was set"
+    int lastSetBitSubIndex = getSubIndex(
+        lastSetBitIndex
     );
 
-    size_t numBitsToPrint = lastSetBitIndex + 1
+    size_t numBitsToPrint = lastSetBitSubIndex + 1
         + (lastSetBlockIndex * blockSize);
     
     /* allocate space to write n number of bits */
@@ -639,11 +780,11 @@ void printBitset(
     size_t nextCharToWriteIndex = 0;
 
     /* write the bits in the last set block */
-    for(size_t i = lastSetBitIndex;
+    for(size_t i = lastSetBitSubIndex;
         i != SIZE_MAX;
         --i
     ){
-        if(getBit(lastSetBlock, i)){
+        if(getBit(lastSetBlockIndex, i)){
             tempStorage[nextCharToWriteIndex++] = '1';
         }
         else{
@@ -652,6 +793,9 @@ void printBitset(
     }
 
     /* for each other block, write bits backwards */
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(bitsetPtr->_blockArray)
+    );
     BlockType currentBlock = 0;
     for(size_t blockIndex = lastSetBlockIndex - 1;
         blockIndex != SIZE_MAX;
