@@ -267,7 +267,6 @@ bool _sparseSetGrowIfNeeded(
         }
     }
 
-    printf("sparse set grow to %d\n", setPtr->_denseCapacity);
     return true;  
 }
 

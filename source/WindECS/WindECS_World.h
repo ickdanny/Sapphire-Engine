@@ -4,15 +4,7 @@
 #include "Constructure.h"
 
 #include "WindECS_Entity.h"
-
-typedef struct _WindEntityMetadata{
-    /*
-     * Each set bit in the bitset represents a
-     * component type which the entity has
-     */
-    Bitset _componentSet;
-    WindEntityGenerationType _generation;
-} _WindEntityMetadata;
+#include "_WindECS_Entities.h"
 
 /*
  * An ECS world encapsulates all entity data and
@@ -25,7 +17,7 @@ typedef struct WindWorld{
 
     Bitset _currentEntityIDs;
 
-    //todo: max num of components?
+    //todo: num of components?
 } WindWorld;
 
 #endif
