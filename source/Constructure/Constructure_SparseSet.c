@@ -270,6 +270,8 @@ bool _sparseSetGrowIfNeeded(
     return true;  
 }
 
+//todo: what if the set sparse index already exists?
+
 /* 
  * Copies the specified value into the element 
  * associated with the given index in the given

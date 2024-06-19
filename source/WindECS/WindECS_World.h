@@ -5,6 +5,7 @@
 
 #include "WindECS_Entity.h"
 #include "_WindECS_Entities.h"
+#include "WindECS_Components.h"
 
 /*
  * An ECS world encapsulates all entity data and
@@ -15,9 +16,8 @@ typedef struct WindWorld{
     ArrayList _archetypeArrayList;
     ArrayList _queryArrayList;
 
-    Bitset _currentEntityIDs;
-
-    //todo: num of components?
+    _WindEntities _entities;
+    WindComponents _components;
 } WindWorld;
 
 #endif
