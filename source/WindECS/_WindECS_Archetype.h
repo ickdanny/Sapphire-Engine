@@ -38,10 +38,30 @@ _WindArchetype _windArchetypeMake(
 );
 
 /*
+ * Errors if the componentID is invalid for the
+ * specified archetype
+ */
+void __windArchetypeErrorIfBadComponentID(
+    _WindArchetype *archetypePtr,
+    WindComponentIDType componentID
+);
+
+/*
+ * Errors if the entityID is invalid for the specified
+ * sparse set of the given component type
+ */
+void __windArchetypeErrorIfBadEntityID(
+    SparseSet *componentStoragePtr,
+    WindComponentMetadata componentMetadata,
+    WindEntityIDType entityID
+);
+
+/*
  * Returns a pointer to the component specified by
  * the given componentID of the entity specified by
  * the given entityID; error if the componentID or the
- * entityID is invalid
+ * entityID is invalid; returns NULL if the component
+ * is a marker
  */
 void *__windArchetypeGetPtr(
     _WindArchetype *archetypePtr,
@@ -53,7 +73,8 @@ void *__windArchetypeGetPtr(
  * Returns a pointer to the specified component of the
  * entity identified by the given entityID; error
  * if the entityID is invalid or if the specified
- * archetype does not hold the component in question
+ * archetype does not hold the component in question;
+ * returns NULL if the component is a marker
  */
 #define _windArchetypeGetPtr( \
     TYPENAME, \
@@ -70,7 +91,8 @@ void *__windArchetypeGetPtr(
  * Returns the specified component of the entity
  * identified by the given entityID by value; error
  * if the entityID is invalid or if the specified
- * archetype does not hold the component in question
+ * archetype does not hold the component in question;
+ * should not be used for marker components
  */
 #define _windArchetypeGet( \
     TYPENAME, \
@@ -90,7 +112,8 @@ void *__windArchetypeGetPtr(
  * Sets the component specified by the given
  * componentID of the entity specified by the given
  * entityID to the value stored in the given void ptr;
- * error if the componentID or the entityID is invalid
+ * error if the componentID or the entityID is invalid;
+ * does nothing if NULL is passed
  */
 void __windArchetypeSetPtr(
     _WindArchetype *archetypePtr,
@@ -104,7 +127,8 @@ void __windArchetypeSetPtr(
  * specified by the given entityID to the value stored
  * in the given void ptr; error if the entityID is
  * invalid or if the specified archetype does not hold
- * the component in question
+ * the component in question; does nothing if NULL
+ * is passed
  */
 #define _windArchetypeSetPtr( \
     TYPENAME, \
@@ -125,10 +149,66 @@ void __windArchetypeSetPtr(
  * Archetype setting must be done via macro because
  * it expects values not pointers
  */
-//todo value set
 
-//todo for set component remember to run destructor
-
+/*
+ * Sets the specified component of the entity
+ * specified by the given entityID to the given
+ * component; error if the entityID is invalid or if 
+ * the specified archetype does not hold the component
+ * in question; should not be used for marker
+ * components
+ */
+#define _windArchetypeSet( \
+    TYPENAME, \
+    ARCHETYPEPTR, \
+    ENTITYID, \
+    COMPONENT \
+) \
+    do{ \
+        windComponentIDType componentID \
+            = windComponentGetID(TYPENAME); \
+        __windArchetypeErrorIfBadComponentID( \
+            (ARCHETYPEPTR), \
+            componentID \
+        ); \
+        SparseSet *componentStoragePtr = arrayGetPtr( \
+            SparseSet, \
+            &((ARCHETYPEPTR) \
+                ->_componentStorageArray), \
+            componentID \
+        ); \
+        WindComponentMetadata componentMetadata \
+            = windComponentsGet( \
+                (ARCHETYPEPTR)->_componentsPtr, \
+                componentID \
+            ); \
+        __windArchetypeErrorIfBadEntityID( \
+            componentStoragePtr, \
+            componentMetadata, \
+            (ENTITYID) \
+        ); \
+        if(componentMetadata._destructor){ \
+            if(sparseSetContains(TYPENAME, \
+                componentStoragePtr, \
+                (ENTITYID) \
+            )){ \
+                void *oldComponentPtr \
+                    = sparseSetGetPtr(TYPENAME, \
+                        componentStoragePtr, \
+                        (ENTITYID) \
+                    ); \
+                componentMetadata._destructor( \
+                    oldComponentPtr \
+                ); \
+            } \
+        } \
+        sparseSetSet(TYPENAME, \
+            componentStoragePtr, \
+            (ENITTYID), \
+            (COMPONENT) \
+        ); \
+    } while(false)
+    
 /*
  * Moves the entity identified by the given entityID
  * to the specified other archetype; error if the
@@ -143,12 +223,19 @@ void _windArchetypeMoveEntity(
 
 /*
  * Removes the entity identified by the given entityID;
- * error if the entityID is invalid
+ * returns true if entity successfully removed, false
+ * if entity was not originally in the archetype
  */
-void _windArchetypeRemoveEntity(
+bool _windArchetypeRemoveEntity(
     _WindArchetype *archetypePtr,
     WindEntityIDType entityID
 );
+
+/*
+ * Frees the memory associated with the given
+ * Archetype
+ */
+void _windArchetypeFree(_WindArchetype *archetypePtr);
 
 /*
  * Iterates over the entities of a specific Archetype

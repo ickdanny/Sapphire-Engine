@@ -7,7 +7,6 @@
 typedef struct SparseSet{
     size_t *_sparsePtr;
 
-    //todo: make this dynamically growable
     void *_densePtr;
     /* need a mapping of dense to sparse for remove */
     size_t *_reflectPtr;
@@ -350,6 +349,15 @@ void _sparseSetSetPtr(
             SPARSEINDEX < (SETPTR)->sparseCapacity, \
             "bad index; " SRC_LOCATION \
         ); \
+        void *prevValuePtr = sparseSetGetPtr( \
+            TYPENAME, \
+            SETPTR, \
+            SPARSEINDEX \
+        ); \
+        if(prevValuePtr){ \
+            *((TYPENAME *)prevValuePtr) = VALUE; \
+            return; \
+        } \
         assertTrue( \
             _sparseSetGrowIfNeeded( \
                 SETPTR, \
@@ -385,6 +393,15 @@ void _sparseSetSetPtr(
             SPARSEINDEX < (SETPTR)->sparseCapacity, \
             "bad index; " SRC_LOCATION \
         ); \
+        void *prevValuePtr = sparseSetGetPtr( \
+            TYPENAME, \
+            SETPTR, \
+            SPARSEINDEX \
+        ); \
+        if(prevValuePtr){ \
+            *((TYPENAME *)prevValuePtr) = VALUE; \
+            return; \
+        } \
         assertTrue( \
             _sparseSetGrowIfNeeded( \
                 SETPTR, \

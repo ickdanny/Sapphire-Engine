@@ -270,8 +270,6 @@ bool _sparseSetGrowIfNeeded(
     return true;  
 }
 
-//todo: what if the set sparse index already exists?
-
 /* 
  * Copies the specified value into the element 
  * associated with the given index in the given
@@ -289,6 +287,30 @@ void _sparseSetSetPtr(
     #ifdef _DEBUG
     _sparseSetPtrTypeCheck(typeName, setPtr);
     #endif
+
+    void *prevValuePtr = _sparseSetGetPtr(
+        setPtr,
+        sparseIndex,
+        elementSize
+        #ifdef _DEBUG
+        , typeName
+        #endif
+    );
+
+    /*
+     * if the sparse index had a previous value,
+     * then overwrite it
+     */
+    if(prevValuePtr){
+        /* memcpy safe; elements shouldn't overlap */
+        memcpy(
+            prevValuePtr,
+            valuePtr, 
+            elementSize
+        );
+        /* no need to update anything else */
+        return;
+    }
 
     /* grow dense and reflect arrays if needed */
     assertTrue(
