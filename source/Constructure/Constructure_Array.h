@@ -255,7 +255,7 @@ void _arraySetPtr(
 
 /* 
  * Apply must be done via macro because
- * it expects pointers of the arraylist type
+ * it expects pointers of the array type
  */
 #ifndef _DEBUG
 /* 

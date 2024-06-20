@@ -470,6 +470,39 @@ bool _sparseSetRemove(
     )
 #endif
 
+/* 
+ * Apply must be done via macro because
+ * it expects pointers of the array type
+ */
+#ifndef _DEBUG
+/*
+ * Applies the given function to each element
+ * of the given sparse set of the specified type; the
+ * function takes a pointer of the value type.
+ */
+#define sparseSetApply(TYPENAME, SETPTR, FUNC) \
+    do{ \
+        (TYPENAME) *valuePtr = (SETPTR)->_densePtr; \
+        for(size_t u = 0; u < (SETPTR)->_size; ++u){ \
+            FUNC(valuePtr + u); \
+        } \
+    } while(false)
+#else
+/*
+ * Applies the given function to each element
+ * of the given sparse set of the specified type; the
+ * function takes a pointer of the value type.
+ */
+#define sparseSetApply(TYPENAME, SETPTR, FUNC) \
+    do{ \
+        _sparseSetPtrTypeCheck(TYPENAME, SETPTR); \
+        (TYPENAME) *valuePtr = (SETPTR)->_densePtr; \
+        for(size_t u = 0; u < (SETPTR)->_size; ++u){ \
+            FUNC(valuePtr + u); \
+        } \
+    } while(false)
+#endif
+
 /*
  * Provides functionality for iterating over the
  * elements of a sparse set
