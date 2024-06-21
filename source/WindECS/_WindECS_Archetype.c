@@ -149,8 +149,8 @@ void *__windArchetypeGetPtr(
  * Sets the component specified by the given
  * componentID of the entity specified by the given
  * entityID to the value stored in the given void ptr;
- * error if the componentID or the entityID is invalid;
- * does nothing if NULL is passed
+ * error if the componentID is invalid; does nothing
+ * if NULL is passed
  */
 void __windArchetypeSetPtr(
     _WindArchetype *archetypePtr,
@@ -178,11 +178,6 @@ void __windArchetypeSetPtr(
             archetypePtr->_componentsPtr,
             componentID
         );
-    __windArchetypeErrorIfBadEntityID(
-        componentStoragePtr,
-        componentMetadata,
-        entityID
-    );
 
     /*
      * run component destructor if sparse set already
@@ -223,6 +218,9 @@ void __windArchetypeSetPtr(
         , componentMetadata._typeName
         #endif
     );
+
+    /* increment modification count */
+    ++(archetypePtr->_modificationCount);
 }
 
 /*
@@ -337,6 +335,13 @@ void _windArchetypeMoveEntity(
             );
         } /* END component in old archetype */
     } /* END for over all components */
+
+    /*
+     * increase modification count for both
+     * archetypes
+     */
+    ++(archetypePtr->_modificationCount);
+    ++(newArchetypePtr->_modificationCount);
 }
 
 /*
@@ -396,6 +401,11 @@ bool _windArchetypeRemoveEntity(
             }
         } /* END component in old archetype */
     } /* END for over all components */
+
+    if(toRet){
+        /* increase modification count */
+        ++(archetypePtr->_modificationCount);
+    }
     return toRet;
 }
 
@@ -497,4 +507,160 @@ void _windArchetypeFree(_WindArchetype *archetypePtr){
      * owned by the archetype
      */
     archetypePtr->_componentsPtr = NULL;
+
+    /*
+     * increase modification count in case iterators
+     * still out there
+     */
+    ++(archetypePtr->_modificationCount);
+}
+
+/* Returns an iterator over the specified archetype */
+_WindArchetypeItr _windArchetypeItr(
+    _WindArchetype *archetypePtr
+){
+    _WindArchetypeItr toRet = {
+        archetypePtr,
+        0,
+        archetypePtr->_modificationCount,
+        SIZE_MAX /* default to no present component */
+    };
+
+    /* find a present component if possible */
+    WindComponentIDType numComponents
+        = windComponentsNumComponents(
+            archetypePtr->_componentsPtr
+        );
+    for(size_t i = 0; i < numComponents; ++i){
+        if(bitsetGet(
+            &(archetypePtr->_componentSet),
+            i
+        )){
+            WindComponentMetadata metadata
+                = windComponentsGet(
+                    archetypePtr->_componentsPtr,
+                    i
+                );
+            if(metadata._componentSize != 0){
+                toRet._presentComponentIndex = i;
+                break;
+            }
+        }
+    }
+    return toRet;
+}
+
+/*
+ * Throws error if concurrent modification detected
+ * for the specified archetype iterator
+ */
+static void errorIfConcurrentModification(
+    _WindArchetypeItr *itrPtr
+){
+    assertTrue(
+        itrPtr->_storedModificationCount
+            == itrPtr->_archetypePtr
+                ->_modificationCount,
+        "error: archetype concurrent modification; "
+        SRC_LOCATION
+    );
+}
+
+/*
+ * Returns true if the specified archetype iterator
+ * has more elements, false otherwise
+ */
+bool _windArchetypeItrHasEntity(
+    _WindArchetypeItr *itrPtr
+){
+    errorIfConcurrentModification(itrPtr);
+    /* 
+     * if the archetype has no non-marker components,
+     * return false as iteration is not possible
+     * in this case
+     */
+    if(itrPtr->_presentComponentIndex == SIZE_MAX){
+        return false;
+    }
+    _WindArchetype *archetypePtr
+        = itrPtr->_archetypePtr;
+    SparseSet *presentComponentStoragePtr
+        = arrayGetPtr(
+            SparseSet,
+            &(archetypePtr->_componentStorageArray),
+            itrPtr->_presentComponentIndex
+        );
+    /*
+     * return true if the index is in bounds for
+     * the dense array 
+     */
+    return itrPtr->_currentIndex
+        < presentComponentStoragePtr->_size;
+}
+
+/*
+ * Advances the archetype itr to point to the next
+ * entity
+ */
+void _windArchetypeItrAdvance(
+    _WindArchetypeItr *itrPtr
+){
+    ++(itrPtr->_currentIndex);
+}
+
+/*
+ * Returns a pointer to the component specified by
+ * the given componentID of the entity currently being
+ * pointed to by the given archetype iterator; error
+ * if the componentID is invalid or if the iterator
+ * is out of entities; returns NULL if the component
+ * is a marker
+ */
+void *__windArchetypeItrGetPtr(
+    _WindArchetypeItr *itrPtr,
+    WindComponentIDType componentID
+){
+    /* error if itr is out of entities */
+    assertTrue(
+        _windArchetypeItrHasEntity(itrPtr),
+        "error: archetype itr out of entities; "
+        SRC_LOCATION
+    );
+    /*
+     * error if component ID is not valid for the
+     * archetype or is a marker
+     */
+    _WindArchetype *archetypePtr
+        = itrPtr->_archetypePtr;
+    assertTrue(
+        bitsetGet(
+            &(archetypePtr->_componentSet),
+            componentID
+        ),
+        "error: archetype does not have component; "
+        SRC_LOCATION
+    );
+    /* return null if the request is for a marker */
+    WindComponentMetadata componentMetadata
+        = windComponentsGet(
+            archetypePtr->_componentsPtr,
+            componentID
+        );
+    if(componentMetadata._componentSize == 0){
+        return NULL;
+    }
+    /*
+     * otherwise reach into the sparse set and 
+     * return a pointer to the next dense element
+     */
+    SparseSet *componentStoragePtr = arrayGetPtr(
+        SparseSet,
+        &(archetypePtr->_componentStorageArray),
+        componentID
+    );
+    return voidPtrAdd(
+        componentStoragePtr->_densePtr,
+        itrPtr->_currentIndex
+            * componentMetadata._componentSize
+    );
 }

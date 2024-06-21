@@ -24,6 +24,8 @@ typedef struct _WindArchetype{
     Array _componentStorageArray;
     /* Stored (weak) pointer to the component RTTI */
     WindComponents *_componentsPtr;
+    /* internal value for tracking modifications */
+    size_t _modificationCount;
 } _WindArchetype;
 
 /*
@@ -112,8 +114,8 @@ void *__windArchetypeGetPtr(
  * Sets the component specified by the given
  * componentID of the entity specified by the given
  * entityID to the value stored in the given void ptr;
- * error if the componentID or the entityID is invalid;
- * does nothing if NULL is passed
+ * error if the componentID is invalid; does nothing
+ * if NULL is passed
  */
 void __windArchetypeSetPtr(
     _WindArchetype *archetypePtr,
@@ -125,10 +127,9 @@ void __windArchetypeSetPtr(
 /*
  * Sets the specified component of the entity
  * specified by the given entityID to the value stored
- * in the given void ptr; error if the entityID is
- * invalid or if the specified archetype does not hold
- * the component in question; does nothing if NULL
- * is passed
+ * in the given void ptr; error if the specified
+ * archetype does not hold the component in question;
+ * does nothing if NULL is passed
  */
 #define _windArchetypeSetPtr( \
     TYPENAME, \
@@ -153,10 +154,9 @@ void __windArchetypeSetPtr(
 /*
  * Sets the specified component of the entity
  * specified by the given entityID to the given
- * component; error if the entityID is invalid or if 
- * the specified archetype does not hold the component
- * in question; should not be used for marker
- * components
+ * component; error if the specified archetype does
+ * not hold the component in question; should not be
+ * used for marker components
  */
 #define _windArchetypeSet( \
     TYPENAME, \
@@ -182,11 +182,6 @@ void __windArchetypeSetPtr(
                 (ARCHETYPEPTR)->_componentsPtr, \
                 componentID \
             ); \
-        __windArchetypeErrorIfBadEntityID( \
-            componentStoragePtr, \
-            componentMetadata, \
-            (ENTITYID) \
-        ); \
         if(componentMetadata._destructor){ \
             if(sparseSetContains(TYPENAME, \
                 componentStoragePtr, \
@@ -207,6 +202,7 @@ void __windArchetypeSetPtr(
             (ENITTYID), \
             (COMPONENT) \
         ); \
+        ++(archetypePtr->_modificationCount); \
     } while(false)
     
 /*
@@ -237,11 +233,98 @@ bool _windArchetypeRemoveEntity(
  */
 void _windArchetypeFree(_WindArchetype *archetypePtr);
 
+//todo: archetype itr
 /*
  * Iterates over the entities of a specific Archetype
  */
 typedef struct _WindArchetypeItr{
-    //todo archetype itr
+    /* pointer to the archetype to iterate over */
+    _WindArchetype *_archetypePtr;
+    /*
+     * current index into the dense arrays in the
+     * compnoent storages
+     */
+    size_t _currentIndex;
+    /*
+     * a value used to detect when archetype has been
+     * modified during iteration
+     */
+    size_t _storedModificationCount;
+    /*
+     * the index of a real component present
+     * in the archetype; iteration does not work
+     * if the archetype only has markers and this value
+     * will be set to SIZE_MAX in that case
+     */
+    size_t _presentComponentIndex;
 } _WindArchetypeItr;
+
+/* Returns an iterator over the specified archetype */
+_WindArchetypeItr _windArchetypeItr(
+    _WindArchetype *archetypePtr
+);
+
+/*
+ * Returns true if the specified archetype iterator
+ * has more elements, false otherwise
+ */
+bool _windArchetypeItrHasEntity(
+    _WindArchetypeItr *itrPtr
+);
+
+/*
+ * Advances the archetype itr to point to the next
+ * entity
+ */
+void _windArchetypeItrAdvance(
+    _WindArchetypeItr *itrPtr
+);
+
+/*
+ * Returns a pointer to the component specified by
+ * the given componentID of the entity currently being
+ * pointed to by the given archetype iterator; error
+ * if the componentID is invalid; returns NULL if the
+ * component is a marker
+ */
+void *__windArchetypeItrGetPtr(
+    _WindArchetypeItr *itrPtr,
+    WindComponentIDType componentID
+);
+
+/*
+ * Returns a pointer to the specified component of the
+ * entity currently being pointed to by the given
+ * archetype iterator; error if the archetype does not
+ * hold the component in question; returns NULL if the
+ * component is a marker
+ */
+#define _windArchetypeItrGetPtr( \
+    TYPENAME, \
+    ITRPTR \
+) \
+    ((TYPENAME*)__windArchetypeItrGetPtr( \
+        ITRPTR, \
+        windComponentGetID(TYPENAME) \
+    ))
+
+/*
+ * Returns the specified component of the entity
+ * currently being pointed to by the given archetype
+ * iterator; error if the archetype does not hold the
+ * component in question; should not be used for
+ * marker components
+ */
+#define _windArchetypeItrGet( \
+    TYPENAME, \
+    ITRPTR \
+) \
+    ( \
+        (TYPENAME) \
+        (*_windArchetypeItrGetPtr( \
+            TYPENAME, \
+            ITRPTR \
+        )) \
+    )
 
 #endif

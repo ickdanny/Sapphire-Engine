@@ -511,6 +511,7 @@ typedef struct SparseSetItr{
     /* Itr owns none of these; no need to free */
     void *_densePtr;
     size_t *_reflectPtr;
+    
     size_t _size;
     size_t _currentIndex;
 
