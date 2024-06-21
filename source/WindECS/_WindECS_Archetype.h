@@ -233,7 +233,6 @@ bool _windArchetypeRemoveEntity(
  */
 void _windArchetypeFree(_WindArchetype *archetypePtr);
 
-//todo: archetype itr
 /*
  * Iterates over the entities of a specific Archetype
  */
@@ -326,5 +325,16 @@ void *__windArchetypeItrGetPtr(
             ITRPTR \
         )) \
     )
+
+/*
+ * Returns the ID of the etity curently being pointed
+ * to by the given archetype iterator; error if the
+ * archetype is out of entities
+ */
+WindEntityIDType _windArchetypeItrCurrentID(
+    _WindArchetypeItr *itrPtr
+);
+
+/* the archetype itr does not need to be freed */
 
 #endif

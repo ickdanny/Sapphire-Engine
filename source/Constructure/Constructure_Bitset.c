@@ -342,7 +342,7 @@ int bitsetLastSet(Bitset *bitsetPtr){
  * given bitset
  */
 int bitsetFirstUnset(Bitset *bitsetPtr){
-    /* return 0 if array is empty */
+    /* return 0 if array is empty since it's unset */
     size_t blockArraySize
         = bitsetPtr->_blockArray.size;
     if(blockArraySize == 0){
@@ -827,4 +827,97 @@ void printBitset(
 
     /* free temp storage */
     pgFree(tempStorage);
+}
+
+/* implementation of hash and equals functions */
+
+/* hash func for bitsets */
+size_t bitsetHash(const void *bitsetPtr){
+    static size_t prime = 53;
+    static size_t modulo = 1294967281;
+    size_t hash = 0;
+
+    Bitset *castPtr = (Bitset *)bitsetPtr;
+    
+    /* return 0 if bitset array is empty */
+    if(castPtr->_blockArray.size == 0){
+        return 0;
+    }
+
+    /* find last set block */
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(castPtr->_blockArray)
+    );
+    size_t lastBlockIndex 
+        = castPtr->_blockArray.size - 1;
+    size_t lastSetBlockIndex = 0;
+    for(lastSetBlockIndex = lastBlockIndex;
+        lastSetBlockIndex != SIZE_MAX;
+        --lastSetBlockIndex
+    ){
+        if(frontPtr[lastSetBlockIndex] != 0){
+            break;
+        }
+    }
+    /* return 0 if no set blocks */
+    if(lastSetBlockIndex == SIZE_MAX){
+        return 0;
+    }
+
+    /* start hashing up to the last set block */
+    for(size_t i = 0; i <= lastBlockIndex; ++i){
+        hash += frontPtr[i];
+        ++hash;
+        hash *= prime;
+        hash %= modulo;
+    }
+
+    return hash;
+}
+
+/* equals func for bitsets */
+bool bitsetEquals(
+    const void *bitsetPtr1,
+    const void *bitsetPtr2
+){
+    Bitset *castPtr1 = (Bitset *)bitsetPtr1;
+    Bitset *castPtr2 = (Bitset *)bitsetPtr2;
+
+    int lastSetBitIndex1 = bitsetLastSet(castPtr1);
+    int lastSetBitIndex2 = bitsetLastSet(castPtr2);
+
+    /*
+     * if first bitset is empty, return true if second
+     * is also empty, false otherwise
+     */
+    if(lastSetBitIndex1 == -1){
+        return (lastSetBitIndex2 == -1);
+    }
+
+    /*
+     * if their last bits are different, the bitsets
+     * are clearly not equal
+     */
+    if(lastSetBitIndex1 != lastSetBitIndex2){
+        return false;
+    }
+
+    /* the last set block in both bitsets */
+    int lastSetBlockIndex
+        = getBlockIndex(lastSetBitIndex1);
+
+    BlockType *frontPtr1 = arrayListFrontPtr(BlockType,
+        &(castPtr1->_blockArray)
+    );
+    BlockType *frontPtr2 = arrayListFrontPtr(BlockType,
+        &(castPtr2->_blockArray)
+    );
+
+    /* check each block for equality */
+    for(int i = 0; i <= lastSetBlockIndex; ++i){
+        if(frontPtr1[i] != frontPtr2[i]){
+            return false;
+        }
+    }
+    return true;
 }

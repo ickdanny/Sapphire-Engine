@@ -22,6 +22,17 @@ bool intEquals(
     const void *intPtr2
 );
 
+/* hash func for bitsets */
+/* (implementation in Constructure_Bitset.c) */
+size_t bitsetHash(const void *bitsetPtr);
+
+/* equals func for bitsets */
+/* (implementation in Constructure_Bitset.c) */
+bool bitsetEquals(
+    const void *bitsetPtr1,
+    const void *bitsetPtr2
+);
+
 /* hash func for C strings */
 size_t cStringHash(const void *stringPtr);
 

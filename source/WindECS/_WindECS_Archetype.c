@@ -605,6 +605,7 @@ bool _windArchetypeItrHasEntity(
 void _windArchetypeItrAdvance(
     _WindArchetypeItr *itrPtr
 ){
+    errorIfConcurrentModification(itrPtr);
     ++(itrPtr->_currentIndex);
 }
 
@@ -620,6 +621,7 @@ void *__windArchetypeItrGetPtr(
     _WindArchetypeItr *itrPtr,
     WindComponentIDType componentID
 ){
+    errorIfConcurrentModification(itrPtr);
     /* error if itr is out of entities */
     assertTrue(
         _windArchetypeItrHasEntity(itrPtr),
@@ -663,4 +665,59 @@ void *__windArchetypeItrGetPtr(
         itrPtr->_currentIndex
             * componentMetadata._componentSize
     );
+}
+
+/*
+ * Returns the ID of the etity curently being pointed
+ * to by the given archetype iterator; error if the
+ * archetype is out of entities
+ */
+WindEntityIDType _windArchetypeItrCurrentID(
+    _WindArchetypeItr *itrPtr
+){
+    assertNotNull(itrPtr, "null passed " SRC_LOCATION);
+    assertNotNull(
+        itrPtr->_archetypePtr,
+        "archetype itr has null archetype ptr; "
+        SRC_LOCATION
+    );
+    errorIfConcurrentModification(itrPtr);
+    /* 
+     * if the archetype has no non-marker components,
+     * error
+     */
+    assertFalse(
+        itrPtr->_presentComponentIndex == SIZE_MAX,
+        "error: cannot get entity ID from archetype "
+        "itr if the archetype is all markers; "
+        SRC_LOCATION
+    );
+    _WindArchetype *archetypePtr
+        = itrPtr->_archetypePtr;
+    SparseSet *presentComponentStoragePtr
+        = arrayGetPtr(
+            SparseSet,
+            &(archetypePtr->_componentStorageArray),
+            itrPtr->_presentComponentIndex
+        );
+    /* if the entity is valid into the dense array */
+    if(itrPtr->_currentIndex
+        < presentComponentStoragePtr->_size
+    ){
+        /* 
+         * get the sparse index AKA the entity ID from
+         * the reflect array
+         */
+        return presentComponentStoragePtr->_reflectPtr[
+            itrPtr->_currentIndex
+        ];
+    }
+    /* otherwise error */
+    else{
+        pgError(
+            "error: no more entities in archetype "
+            "itr to get the ID of; " SRC_LOCATION
+        );
+        return 0;
+    }
 }
