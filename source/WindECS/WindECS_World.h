@@ -22,7 +22,7 @@ typedef struct WindWorld{
      * a map of bitsets to indices into the archetype
      * list
      */
-    HashMap _archetypeIndexList;
+    HashMap _archetypeIndexMap;
     /*
      * a map of bitset pairs to indices into the
      * query list
@@ -33,6 +33,17 @@ typedef struct WindWorld{
     _WindEntities _entities;
     /* user-defined component metadata */
     WindComponents _components;
+
+    /* stores queued add component orders */
+    ArrayList _addComponentQueue;
+    /* stores queued set component orders */
+    ArrayList _setComponentQueue;
+    /* stores queued remove component orders */
+    ArrayList _removeComponentQueue;
+    /* stores queued add entity orders */
+    ArrayList _addEntityQueue;
+    /* stores queued remove entity orders */
+    ArrayList _removeEntityQueue;
 } WindWorld;
 
 /*
@@ -55,7 +66,7 @@ WindQueryItr windWorldRequestQueryItr(
     WindWorld *worldPtr,
     Bitset *acceptComponentSetPtr,
     Bitset *rejectComponentSetPtr
-); //todo: need a tuple and an equals/hash for hashmap
+);
 
 /*
  * Creates and returns a handle to the entity of the
@@ -250,8 +261,9 @@ void *_windWorldIDGetPtr(
 
 /*
  * Adds the given component to the entity specified
- * by the given handle; returns true if successful,
- * false otherwise
+ * by the given handle, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 bool _windWorldHandleAddComponent(
     WindWorld *worldPtr,
@@ -262,8 +274,9 @@ bool _windWorldHandleAddComponent(
 
 /*
  * Adds the given component to the entity specified
- * by the given handle; returns true if successful,
- * false otherwise
+ * by the given handle, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 #define windWorldHandleAddComponent( \
     TYPENAME, \
@@ -280,8 +293,9 @@ bool _windWorldHandleAddComponent(
 
 /*
  * Adds the given component to the entity specified
- * by the given ID; returns true if successful,
- * false otherwise
+ * by the given ID, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 bool _windWorldIDAddComponent(
     WindWorld *worldPtr,
@@ -292,8 +306,9 @@ bool _windWorldIDAddComponent(
 
 /*
  * Adds the given component to the entity specified
- * by the given ID; returns true if successful,
- * false otherwise
+ * by the given ID, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 #define windWorldIDAddComponent( \
     TYPENAME, \
@@ -310,7 +325,9 @@ bool _windWorldIDAddComponent(
 
 /*
  * Queues an order to add the given component to the
- * entity specified by the given handle
+ * entity specified by the given handle; the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
 bool _windWorldHandleQueueAddComponent(
     WindWorld *worldPtr,
@@ -321,7 +338,9 @@ bool _windWorldHandleQueueAddComponent(
 
 /*
  * Queues an order to add the given component to the
- * entity specified by the given handle
+ * entity specified by the given handle; the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
 #define windWorldHandleQueueAddComponent( \
     TYPENAME, \
@@ -338,7 +357,9 @@ bool _windWorldHandleQueueAddComponent(
 
 /*
  * Queues an order to add the given component to the
- * entity currently specified by the given ID
+ * entity currently specified by the given ID; the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
 #define windWorldIDQueueAddComponent( \
     TYPENAME, \
@@ -355,8 +376,9 @@ bool _windWorldHandleQueueAddComponent(
 
 /*
  * Sets the given component to the entity specified
- * by the given handle; returns true if successful,
- * false otherwise
+ * by the given handle, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 bool _windWorldHandleSetComponent(
     WindWorld *worldPtr,
@@ -367,8 +389,9 @@ bool _windWorldHandleSetComponent(
 
 /*
  * Sets the given component to the entity specified
- * by the given handle; returns true if successful,
- * false otherwise
+ * by the given handle, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 #define windWorldHandleSetComponent( \
     TYPENAME, \
@@ -385,8 +408,9 @@ bool _windWorldHandleSetComponent(
 
 /*
  * Sets the given component to the entity specified
- * by the given ID; returns true if successful,
- * false otherwise
+ * by the given ID, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 bool _windWorldIDSetComponent(
     WindWorld *worldPtr,
@@ -397,8 +421,9 @@ bool _windWorldIDSetComponent(
 
 /*
  * Sets the given component to the entity specified
- * by the given ID; returns true if successful,
- * false otherwise
+ * by the given ID, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 #define windWorldIDSetComponent( \
     TYPENAME, \
@@ -416,7 +441,9 @@ bool _windWorldIDSetComponent(
 /*
  * Queues an order to set the given component of the
  * entity specified by the given handle to the 
- * provided value
+ * provided value; the componentPtr is shallow copied
+ * to the heap and the original pointer is not freed
+ * by the ECS
  */
 bool _windWorldHandleQueueSetComponent(
     WindWorld *worldPtr,
@@ -428,7 +455,9 @@ bool _windWorldHandleQueueSetComponent(
 /*
  * Queues an order to set the given component of the
  * entity specified by the given handle to the 
- * provided value
+ * provided value; the componentPtr is shallow copied
+ * to the heap and the original pointer is not freed
+ * by the ECS
  */
 #define windWorldHandleQueueSetComponent( \
     TYPENAME, \
@@ -446,7 +475,9 @@ bool _windWorldHandleQueueSetComponent(
 /*
  * Queues an order to set the given component of the
  * entity currently specified by the given ID to the
- * provided value
+ * provided value; the componentPtr is shallow copied
+ * to the heap and the original pointer is not freed
+ * by the ECS
  */
 #define windWorldIDQueueSetComponent( \
     TYPENAME, \
@@ -463,7 +494,7 @@ bool _windWorldHandleQueueSetComponent(
 
 /*
  * Removes the specified component from the entity
- * specified by the given handle; returns true if
+ * specified by the given handle, returns true if
  * successful, false otherwise
  */
 bool _windWorldHandleRemoveComponent(
@@ -474,10 +505,10 @@ bool _windWorldHandleRemoveComponent(
 
 /*
  * Removes the specified component from the entity
- * specified by the given handle; returns true if
+ * specified by the given handle, returns true if
  * successful, false otherwise
  */
-#define windWorldHandleSetComponent( \
+#define windWorldHandleRemoveComponent( \
     TYPENAME, \
     WORLDPTR, \
     HANDLE \
@@ -490,7 +521,7 @@ bool _windWorldHandleRemoveComponent(
 
 /*
  * Removes the specified component from the entity
- * specified by the given ID; returns true if
+ * specified by the given ID, returns true if
  * successful, false otherwise
  */
 bool _windWorldIDRemoveComponent(
@@ -501,7 +532,7 @@ bool _windWorldIDRemoveComponent(
 
 /*
  * Removes the specified component from the entity
- * specified by the given ID; returns true if
+ * specified by the given ID, returns true if
  * successful, false otherwise
  */
 #define windWorldIDRemoveComponent( \
@@ -555,10 +586,91 @@ bool _windWorldHandleQueueRemoveComponent(
         windWorldMakeHandle(WORLDPTR, ENTITYID) \
     ))
 
-//todo remove component, add entity, remove entity
+/* Used for adding entities */
+typedef struct WindComponentDataPair{
+    WindComponentIDType componentID;
+
+    /*
+     * ptr to the component which will be copied into
+     * the ECS world
+     */
+    void *componentPtr;
+} WindComponentDataPair;
 
 /*
- * Frees the memory associated with the given ECS world
+ * Adds the specified entity to the given ECS world
+ * and returns its handle; takes ownership of the
+ * provided components and frees the component list
+ */
+WindEntity windWorldAddEntity(
+    WindWorld *worldPtr,
+    ArrayList *componentDataPairListPtr
+);
+
+/*
+ * Queues an order to add the specified entity to the
+ * given ECS world; takes ownership of the provided
+ * components and frees the component list when
+ * the order is handled - the component list will be
+ * shallow copied to the heap so the user must still
+ * free their version of it (the copy is 1-level deep)
+ */
+WindEntity windWorldQueueAddEntity(
+    WindWorld *worldPtr,
+    ArrayList *componentDataPairListPtr
+);
+
+/*
+ * Removes the entity specified by the given handle
+ * from the given ECS world, returns true if
+ * successful, false otherwise
+ */
+bool windWorldHandleRemoveEntity(
+    WindWorld *worldPtr,
+    WindEntity handle
+);
+
+/*
+ * Removes the entity specified by the given ID
+ * from the given ECS world, returns true if
+ * successful, false otherwise
+ */
+bool windWorldIDRemoveEntity(
+    WindWorld *worldPtr,
+    WindEntityIDType entityID
+);
+
+/*
+ * Queues an order to remove the entity specified by
+ * the given handle from the given ECS world
+ */
+void windWorldQueueHandleRemoveEntity(
+    WindWorld *worldPtr,
+    WindEntity handle
+);
+
+/*
+ * Queues an order to remove the entity specified by
+ * the given ID from the given ECS world
+ */
+#define windWorldQueueIDRemoveEntity( \
+    WORLDPTR, \
+    ENTITYID \
+) \
+    windWorldQueueHandleRemoveEntity( \
+        WORLDPTR, \
+        windWorldMakeHandle(WORLDPTR, ENTITYID) \
+    )
+
+/*
+ * Handles all queued orders given to the ECS world
+ * since the last time this function was called
+ */
+void windWorldHandleOrders(WindWorld *worldPtr);
+
+/*
+ * Frees the memory associated with the given ECS
+ * world
  */
 void windWorldFree(WindWorld *worldPtr);
 

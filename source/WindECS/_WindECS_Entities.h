@@ -107,4 +107,10 @@ _WindEntityMetadata *_windEntitiesGetMetadata(
     WindEntity entity
 );
 
+/*
+ * Frees the memory associated with the given
+ * _WindEntities
+ */
+void _windEntitiesFree(_WindEntities *entitiesPtr);
+
 #endif

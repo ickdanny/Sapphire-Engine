@@ -112,6 +112,7 @@ WindComponentMetadata windComponentsGet(
  * WindComponents
  */
 void windComponentsFree(WindComponents *componentsPtr){
+    /* component metadata itself doesn't need free */
     arrayFree(WindComponentMetadata,
         &(componentsPtr->_componentArray)
     );

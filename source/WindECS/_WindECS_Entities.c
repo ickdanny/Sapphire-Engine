@@ -183,3 +183,20 @@ _WindEntityMetadata *_windEntitiesGetMetadata(
         entity.entityID
     );
 }
+
+/*
+ * Frees the memory associated with the given
+ * _WindEntities
+ */
+void _windEntitiesFree(_WindEntities *entitiesPtr){
+    bitsetFree(&(entitiesPtr->_currentEntityIDs));
+    
+    arrayApply(_WindEntityMetadata,
+        &(entitiesPtr->_entityMetadata),
+        _windEntityMetadataFree
+    );
+    arrayFree(_WindEntityMetadata,
+        &(entitiesPtr->_entityMetadata)
+    );
+    memset(entitiesPtr, 0, sizeof(*entitiesPtr));
+}
