@@ -70,7 +70,9 @@ bool windQueryTryAcceptArchetype(
  */
 void windQueryFree(WindQuery *queryPtr);
 
-//todo query itr
+/*
+ * Iterates over the entities that fit a given query
+ */
 typedef struct WindQueryItr{
     /*
      * pointer to the query to iterate over, or
@@ -116,7 +118,7 @@ void windQueryItrAdvance(WindQueryItr *itrPtr);
  */
 void *_windQueryItrGetPtr(
     WindQueryItr *itrPtr,
-    WindComponentIDType componentID //todo: check for invalid in the query not just archetype
+    WindComponentIDType componentID
 );
 
 /*
