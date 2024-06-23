@@ -34,7 +34,9 @@ static void errorIfAcceptRejectOverlap(
  * Constructs and returns a new WindQuery with the
  * specified component set and blocked component
  * set (NULL can be passed for the blocked set);
- * the new query makes copies of the passed bitsets
+ * the new query makes copies of the passed bitsets;
+ * iterates over the given archetype list and accepts
+ * all fitting archetypes automatically
  */
 WindQuery windQueryMake(
     Bitset *acceptComponentSetPtr,
@@ -67,6 +69,11 @@ WindQuery windQueryMake(
         archetypeIndexListInitCapacity
     );
     toRet._modificationCount = 0;
+
+    /* try to accept every current archetype */
+    for(size_t i = 0; i < archetypeListPtr->size; ++i){
+        windQueryTryAcceptArchetype(&toRet, i);
+    }
     return toRet;
 }
 

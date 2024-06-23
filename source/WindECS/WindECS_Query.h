@@ -45,7 +45,9 @@ typedef struct WindQuery{
  * Constructs and returns a new WindQuery with the
  * specified accept and reject component sets
  * (NULL can be passed for the reject set);
- * the new query makes copies of the passed bitsets
+ * the new query makes copies of the passed bitsets;
+ * iterates over the given archetype list and accepts
+ * all fitting archetypes automatically
  */
 WindQuery windQueryMake(
     Bitset *acceptComponentSetPtr,

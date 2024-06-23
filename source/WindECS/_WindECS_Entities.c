@@ -163,9 +163,42 @@ bool _windEntitiesIsAlive(
     _WindEntities *entitiesPtr,
     WindEntity entity
 ){
+    /* if the ID isn't alive, return false */
+    if(_windEntitiesIsIDDead(
+        entitiesPtr,
+        entity.entityID
+    )){
+        return false;
+    }
+    /* if generation is wrong, return false */
+    _WindEntityMetadata *entityMetadataPtr
+        = arrayGetPtr(_WindEntityMetadata,
+            &(entitiesPtr->_entityMetadata),
+            entity.entityID
+        );
+    if(!entityMetadataPtr){
+        return false;
+    }
+    if(entityMetadataPtr->_generation
+        != entity._generation
+    ){
+        return false;
+    }
+
+    return true;
+}
+
+/*
+ * Returns true if an entity with the specified ID is
+ * currently alive, false otherwise
+ */
+bool _windEntitiesIsIDAlive(
+    _WindEntities *entitiesPtr,
+    WindEntityIDType entityID
+){
     return bitsetGet(
         &(entitiesPtr->_currentEntityIDs),
-        entity.entityID
+        entityID
     );
 }
 
@@ -177,10 +210,31 @@ _WindEntityMetadata *_windEntitiesGetMetadata(
     _WindEntities *entitiesPtr,
     WindEntity entity
 ){
+    if(_windEntitiesIsDead(entitiesPtr, entity)){
+        return NULL;
+    }
     return arrayGetPtr(
         _WindEntityMetadata,
         &(entitiesPtr->_entityMetadata),
         entity.entityID
+    );
+}
+
+/*
+ * Returns a pointer to the metadata for the specified
+ * entity, or NULL if that entity is not alive
+ */
+_WindEntityMetadata *_windEntitiesIDGetMetadata(
+    _WindEntities *entitiesPtr,
+    WindEntityIDType entityID
+){
+    if(_windEntitiesIsIDDead(entitiesPtr, entityID)){
+        return NULL;
+    }
+    return arrayGetPtr(
+        _WindEntityMetadata,
+        &(entitiesPtr->_entityMetadata),
+        entityID
     );
 }
 

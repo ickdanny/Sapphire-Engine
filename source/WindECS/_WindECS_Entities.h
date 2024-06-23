@@ -99,12 +99,37 @@ bool _windEntitiesIsAlive(
     (!(_windEntitiesIsAlive(ENTITIESPTR, ENTITY)))
 
 /*
+ * Returns true if an entity with the specified ID is
+ * currently alive, false otherwise
+ */
+bool _windEntitiesIsIDAlive(
+    _WindEntities *entitiesPtr,
+    WindEntityIDType entityID
+);
+
+/*
+ * Returns true if no entity with the specified ID is
+ * currently alive, false otherwise
+ */
+#define _windEntitiesIsIDDead(ENTITIESPTR, ENTITYID) \
+    (!(_windEntitiesIsIDAlive(ENTITIESPTR, ENTITYID)))
+
+/*
  * Returns a pointer to the metadata for the specified
  * entity, or NULL if that entity is not alive
  */
 _WindEntityMetadata *_windEntitiesGetMetadata(
     _WindEntities *entitiesPtr,
     WindEntity entity
+);
+
+/*
+ * Returns a pointer to the metadata for the specified
+ * entity, or NULL if that entity is not alive
+ */
+_WindEntityMetadata *_windEntitiesIDGetMetadata(
+    _WindEntities *entitiesPtr,
+    WindEntityIDType entityID
 );
 
 /*

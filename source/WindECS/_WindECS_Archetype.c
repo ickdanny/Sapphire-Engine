@@ -150,7 +150,7 @@ void *__windArchetypeGetPtr(
  * componentID of the entity specified by the given
  * entityID to the value stored in the given void ptr;
  * error if the componentID is invalid; does nothing
- * if NULL is passed
+ * if NULL is passed or if the component is a marker
  */
 void __windArchetypeSetPtr(
     _WindArchetype *archetypePtr,
@@ -166,18 +166,22 @@ void __windArchetypeSetPtr(
     if(!componentPtr){
         return;
     }
-    /* get a ptr to the storage for the component */
-    SparseSet *componentStoragePtr = arrayGetPtr(
-        SparseSet,
-        &(archetypePtr->_componentStorageArray),
-        componentID
-    );
     /* get a copy of the component metadata */
     WindComponentMetadata componentMetadata
         = windComponentsGet(
             archetypePtr->_componentsPtr,
             componentID
         );
+    /* do nothing if component is a marker */
+    if(componentMetadata._componentSize == 0){
+        return;
+    }
+    /* get a ptr to the storage for the component */
+    SparseSet *componentStoragePtr = arrayGetPtr(
+        SparseSet,
+        &(archetypePtr->_componentStorageArray),
+        componentID
+    );
 
     /*
      * run component destructor if sparse set already

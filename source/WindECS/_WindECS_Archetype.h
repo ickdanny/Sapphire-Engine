@@ -115,7 +115,7 @@ void *__windArchetypeGetPtr(
  * componentID of the entity specified by the given
  * entityID to the value stored in the given void ptr;
  * error if the componentID is invalid; does nothing
- * if NULL is passed
+ * if NULL is passed or if the component is a marker
  */
 void __windArchetypeSetPtr(
     _WindArchetype *archetypePtr,
@@ -129,7 +129,8 @@ void __windArchetypeSetPtr(
  * specified by the given entityID to the value stored
  * in the given void ptr; error if the specified
  * archetype does not hold the component in question;
- * does nothing if NULL is passed
+ * does nothing if NULL is passed or if the component
+ * is a marker
  */
 #define _windArchetypeSetPtr( \
     TYPENAME, \

@@ -11,7 +11,8 @@
 /*
  * An ECS world encapsulates all entity data and
  * provides access to various methods to interact
- * with said data
+ * with said data; should not be moved once the ECS
+ * begins running
  */
 typedef struct WindWorld{
     /* an unordered list of archetypes */
@@ -70,7 +71,7 @@ WindQueryItr windWorldRequestQueryItr(
 
 /*
  * Creates and returns a handle to the entity of the
- * specified ID
+ * specified ID; error if the ID is currently dead
  */
 WindEntity windWorldMakeHandle(
     WindWorld *worldPtr,
@@ -325,9 +326,11 @@ bool _windWorldIDAddComponent(
 
 /*
  * Queues an order to add the given component to the
- * entity specified by the given handle; the
- * componentPtr is shallow copied to the heap and the
- * original pointer is not freed by the ECS
+ * entity specified by the given handle, returns true
+ * if successful, false otherwise (e.g. the handle
+ * is dead); the componentPtr is shallow copied to the
+ * heap and the original pointer is not freed by the
+ * ECS
  */
 bool _windWorldHandleQueueAddComponent(
     WindWorld *worldPtr,
@@ -338,9 +341,11 @@ bool _windWorldHandleQueueAddComponent(
 
 /*
  * Queues an order to add the given component to the
- * entity specified by the given handle; the
- * componentPtr is shallow copied to the heap and the
- * original pointer is not freed by the ECS
+ * entity specified by the given handle, returns true
+ * if successful, false otherwise (e.g. the handle
+ * is dead); the componentPtr is shallow copied to the
+ * heap and the original pointer is not freed by the
+ * ECS
  */
 #define windWorldHandleQueueAddComponent( \
     TYPENAME, \
@@ -357,9 +362,10 @@ bool _windWorldHandleQueueAddComponent(
 
 /*
  * Queues an order to add the given component to the
- * entity currently specified by the given ID; the
- * componentPtr is shallow copied to the heap and the
- * original pointer is not freed by the ECS
+ * entity currently specified by the given ID, error
+ * if the entity is dead; the componentPtr is shallow
+ * copied to the heap and the original pointer is not
+ * freed by the ECS
  */
 #define windWorldIDQueueAddComponent( \
     TYPENAME, \
