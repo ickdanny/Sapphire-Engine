@@ -91,6 +91,14 @@ typedef struct RemoveComponentOrder{
 typedef struct AddEntityOrder{
     /* a 1-level copy of what the user passes in */
     ArrayList componentDataPairList;
+    /*
+     * for efficiency, when an add entity order is
+     * created, all components get copied into the
+     * same heap block; this points to the base
+     * of that heap block but is NULL if the entity
+     * is all markers
+     */
+    void *componentDataBasePtr;
 } AddEntityOrder;
 
 /*
@@ -101,13 +109,10 @@ static void addEntityOrderFree(
     AddEntityOrder *orderPtr
 ){
     /*
-     * the component list was 1-level copied during
-     * queueing, and, since this function is to
-     * be called only when the entity has been
-     * moved to its archetype, the deeper data
-     * is not our responsibility to free. Thus,
-     * we only have to free the arraylist itself
+     * do not run the destructor, just free the
+     * dynamically allocated component values
      */
+    pgFree(orderPtr->componentDataBasePtr);
     arrayListFree(WindComponentDataPair,
         &(orderPtr->componentDataPairList)
     );
@@ -703,53 +708,12 @@ bool _windWorldHandleAddComponent(
     if(windWorldIsHandleDead(worldPtr, handle)){
         return false;
     }
-    /* return false if entity already has component */
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesGetMetadata(
-            &(worldPtr->_entities),
-            handle
-        );
-    if(bitsetGet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
-    )){
-        return false;
-    }
-    /* get old archetype */
-    _WindArchetype *oldArchetypePtr
-        = windWorldHandleGetArchetype(
-            worldPtr,
-            handle
-        );
-    /* update component set */
-    bitsetSet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
-    );
-    /* get new archetype */
-    _WindArchetype *newArchetypePtr
-        = windWorldHandleGetArchetype(
-            worldPtr,
-            handle
-        );
-    /* move components from old archetype to new */
-    _windArchetypeMoveEntity(
-        oldArchetypePtr,
-        handle.entityID,
-        newArchetypePtr
-    );
-    /*
-     * add component to the entity in the new 
-     * archetype (as long as it is not a marker)
-     */
-    __windArchetypeSetPtr(
-        newArchetypePtr,
+    return _windWorldIDAddComponent(
+        worldPtr,
         componentID,
         handle.entityID,
         componentPtr
     );
-    
-    return true;
 }
 
 /*
@@ -851,7 +815,7 @@ bool _windWorldHandleQueueAddComponent(
             heapCopy,
             componentPtr,
             componentMetadata._componentSize
-        ); //todo: free when orders are handled
+        );
     }
     /* queue up the order */
     AddComponentOrder order = {
@@ -868,39 +832,168 @@ bool _windWorldHandleQueueAddComponent(
 
 /*
  * Sets the given component to the entity specified
- * by the given handle; returns true if successful,
- * false otherwise
+ * by the given handle, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 bool _windWorldHandleSetComponent(
     WindWorld *worldPtr,
     WindComponentIDType componentID,
     WindEntity handle,
     void *componentPtr
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsHandleDead(worldPtr, handle)){
+        return false;
+    }
+    return _windWorldIDSetComponent(
+        worldPtr,
+        componentID,
+        handle.entityID,
+        componentPtr
+    );
+}
 
 /*
  * Sets the given component to the entity specified
- * by the given ID; returns true if successful,
- * false otherwise
+ * by the given ID, returns true if successful,
+ * false otherwise; the componentPtr is shallow copied
+ * and is not freed by the ECS
  */
 bool _windWorldIDSetComponent(
     WindWorld *worldPtr,
     WindComponentIDType componentID,
     WindEntityIDType entityID,
     void *componentPtr
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsIDDead(worldPtr, entityID)){
+        return false;
+    }
+    _WindArchetype *oldArchetypePtr
+        = windWorldIDGetArchetype(
+            worldPtr,
+            entityID
+        );
+    /* if entity has component, replace it */
+    _WindEntityMetadata *entityMetadataPtr
+        = _windEntitiesIDGetMetadata(
+            &(worldPtr->_entities),
+            entityID
+        );
+    if(bitsetGet(
+        &(entityMetadataPtr->_componentSet),
+        componentID
+    )){
+        WindComponentMetadata componentMetadata
+            = windComponentsGet(
+                &(worldPtr->_components),
+                componentID
+            );
+        /* do nothing if component is marker */
+        if(componentMetadata._componentSize == 0){
+            return true;
+        }
+        void *componentPtrIntoArchetype
+            = __windArchetypeGetPtr(
+                oldArchetypePtr,
+                componentID,
+                entityID
+            );
+        /* run destructor on old component if needed */
+        if(componentMetadata._destructor){
+            componentMetadata._destructor(
+                componentPtrIntoArchetype
+            );
+        }
+        /* shallow copy component into archetype */
+        memcpy(
+            componentPtrIntoArchetype,
+            componentPtr,
+            componentMetadata._componentSize
+        );
+        return true;
+    }
+    /* otherwise, move archetypes (same as add) */
+    /* update component set */
+    bitsetSet(
+        &(entityMetadataPtr->_componentSet),
+        componentID
+    );
+    /* get new archetype */
+    _WindArchetype *newArchetypePtr
+        = windWorldIDGetArchetype(
+            worldPtr,
+            entityID
+        );
+    /* move components from old archetype to new */
+    _windArchetypeMoveEntity(
+        oldArchetypePtr,
+        entityID,
+        newArchetypePtr
+    );
+    /*
+     * add component to the entity in the new 
+     * archetype (as long as it is not a marker)
+     */
+    __windArchetypeSetPtr(
+        newArchetypePtr,
+        componentID,
+        entityID,
+        componentPtr
+    );
+    
+    return true;
+}
 
 /*
  * Queues an order to set the given component of the
  * entity specified by the given handle to the 
- * provided value
+ * provided value, returns true if successful, false
+ * otherwise (e.g. the handle is dead); the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
 bool _windWorldHandleQueueSetComponent(
     WindWorld *worldPtr,
     WindComponentIDType componentID,
     WindEntity handle,
     void *componentPtr
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsHandleDead(worldPtr, handle)){
+        return false;
+    }
+    WindComponentMetadata componentMetadata
+        = windComponentsGet(
+               &(worldPtr->_components),
+               componentID
+        );
+    void *heapCopy = NULL;
+    /* make a heap copy if component not marker */
+    if(componentMetadata._componentSize != 0){
+        heapCopy = pgAlloc(
+            1,
+            componentMetadata._componentSize
+        );
+        memcpy(
+            heapCopy,
+            componentPtr,
+            componentMetadata._componentSize
+        );
+    }
+    /* queue up the order */
+    SetComponentOrder order = {
+        handle,
+        componentID,
+        heapCopy
+    };
+    arrayListPushBack(SetComponentOrder,
+        &(worldPtr->_setComponentQueue),
+        order
+    );
+    return true;
+}
 
 /*
  * Removes the specified component from the entity
@@ -911,7 +1004,17 @@ bool _windWorldHandleRemoveComponent(
     WindWorld *worldPtr,
     WindComponentIDType componentID,
     WindEntity handle
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsHandleDead(worldPtr, handle)){
+        return false;
+    }
+    return _windWorldIDRemoveComponent(
+        worldPtr,
+        componentID,
+        handle.entityID
+    );
+}
 
 /*
  * Removes the specified component from the entity
@@ -922,7 +1025,67 @@ bool _windWorldIDRemoveComponent(
     WindWorld *worldPtr,
     WindComponentIDType componentID,
     WindEntityIDType entityID
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsIDDead(worldPtr, entityID)){
+        return false;
+    }
+    /* return false if entity doesn't have component */
+    _WindEntityMetadata *entityMetadataPtr
+        = _windEntitiesIDGetMetadata(
+            &(worldPtr->_entities),
+            entityID
+        );
+    if(!bitsetGet(
+        &(entityMetadataPtr->_componentSet),
+        componentID
+    )){
+        return false;
+    }
+    /* get old archetype */
+    _WindArchetype *oldArchetypePtr
+        = windWorldIDGetArchetype(
+            worldPtr,
+            entityID
+        );
+    /* run destructor if needed */
+    WindComponentMetadata componentMetadata
+        = windComponentsGet(
+            &(worldPtr->_components),
+            componentID
+        );
+    if(componentMetadata._componentSize != 0
+        && componentMetadata._destructor
+    ){
+        void *componentPtrIntoArchetype
+            = __windArchetypeGetPtr(
+                oldArchetypePtr,
+                componentID,
+                entityID
+            );
+        componentMetadata._destructor(
+            componentPtrIntoArchetype
+        );
+    }
+    /* update component set */
+    bitsetUnset(
+        &(entityMetadataPtr->_componentSet),
+        componentID
+    );
+    /* get new archetype */
+    _WindArchetype *newArchetypePtr
+        = windWorldIDGetArchetype(
+            worldPtr,
+            entityID
+        );
+    /* move components from old archetype to new */
+    _windArchetypeMoveEntity(
+        oldArchetypePtr,
+        entityID,
+        newArchetypePtr
+    );
+    return true;
+}
 
 /*
  * Queues an order to remove the specified component
@@ -932,17 +1095,110 @@ bool _windWorldHandleQueueRemoveComponent(
     WindWorld *worldPtr,
     WindComponentIDType componentID,
     WindEntity handle
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsHandleDead(worldPtr, handle)){
+        return false;
+    }
+    /* queue up the order */
+    RemoveComponentOrder order = {
+        handle,
+        componentID
+    };
+    arrayListPushBack(RemoveComponentOrder,
+        &(worldPtr->_removeComponentQueue),
+        order
+    );
+    return true;
+}
 
 /*
  * Adds the specified entity to the given ECS world
  * and returns its handle; takes ownership of the
- * provided components and frees the component list
+ * provided components but does not free the component
+ * list
  */
 WindEntity windWorldAddEntity(
     WindWorld *worldPtr,
     ArrayList *componentDataPairListPtr
-);
+){
+    /* generate a new entity */
+    WindEntity handle = _windEntitiesCreate(
+        &(worldPtr->_entities)
+    );
+    /* grab entity metadata */
+    _WindEntityMetadata *entityMetadataPtr
+        = _windEntitiesGetMetadata(
+            &(worldPtr->_entities),
+            handle
+        );
+    assertNotNull(
+        entityMetadataPtr,
+        "error: failed to get entity metadata of new "
+        "entity; " SRC_LOCATION
+    );
+    /* toggle the component set for each component */
+    WindComponentIDType componentID = 0;
+    for(size_t i = 0;
+        i < componentDataPairListPtr->size;
+        ++i
+    ){
+        componentID = arrayListGet(
+            WindComponentDataPair,
+            componentDataPairListPtr,
+            i
+        ).componentID;
+        assertFalse(
+            bitsetGet(
+                &(entityMetadataPtr->_componentSet),
+                componentID
+            ),
+            "error: duplicate component; "
+            SRC_LOCATION
+        );
+        bitsetSet(
+            &(entityMetadataPtr->_componentSet),
+            componentID
+        );
+    }
+    /* get the entity's archetype */
+    _WindArchetype *archetypePtr
+        = windWorldHandleGetArchetype(
+            worldPtr,
+            handle
+        );
+    /* shallow copy each component into archetype */
+    WindComponentMetadata componentMetadata = {0};
+    for(size_t i = 0;
+        i < componentDataPairListPtr->size;
+        ++i
+    ){
+        componentID = arrayListGet(
+            WindComponentDataPair,
+            componentDataPairListPtr,
+            i
+        ).componentID;
+        componentMetadata = windComponentsGet(
+            &(worldPtr->_components),
+            componentID
+        );
+        /* skip markers */
+        if(componentMetadata._componentSize == 0){
+            continue;
+        }
+        /* shallow copy each component from its ptr */
+        __windArchetypeSetPtr(
+            archetypePtr,
+            componentID,
+            handle.entityID,
+            arrayListGet(WindComponentDataPair,
+                componentDataPairListPtr,
+                i
+            ).componentPtr
+        );
+    }
+    return handle;
+}
 
 /*
  * Queues an order to add the specified entity to the
@@ -952,10 +1208,109 @@ WindEntity windWorldAddEntity(
  * shallow copied so the user must still free their
  * version of it
  */
-WindEntity windWorldQueueAddEntity(
+void windWorldQueueAddEntity(
     WindWorld *worldPtr,
     ArrayList *componentDataPairListPtr
-);
+){
+    /* add a dummy to the queue; construct in place */
+    AddEntityOrder dummy = {0};
+    arrayListPushBack(AddEntityOrder,
+        &(worldPtr->_addEntityQueue),
+        dummy
+    );
+    AddEntityOrder *orderPtr = arrayListBackPtr(
+        AddEntityOrder,
+        &(worldPtr->_addEntityQueue)
+    );
+    ArrayList *componentDataPairListCopyPtr
+        = &(orderPtr->componentDataPairList);
+    /* make empty array list */
+    size_t numComponents
+        = componentDataPairListPtr->size;
+    *componentDataPairListCopyPtr = arrayListMake(
+        WindComponentDataPair,
+        numComponents
+    );
+    /* shallow copy every component */
+    WindComponentMetadata componentMetadata = {0};
+    WindComponentDataPair dataPair = {0};
+    /*
+     * optimization: only allocate a single block
+     * on the heap for each component and keep track
+     * of each component's offset; here we calculate
+     * the size of that block
+     */
+    size_t entireComponentDataSize = 0;
+    for(size_t i = 0;
+        i < numComponents;
+        ++i
+    ){
+        dataPair = arrayListGet(WindComponentDataPair,
+            &(worldPtr->_addEntityQueue),
+            i
+        );
+        componentMetadata = windComponentsGet(
+            &(worldPtr->_components),
+            dataPair.componentID
+        );
+        entireComponentDataSize
+            += componentMetadata._componentSize;
+    }
+    /* 
+     * base ptr to the block with all components;
+     * allocate unless 
+     */
+    void *entireComponentDataBasePtr = NULL;
+    if(entireComponentDataSize != 0){
+        entireComponentDataBasePtr = pgAlloc(
+            1,
+            entireComponentDataSize
+        );
+    }
+    /* write the base ptr to the order */
+    orderPtr->componentDataBasePtr
+        = entireComponentDataBasePtr;
+    /* ptr to the start of the current component */
+    void *currentComponentPtr
+        = entireComponentDataBasePtr;
+    for(size_t i = 0;
+        i < numComponents;
+        ++i
+    ){
+        /* make a value copy of the data pair */
+        dataPair = arrayListGet(WindComponentDataPair,
+            &(worldPtr->_addEntityQueue),
+            i
+        );
+        componentMetadata = windComponentsGet(
+            &(worldPtr->_components),
+            dataPair.componentID
+        );
+        /* if marker, use NULL as the component */
+        if(componentMetadata._componentSize == 0){
+            dataPair.componentPtr = NULL;
+        }
+        /* otherwise, make shallow copy on heap */
+        else{
+            memcpy(
+                currentComponentPtr,
+                dataPair.componentPtr,
+                componentMetadata._componentSize
+            );
+            currentComponentPtr = voidPtrAdd(
+                currentComponentPtr,
+                componentMetadata._componentSize
+            );
+            dataPair.componentPtr
+                = currentComponentPtr;
+        }
+        /* push to the copy list */
+        arrayListPushBack(WindComponentDataPair,
+            componentDataPairListCopyPtr,
+            dataPair
+        );
+    } /* end of for loop */
+}
 
 /*
  * Removes the entity specified by the given handle
@@ -965,7 +1320,16 @@ WindEntity windWorldQueueAddEntity(
 bool windWorldHandleRemoveEntity(
     WindWorld *worldPtr,
     WindEntity handle
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsHandleDead(worldPtr, handle)){
+        return false;
+    }
+    return windWorldIDRemoveEntity(
+        worldPtr,
+        handle.entityID
+    );
+}
 
 /*
  * Removes the entity specified by the given ID
@@ -975,23 +1339,227 @@ bool windWorldHandleRemoveEntity(
 bool windWorldIDRemoveEntity(
     WindWorld *worldPtr,
     WindEntityIDType entityID
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsIDDead(worldPtr, entityID)){
+        return false;
+    }
+    /* get archetype */
+    _WindArchetype *archetypePtr
+        = windWorldIDGetArchetype(
+            worldPtr,
+            entityID
+        );
+    /* clear entity metadata */
+    _windEntitiesReclaim(
+        &(worldPtr->_entities),
+        windWorldMakeHandle(worldPtr, entityID)
+    );
+    /* clear entity component data */
+    bool success = _windArchetypeRemoveEntity(
+        archetypePtr,
+        entityID
+    );
+    assertTrue(
+        success,
+        "error: failed to remove entity from "
+        "archetype; " SRC_LOCATION
+    );
+    return true;
+}
 
 /*
  * Queues an order to remove the entity specified by
- * the given handle from the given ECS world
+ * the given handle from the given ECS world, returns
+ * true if successful, false otherwise (e.g. if the
+ * entity is already dead)
  */
-void windWorldQueueHandleRemoveEntity(
+bool windWorldQueueHandleRemoveEntity(
     WindWorld *worldPtr,
     WindEntity handle
-);
+){
+    /* return false if entity dead */
+    if(windWorldIsHandleDead(worldPtr, handle)){
+        return false;
+    }
+    RemoveEntityOrder order = {handle};
+    arrayListPushBack(RemoveEntityOrder,
+        &(worldPtr->_removeEntityQueue),
+        order
+    );
+    return true;
+}
+
+/*
+ * Handles all queued remove entity orders given
+ * to the ECS world since the last time this
+ * function was called
+ */
+static void windWorldHandleRemoveEntityOrders(
+    WindWorld *worldPtr
+){
+    WindEntity handleToRemove = {0};
+    for(size_t i = 0;
+        i < worldPtr->_removeEntityQueue.size;
+        ++i
+    ){
+        handleToRemove = arrayListGet(
+            RemoveEntityOrder,
+            &(worldPtr->_removeEntityQueue),
+            i
+        ).handle;
+        windWorldHandleRemoveEntity(
+            worldPtr,
+            handleToRemove
+        );
+    }
+    arrayListClear(RemoveEntityOrder,
+        &(worldPtr->_removeEntityQueue)
+    );
+}
+
+/*
+ * Handles all queued remove component orders given
+ * to the ECS world since the last time this
+ * function was called
+ */
+static void windWorldHandleRemoveComponentOrders(
+    WindWorld *worldPtr
+){
+    RemoveComponentOrder order = {0};
+    for(size_t i = 0;
+        i < worldPtr->_removeComponentQueue.size;
+        ++i
+    ){
+        order = arrayListGet(
+            RemoveComponentOrder,
+            &(worldPtr->_removeComponentQueue),
+            i
+        );
+        _windWorldHandleRemoveComponent(
+            worldPtr,
+            order.componentID,
+            order.handle
+        );
+    }
+    arrayListClear(RemoveComponentOrder,
+        &(worldPtr->_removeComponentQueue)
+    );
+}
+
+/*
+ * Handles all queued add entity orders given
+ * to the ECS world since the last time this
+ * function was called
+ */
+static void windWorldHandleAddEntityOrders(
+    WindWorld *worldPtr
+){
+    AddEntityOrder *orderPtr = NULL;
+    for(size_t i = 0;
+        i < worldPtr->_addEntityQueue.size;
+        ++i
+    ){
+        orderPtr = arrayListGetPtr(
+            AddEntityOrder,
+            &(worldPtr->_addEntityQueue),
+            i
+        );
+        windWorldAddEntity(
+            worldPtr,
+            &(orderPtr->componentDataPairList)
+        );
+        /*
+         * free the heap block associated with
+         * the order
+         */
+        addEntityOrderFree(orderPtr);
+    }
+    arrayListClear(AddEntityOrder,
+        &(worldPtr->_addEntityQueue)
+    );
+}
+
+/*
+ * Handles all queued add component orders given
+ * to the ECS world since the last time this
+ * function was called
+ */
+static void windWorldHandleAddComponentOrders(
+    WindWorld *worldPtr
+){
+    AddComponentOrder *orderPtr = NULL;
+    for(size_t i = 0;
+        i < worldPtr->_addComponentQueue.size;
+        ++i
+    ){
+        orderPtr = arrayListGetPtr(
+            AddComponentOrder,
+            &(worldPtr->_addComponentQueue),
+            i
+        );
+        _windWorldHandleAddComponent(
+            worldPtr,
+            orderPtr->componentID,
+            orderPtr->handle,
+            orderPtr->componentPtr
+        );
+        /*
+         * free the heap block associated with
+         * the order
+         */
+        addComponentOrderFree(orderPtr);
+    }
+    arrayListClear(AddComponentOrder,
+        &(worldPtr->_addComponentQueue)
+    );
+}
+
+/*
+ * Handles all queued set component orders given
+ * to the ECS world since the last time this
+ * function was called
+ */
+static void windWorldHandleSetComponentOrders(
+    WindWorld *worldPtr
+){
+    SetComponentOrder *orderPtr = NULL;
+    for(size_t i = 0;
+        i < worldPtr->_setComponentQueue.size;
+        ++i
+    ){
+        orderPtr = arrayListGetPtr(
+            SetComponentOrder,
+            &(worldPtr->_setComponentQueue),
+            i
+        );
+        _windWorldHandleSetComponent(
+            worldPtr,
+            orderPtr->componentID,
+            orderPtr->handle,
+            orderPtr->componentPtr
+        );
+        /*
+         * free the heap block associated with
+         * the order
+         */
+        setComponentOrderFree(orderPtr);
+    }
+    arrayListClear(SetComponentOrder,
+        &(worldPtr->_setComponentQueue)
+    );
+}
 
 /*
  * Handles all queued orders given to the ECS world
  * since the last time this function was called
  */
 void windWorldHandleOrders(WindWorld *worldPtr){
-    //todo: handle orders
+    windWorldHandleRemoveEntityOrders(worldPtr);
+    windWorldHandleRemoveComponentOrders(worldPtr);
+    windWorldHandleAddEntityOrders(worldPtr);
+    windWorldHandleAddComponentOrders(worldPtr);
+    windWorldHandleSetComponentOrders(worldPtr);
 }
 
 /*

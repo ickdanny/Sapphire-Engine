@@ -447,9 +447,10 @@ bool _windWorldIDSetComponent(
 /*
  * Queues an order to set the given component of the
  * entity specified by the given handle to the 
- * provided value; the componentPtr is shallow copied
- * to the heap and the original pointer is not freed
- * by the ECS
+ * provided value, returns true if successful, false
+ * otherwise (e.g. the handle is dead); the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
 bool _windWorldHandleQueueSetComponent(
     WindWorld *worldPtr,
@@ -461,9 +462,10 @@ bool _windWorldHandleQueueSetComponent(
 /*
  * Queues an order to set the given component of the
  * entity specified by the given handle to the 
- * provided value; the componentPtr is shallow copied
- * to the heap and the original pointer is not freed
- * by the ECS
+ * provided value, returns true if successful, false
+ * otherwise (e.g. the handle is dead); the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
 #define windWorldHandleQueueSetComponent( \
     TYPENAME, \
@@ -481,9 +483,9 @@ bool _windWorldHandleQueueSetComponent(
 /*
  * Queues an order to set the given component of the
  * entity currently specified by the given ID to the
- * provided value; the componentPtr is shallow copied
- * to the heap and the original pointer is not freed
- * by the ECS
+ * provided value, error if the entity is dead; the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
 #define windWorldIDQueueSetComponent( \
     TYPENAME, \
@@ -606,7 +608,8 @@ typedef struct WindComponentDataPair{
 /*
  * Adds the specified entity to the given ECS world
  * and returns its handle; takes ownership of the
- * provided components and frees the component list
+ * provided components but does not free the component
+ * list
  */
 WindEntity windWorldAddEntity(
     WindWorld *worldPtr,
@@ -621,7 +624,7 @@ WindEntity windWorldAddEntity(
  * shallow copied to the heap so the user must still
  * free their version of it (the copy is 1-level deep)
  */
-WindEntity windWorldQueueAddEntity(
+void windWorldQueueAddEntity(
     WindWorld *worldPtr,
     ArrayList *componentDataPairListPtr
 );
@@ -648,9 +651,11 @@ bool windWorldIDRemoveEntity(
 
 /*
  * Queues an order to remove the entity specified by
- * the given handle from the given ECS world
+ * the given handle from the given ECS world, returns
+ * true if successful, false otherwise (e.g. if the
+ * entity is already dead)
  */
-void windWorldQueueHandleRemoveEntity(
+bool windWorldQueueHandleRemoveEntity(
     WindWorld *worldPtr,
     WindEntity handle
 );
