@@ -112,7 +112,9 @@ static void addEntityOrderFree(
      * do not run the destructor, just free the
      * dynamically allocated component values
      */
-    pgFree(orderPtr->componentDataBasePtr);
+    if(orderPtr->componentDataBasePtr){
+        pgFree(orderPtr->componentDataBasePtr);
+    }
     arrayListFree(WindComponentDataPair,
         &(orderPtr->componentDataPairList)
     );

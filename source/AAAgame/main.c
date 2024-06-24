@@ -8,6 +8,8 @@
 #include "MokyoMidi.h"
 #include "Trifecta.h"
 #include "BLoader.h"
+#include "WindECS.h"
+#include "Unknown.h"
 
 #include "Config.h"
 #include "Game.h"
@@ -80,6 +82,8 @@ void renderCallback(void *voidPtr){
 
 /* The entry point for the game */
 int main(){
+    unTest();
+    exit(0);
     Engine engine = {0};
 
     /* read settings */
