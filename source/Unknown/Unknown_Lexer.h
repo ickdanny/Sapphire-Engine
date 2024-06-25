@@ -17,6 +17,8 @@ typedef enum UNTokenType{
     un_semicolon,
     un_slash,
     un_star,
+    un_ampersand,
+    un_verticalBar,
 
     /* one or two character tokens */
     un_bang,
@@ -34,14 +36,15 @@ typedef enum UNTokenType{
     un_number,
 
     /* keywords */
-    un_let,
-    un_if,
     un_else,
-    un_true,
     un_false,
     un_for,
-    un_while,
+    un_func,
+    un_if,
+    un_let,
     un_return,
+    un_true,
+    un_while,
 
     un_print, //todo: temp print token for debugging
 
@@ -57,8 +60,8 @@ typedef struct UNToken{
      * pointer to the start of the token in the source
      * code
      */
-    const char *start;
-    int length;
+    const char *startPtr;
+    size_t length;
     size_t lineNumber;
 } UNToken;
 
@@ -66,13 +69,13 @@ typedef struct UNToken{
 typedef struct UNLexer{
     /*
      * pointer to the whole heap block containing
-     * the source code
+     * the source code; owned by the lexer
      */
-    const char *sourcePtr;
+    char *sourcePtr;
     /* points to start of current token */
-    const char *startPtr;
+    char *startPtr;
     /* points to current character being scanned */
-    const char *currentPtr;
+    char *currentPtr;
     /* line number of current token */
     size_t lineNumber;
 } UNLexer;

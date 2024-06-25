@@ -4,6 +4,9 @@
 
 #include <stdbool.h>
 
+//todo: debug
+#include <stdio.h>
+
 /* compiles the specified Unknown source file */
 void unCompile(const char *fileName){
     UNLexer lexer = unLexerMake(fileName);
@@ -21,8 +24,8 @@ void unCompile(const char *fileName){
         printf(
             "%2d '%.*s'\n",
             token.type,
-            token.length,
-            token.start
+            (int)token.length,
+            token.startPtr
         );
         if(token.type == un_eof){
             break;
