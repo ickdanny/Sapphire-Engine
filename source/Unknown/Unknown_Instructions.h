@@ -7,10 +7,19 @@ typedef enum UNInstruction {
      * instructs VM to load a literal value;
      * FORMAT: [op][index]
      */
-    UN_LITERAL,
-
+    un_literal,
+    /* binary addition */
+    un_add,
+    /* binary subtraction */
+    un_subtract,
+    /* binary multiplication */
+    un_multiply,
+    /* binary division */
+    un_divide,
+    /* unary negation */
+    un_negate,
     /* returns values from functions */
-    UN_RETURN,
+    un_return,
 } UNInstruction;
 
 #endif

@@ -3,6 +3,9 @@
 
 #include "Unknown_Program.h"
 
+/* size of the stack */
+#define UN_STACK_SIZE 256
+
 /*
  * used to report back the result of interpreting a
  * program
@@ -19,6 +22,10 @@ typedef struct UNVirtualMachine{
     UNProgram *programPtr;
     /* pointer to next executing instruction */
     uint8_t *instructionPtr;
+    /* stack used by VM to store all values */
+    UNValue stack[UN_STACK_SIZE];
+    /* pointer to one past the top of the stack */
+    UNValue *stackPtr;
 } UNVirtualMachine;
 
 /*

@@ -22,6 +22,12 @@ typedef struct UNProgram{
 UNProgram unProgramMake();
 
 /*
+ * Returns a pointer to the first instruction in the
+ * specified UNProgram; returns NULL if not possible
+ */
+uint8_t *unProgramGetEntryPoint(UNProgram *programPtr);
+
+/*
  * Pushes the specified byte to the back of the
  * specified program's code
  */

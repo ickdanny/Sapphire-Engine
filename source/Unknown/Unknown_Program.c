@@ -18,6 +18,22 @@ UNProgram unProgramMake(){
 }
 
 /*
+ * Returns a pointer to the first instruction in the
+ * specified UNProgram; returns NULL if not possible
+ */
+uint8_t *unProgramGetEntryPoint(UNProgram *programPtr){
+    if(!programPtr){
+        return NULL;
+    }
+    if(programPtr->code.size == 0){
+        return NULL;
+    }
+    return arrayListFrontPtr(uint8_t,
+        &(programPtr->code)
+    );
+}
+
+/*
  * Pushes the specified byte to the back of the
  * specified program's code
  */
@@ -137,13 +153,38 @@ size_t unProgramDisassembleInstruction(
         offset
     );
     switch(instruction){
-        case UN_LITERAL:
+        case un_literal:
             return printLiteralInstruction(
                 "LIT",
                 programPtr,
                 offset
             );
-        case UN_RETURN:
+        case un_add:
+            return printSimpleInstruction(
+                "ADD",
+                offset
+            );
+        case un_subtract:
+            return printSimpleInstruction(
+                "SUB",
+                offset
+            );
+        case un_multiply:
+            return printSimpleInstruction(
+                "MUL",
+                offset
+            );
+        case un_divide:
+            return printSimpleInstruction(
+                "DIV",
+                offset
+            );
+        case un_negate:
+            return printSimpleInstruction(
+                "NEG",
+                offset
+            );
+        case un_return:
             return printSimpleInstruction(
                 "RET",
                 offset
