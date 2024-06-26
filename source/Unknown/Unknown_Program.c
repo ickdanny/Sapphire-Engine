@@ -184,7 +184,7 @@ size_t unProgramDisassembleInstruction(
                 "NEG",
                 offset
             );
-        case un_tokenReturn:
+        case un_return:
             return printSimpleInstruction(
                 "RET",
                 offset

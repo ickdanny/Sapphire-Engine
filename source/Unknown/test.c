@@ -2,36 +2,17 @@
 
 void unTest(){
     UNVirtualMachine vm = unVirtualMachineMake();
-    UNProgram program = unProgramMake();
+    UNCompiler compiler = unCompilerMake();
 
-    size_t litIndex = unProgramPushBackLiteral(
-        &program,
-        1.2
+    printf("compiling\n");
+    UNProgram program = unCompilerCompile(
+        &compiler,
+        "test_script.un"
     );
-    unProgramPushBackCode(&program, un_literal, 3);
-    unProgramPushBackCode(&program, litIndex, 3);
 
-    litIndex = unProgramPushBackLiteral(
-        &program,
-        3.4
-    );
-    unProgramPushBackCode(&program, un_literal, 3);
-    unProgramPushBackCode(&program, litIndex, 3);
-
-    unProgramPushBackCode(&program, un_add, 3);
-
-    litIndex = unProgramPushBackLiteral(
-        &program,
-        5.6
-    );
-    unProgramPushBackCode(&program, un_literal, 3);
-    unProgramPushBackCode(&program, litIndex, 3);
-
-    unProgramPushBackCode(&program, un_divide, 3);
-    unProgramPushBackCode(&program, un_negate, 3);
-    unProgramPushBackCode(&program, un_tokenReturn, 3);
-    //unProgramDisassemble(&program);
     printf("running vm\n");
     unVirtualMachineInterpret(&vm, &program);
     unProgramFree(&program);
+    unVirtualMachineFree(&vm);
+    unCompilerFree(&compiler);
 }

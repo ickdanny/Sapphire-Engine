@@ -1,24 +1,6 @@
 #include "Unknown_Compiler.h"
 
-#include <stdbool.h>
 #include <stdio.h>
-
-#include "Unknown_Lexer.h"
-#include "Unknown_Program.h"
-#include "Unknown_Instructions.h"
-
-/*
- * Stores data related to the compilation process of
- * a single file
- */
-typedef struct UNCompiler{
-    UNToken currentToken;
-    UNToken prevToken;
-    UNLexer lexer;
-    UNProgram compiledProgram;
-    bool hadError;
-    bool inPanicMode;
-} UNCompiler;
 
 /*
  * Represents the precedence hiearchy of the grammar 
@@ -52,56 +34,127 @@ typedef struct UNParseRule{
 } UNParseRule;
 
 /* table for all parse rules */
-static const UNParseRule rules[] = {
-    [un_tokenLeftParen]     = {grouping, call,   PREC_CALL},
-    [un_tokenRightParen]    = {NULL,     NULL,   PREC_NONE},
-    [un_tokenLeftBrace]     = {NULL,     NULL,   PREC_NONE},
-    [un_tokenRightBrace]    = {NULL,     NULL,   PREC_NONE},
-    [un_tokenComma]         = {NULL,     NULL,   PREC_NONE},
-    [un_tokenDot]           = {NULL,     dot,    PREC_CALL},
-    [un_tokenMinus]         = {unary,    binary, PREC_TERM},
-    [un_tokenPlus]          = {NULL,     binary, PREC_TERM},
-    [un_tokenSemicolon]     = {NULL,     NULL,   PREC_NONE},
-    [un_tokenSlash]         = {NULL,     binary, PREC_FACTOR},
-    [un_tokenStar]          = {NULL,     binary, PREC_FACTOR},
-    [un_tokenBang]          = {unary,    NULL,   PREC_NONE},
-    [un_tokenBangEqual]     = {NULL,     binary, PREC_EQUALITY},
-    [un_tokenEqual]         = {NULL,     NULL,   PREC_NONE},
-    [un_tokenDoubleEqual]   = {NULL,     binary, PREC_EQUALITY},
-    [un_tokenGreater]       = {NULL,     binary, PREC_COMPARISON},
-    [un_tokenGreaterEqual]  = {NULL,     binary, PREC_COMPARISON},
-    [un_tokenLess]          = {NULL,     binary, PREC_COMPARISON},
-    [un_tokenLessEqual]     = {NULL,     binary, PREC_COMPARISON},
-    [un_tokenIdentifier]    = {variable, NULL,   PREC_NONE},
-    [un_tokenString]        = {string,   NULL,   PREC_NONE},
-    [un_tokenNumber]        = {number,   NULL,   PREC_NONE},
-    [un_tokenAmpersand]     = {NULL,     and_,   PREC_AND},
-    [un_tokenElse]          = {NULL,     NULL,   PREC_NONE},
-    [un_tokenFalse]         = {literal,  NULL,   PREC_NONE},
-    [un_tokenFor]           = {NULL,     NULL,   PREC_NONE},
-    [un_tokenFunc]          = {NULL,     NULL,   PREC_NONE},
-    [un_tokenIf]            = {NULL,     NULL,   PREC_NONE},
-    [un_tokenVerticalBar]   = {NULL,     or_,    PREC_OR},
-    [un_tokenPrint]         = {NULL,     NULL,   PREC_NONE},
-    [un_tokenReturn]        = {NULL,     NULL,   PREC_NONE},
-    [un_tokenTrue]          = {literal,  NULL,   PREC_NONE},
-    [un_tokenLet]           = {NULL,     NULL,   PREC_NONE},
-    [un_tokenWhile]         = {NULL,     NULL,   PREC_NONE},
-    [un_tokenError]         = {NULL,     NULL,   PREC_NONE},
-    [un_tokenEOF]           = {NULL,     NULL,   PREC_NONE},
+#define number unCompilerNumber
+#define unary unCompilerUnary
+#define binary unCompilerBinary
+#define grouping unCompilerGrouping
+#define call unCompilerCall
+#define dot unCompilerDot
+#define variable unCompilerVariable
+#define string unCompilerString
+#define and_ unCompilerAnd
+#define or_ unCompilerOr
+#define bool_ unCompilerBool
+static const UNParseRule parseRules[] = {
+    [un_tokenLeftParen]
+        = {grouping, call,   un_precCall},
+    [un_tokenRightParen]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenLeftBrace]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenRightBrace]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenComma]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenDot]
+        = {NULL,     dot,    un_precCall},
+    [un_tokenMinus]
+        = {unary,    binary, un_precTerm},
+    [un_tokenPlus]
+        = {NULL,     binary, un_precTerm},
+    [un_tokenSemicolon]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenSlash]
+        = {NULL,     binary, un_precFactor},
+    [un_tokenStar]
+        = {NULL,     binary, un_precFactor},
+    [un_tokenBang]
+        = {unary,    NULL,   un_precNone},
+    [un_tokenBangEqual]
+        = {NULL,     binary, un_precEquality},
+    [un_tokenEqual]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenDoubleEqual]
+        = {NULL,     binary, un_precEquality},
+    [un_tokenGreater]
+        = {NULL,     binary, un_precCompare},
+    [un_tokenGreaterEqual]
+        = {NULL,     binary, un_precCompare},
+    [un_tokenLess]
+        = {NULL,     binary, un_precCompare},
+    [un_tokenLessEqual]
+        = {NULL,     binary, un_precCompare},
+    [un_tokenIdentifier]
+        = {variable, NULL,   un_precNone},
+    [un_tokenString]
+        = {string,   NULL,   un_precNone},
+    [un_tokenNumber]
+        = {number,   NULL,   un_precNone},
+    [un_tokenAmpersand]
+        = {NULL,     and_,   un_precAnd},
+    [un_tokenElse]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenFalse]
+        = {bool_,    NULL,   un_precNone},
+    [un_tokenFor]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenFunc]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenIf]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenVerticalBar]
+        = {NULL,     or_,    un_precOr},
+    [un_tokenPrint]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenReturn]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenTrue]
+        = {bool_,    NULL,   un_precNone},
+    [un_tokenLet]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenWhile]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenError]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenEOF]
+        = {NULL,     NULL,   un_precNone},
 };
+#undef number
+#undef unary
+#undef binary
+#undef grouping
+#undef call
+#undef dot
+#undef variable
+#undef string
+#undef and_
+#undef or_
+#undef bool_
+
+/*
+ * Returns a pointer to the parse rule for the
+ * specified token type
+ */
+static const UNParseRule *getRule(UNTokenType type){
+    return &(parseRules[type]);
+}
 
 /*
  * Constructs and returns a new UNCompiler for the
  * specified file by value
  */
-static UNCompiler unCompilerMake(const char *fileName){
+UNCompiler unCompilerMake(){
     UNCompiler toRet = {0};
-    toRet.lexer = unLexerMake(fileName);
-    toRet.compiledProgram = unProgramMake();
     toRet.hadError = false;
     toRet.inPanicMode = false;
     return toRet;
+}
+
+/* Resets the state of the specified compiler */
+void unCompilerReset(UNCompiler *compilerPtr){
+    memset(compilerPtr, 0, sizeof(*compilerPtr));
+    compilerPtr->hadError = false;
+    compilerPtr->inPanicMode = false;
 }
 
 /*
@@ -141,7 +194,7 @@ static void unCompilerError(
             buffer,
             bufferSize - 1,
             "(at '%.*s')",
-            tokenPtr->length,
+            (int)tokenPtr->length,
             tokenPtr->startPtr
         );
         pgWarning(buffer);
@@ -173,19 +226,24 @@ static void unCompilerError(
 /* Advances the specified compiler to the next token */
 static void unCompilerAdvance(UNCompiler *compilerPtr){
     compilerPtr->prevToken = compilerPtr->currentToken;
+    /* loop to report error tokens */
     while(true){
         /* get next token from lexer */
         compilerPtr->currentToken = unLexerNext(
             &(compilerPtr->lexer)
         );
-        /* bail out if bad token*/
+        /* bail out if good token*/
         if(compilerPtr->currentToken.type
-            = un_tokenError
+            != un_tokenError
         ){
             break;
         }
 
-        unCompilerErrorCurrent(compilerPtr, "idk");
+        /* report error token */
+        unCompilerErrorCurrent(
+            compilerPtr,
+            compilerPtr->currentToken.startPtr
+        );
     }
 }
 
@@ -287,9 +345,6 @@ static uint8_t unCompilerMakeLiteral(
         ) \
     )
 
-/* forward decl */
-static void unCompilerExpression(UNCompiler*);
-
 /*
  * Parses the next expression for the specified
  * compiler at or above the given precedence level
@@ -299,12 +354,40 @@ static void unCompilerExpressionPrecedence(
     UNPrecedence precedence
 ){
     //todo expr precedence
+    /* read next token, check for prefix rule */
+    unCompilerAdvance(compilerPtr);
+    ParseFunc prefixFunc = getRule(
+        compilerPtr->prevToken.type
+    )->prefixFunc;
+
+    /* no prefix rule indicates syntax error */
+    if(!prefixFunc){
+        unCompilerErrorPrev(
+            compilerPtr,
+            "Expect expression"
+        );
+        return;
+    }
+    prefixFunc(compilerPtr);
+
+    /*
+     * next token might indicate that the prefix 
+     * expression is an operand of an infix one; make
+     * sure that precedence is low enough
+     */
+    while(precedence <= getRule(
+        compilerPtr->currentToken.type)->precedence
+    ){
+        unCompilerAdvance(compilerPtr);
+        ParseFunc infixFunc = getRule(
+            compilerPtr->prevToken.type
+        )->infixFunc;
+        infixFunc(compilerPtr);
+    }
 }
 
 /* Parses the next number for the specified compiler */
-static void unCompilerNumber(
-    UNCompiler *compilerPtr
-){
+void unCompilerNumber(UNCompiler *compilerPtr){
     UNValue value = strtod(
         compilerPtr->prevToken.startPtr,
         NULL
@@ -316,7 +399,7 @@ static void unCompilerNumber(
  * Parses the next unary operator for the specified
  * compiler
  */
-static void unCompilerUnary(UNCompiler *compilerPtr){
+void unCompilerUnary(UNCompiler *compilerPtr){
     /*
      * save the type (since we have to read the rest
      * of the expression)
@@ -338,6 +421,9 @@ static void unCompilerUnary(UNCompiler *compilerPtr){
             );
             break;
         //todo: unary bang
+        default:
+            /* do nothing */
+            break;
     }
 }
 
@@ -345,7 +431,7 @@ static void unCompilerUnary(UNCompiler *compilerPtr){
  * Parses the next infix binary operator for the
  * specified compiler
  */
-static void unCompilerBinary(UNCompiler *compilerPtr){
+void unCompilerBinary(UNCompiler *compilerPtr){
     /*
      * save the type (since we have to read the rest
      * of the expression)
@@ -353,7 +439,7 @@ static void unCompilerBinary(UNCompiler *compilerPtr){
     UNTokenType operatorType
         = compilerPtr->prevToken.type;
     
-    UNParseRule *rulePtr = getRule(operatorType);
+    const UNParseRule *rulePtr = getRule(operatorType);
     unCompilerExpressionPrecedence(
         compilerPtr,
         rulePtr->precedence + 1
@@ -380,6 +466,9 @@ static void unCompilerBinary(UNCompiler *compilerPtr){
                 un_divide
             );
             break;
+        default:
+            /* do nothing */
+            break;
     }
 }
 
@@ -387,9 +476,7 @@ static void unCompilerBinary(UNCompiler *compilerPtr){
  * Parses the next expression for the specified
  * compiler
  */
-static void unCompilerExpression(
-    UNCompiler *compilerPtr
-){
+void unCompilerExpression(UNCompiler *compilerPtr){
     unCompilerExpressionPrecedence(
         compilerPtr,
         un_precAssign
@@ -401,9 +488,7 @@ static void unCompilerExpression(
  * for the specified compiler - should be called after
  * the first parenthesis has been matched
  */
-static void unCompilerGrouping(
-    UNCompiler *compilerPtr
-){
+void unCompilerGrouping(UNCompiler *compilerPtr){
     unCompilerExpression(compilerPtr);
     unCompilerMatch(
         compilerPtr,
@@ -413,19 +498,82 @@ static void unCompilerGrouping(
 }
 
 /*
+ * Parses a function call for the specified compiler
+ * //todo
+ */
+void unCompilerCall(UNCompiler *compilerPtr){
+    //todo call body
+}
+
+/*
+ * Parses a variable for the specified compiler
+ * //todo
+ */
+void unCompilerVariable(UNCompiler *compilerPtr){
+    //todo var body
+}
+
+/*
+ * Parses a string for the specified compiler
+ * //todo
+ */
+void unCompilerString(UNCompiler *compilerPtr){
+    //todo string body
+}
+
+/*
+ * Parses a boolean AND for the specified compiler
+ * //todo
+ */
+void unCompilerAnd(UNCompiler *compilerPtr){
+    //todo and body
+}
+
+/*
+ * Parses a boolean OR for the specified compiler
+ * //todo
+ */
+void unCompilerOr(UNCompiler *compilerPtr){
+    //todo or body
+}
+
+/*
+ * Parses a bool for the specified compiler
+ * //todo
+ */
+void unCompilerBool(UNCompiler *compilerPtr){
+    //todo bool body
+}
+
+/*
+ * Parses a dot for the specified compiler
+ * //todo
+ */
+void unCompilerDot(UNCompiler *compilerPtr){
+    //todo dot body
+}
+
+/*
  * Performs actions at the end of the compilation
  * process for the specified compiler
  */
 static void unCompilerEnd(UNCompiler *compilerPtr){
     //todo: temp emit return
-    unCompilerWriteByte(compilerPtr, un_tokenReturn);
+    unCompilerWriteByte(compilerPtr, un_return);
+    #ifdef _DEBUG
+    if(!(compilerPtr->hadError)){
+        unProgramDisassemble(
+            &(compilerPtr->compiledProgram)
+        );
+    }
+    #endif
 }
 
 /*
  * Frees the memory associated with the specified
  * UNCompiler but not the generated program
  */
-static void unCompilerFree(UNCompiler *compilerPtr){
+void unCompilerFree(UNCompiler *compilerPtr){
     unLexerFree(&(compilerPtr->lexer));
     /* do not free generated program */
 }
@@ -434,21 +582,30 @@ static void unCompilerFree(UNCompiler *compilerPtr){
  * compiles the specified Unknown source file and
  * returns the program; error on compiler error
  */
-UNProgram unCompile(const char *fileName){
-    UNCompiler compiler = unCompilerMake(fileName);
+UNProgram unCompilerCompile(
+    UNCompiler *compilerPtr,
+    const char *fileName
+){
+    unCompilerReset(compilerPtr);
+    compilerPtr->lexer = unLexerMake(fileName);
+    compilerPtr->compiledProgram = unProgramMake();
 
-    unCompilerAdvance(&compiler);
-    unCompilerExpression(&compiler);
+    unCompilerAdvance(compilerPtr);
+    unCompilerExpression(compilerPtr);
     unCompilerMatch(
+        compilerPtr,
         un_tokenEOF,
         "expect end of expression"
     );
-    unCompilerEnd(&compiler);
+    unCompilerEnd(compilerPtr);
 
-    bool hadError = compiler.hadError;
+    bool hadError = compilerPtr->hadError;
 
-    /* doesn't free the program */
-    unCompilerFree(&compiler);
+    /*
+     * doesn't free the program, just the resources
+     * needed during compilation
+     */
+    unCompilerFree(compilerPtr);
     
     if(hadError){
         pgError(
@@ -456,5 +613,7 @@ UNProgram unCompile(const char *fileName){
         );
     }
 
-    return compiler.compiledProgram;
+    UNProgram toRet = compilerPtr->compiledProgram;
+    unCompilerReset(compilerPtr);
+    return toRet;
 }
