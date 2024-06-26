@@ -126,7 +126,7 @@ static UNInterpretResult unVirtualMachineRun(
                 );
                 break;
             }
-            case un_return:{
+            case un_tokenReturn:{
                 unValuePrint(unVirtualMachineStackPop(
                     vmPtr
                 ));

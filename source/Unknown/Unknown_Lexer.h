@@ -6,51 +6,51 @@
 /* the types of tokens for the Unknown language */
 typedef enum UNTokenType{
     /* single character tokens */
-    un_leftParen,
-    un_rightParen,
-    un_leftBrace,
-    un_rightBrace,
-    un_comma,
-    un_dot,
-    un_minus,
-    un_plus,
-    un_semicolon,
-    un_slash,
-    un_star,
-    un_ampersand,
-    un_verticalBar,
+    un_tokenLeftParen,
+    un_tokenRightParen,
+    un_tokenLeftBrace,
+    un_tokenRightBrace,
+    un_tokenComma,
+    un_tokenDot,
+    un_tokenMinus,
+    un_tokenPlus,
+    un_tokenSemicolon,
+    un_tokenSlash,
+    un_tokenStar,
+    un_tokenAmpersand,
+    un_tokenVerticalBar,
 
     /* one or two character tokens */
-    un_bang,
-    un_bangEqual,
-    un_equal,
-    un_doubleEqual,
-    un_greater,
-    un_greaterEqual,
-    un_less,
-    un_lessEqual,
+    un_tokenBang,
+    un_tokenBangEqual,
+    un_tokenEqual,
+    un_tokenDoubleEqual,
+    un_tokenGreater,
+    un_tokenGreaterEqual,
+    un_tokenLess,
+    un_tokenLessEqual,
 
     /* literals */
-    un_identifier,
-    un_string,
-    un_number,
+    un_tokenIdentifier,
+    un_tokenString,
+    un_tokenNumber,
 
     /* keywords */
-    un_else,
-    un_false,
-    un_for,
-    un_func,
-    un_if,
-    un_let,
-    un_return,
-    un_true,
-    un_while,
+    un_tokenElse,
+    un_tokenFalse,
+    un_tokenFor,
+    un_tokenFunc,
+    un_tokenIf,
+    un_tokenLet,
+    un_tokenReturn,
+    un_tokenTrue,
+    un_tokenWhile,
 
-    un_print, //todo: temp print token for debugging
+    un_tokenPrint, //todo: temp print token for debugging
 
     /* meta */
     un_tokenError,
-    un_eof
+    un_tokenEOF
 } UNTokenType;
 
 /* represents a single Unknown token */

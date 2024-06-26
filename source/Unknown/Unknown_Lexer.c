@@ -193,7 +193,7 @@ UNToken unLexerMakeString(UNLexer *lexerPtr){
 
     /* advance past the closing quote */
     unLexerAdvance(lexerPtr);
-    return unLexerMakeToken(lexerPtr, un_string);
+    return unLexerMakeToken(lexerPtr, un_tokenString);
 }
 
 /*
@@ -231,7 +231,7 @@ UNToken unLexerMakeNumber(UNLexer *lexerPtr){
         }
     }
 
-    return unLexerMakeToken(lexerPtr, un_number);
+    return unLexerMakeToken(lexerPtr, un_tokenNumber);
 }
 
 /*
@@ -270,7 +270,7 @@ UNTokenType unLexerDeduceIdentifierType(
             1,
             3,
             "lse"
-        ) ? un_else : un_identifier;
+        ) ? un_tokenElse : un_tokenIdentifier;
         case 'f':
             if(lexerPtr->currentPtr
                 - lexerPtr->startPtr > 1
@@ -282,21 +282,21 @@ UNTokenType unLexerDeduceIdentifierType(
                             2,
                             3,
                             "lse"
-                        ) ? un_false : un_identifier;
+                        ) ? un_tokenFalse : un_tokenIdentifier;
                     case 'o':
                         return unLexerStringMatch(
                             lexerPtr,
                             2,
                             1,
                             "r"
-                        ) ? un_for : un_identifier;
+                        ) ? un_tokenFor : un_tokenIdentifier;
                     case 'u':
                         return unLexerStringMatch(
                             lexerPtr,
                             2,
                             3,
                             "unc"
-                        ) ? un_func : un_identifier;
+                        ) ? un_tokenFunc : un_tokenIdentifier;
                 } /* end 'f' branch */
             }
             break;
@@ -305,40 +305,40 @@ UNTokenType unLexerDeduceIdentifierType(
             1,
             1,
             "f"
-        ) ? un_if : un_identifier;
+        ) ? un_tokenIf : un_tokenIdentifier;
         case 'l': return unLexerStringMatch(
             lexerPtr,
             1,
             2,
             "et"
-        ) ? un_let : un_identifier;
+        ) ? un_tokenLet : un_tokenIdentifier;
         case 'p': return unLexerStringMatch(
             lexerPtr,
             1,
             4,
             "rint"
-        ) ? un_print : un_identifier;
+        ) ? un_tokenPrint : un_tokenIdentifier;
         case 'r': return unLexerStringMatch(
             lexerPtr,
             1,
             5,
             "eturn"
-        ) ? un_return : un_identifier;
+        ) ? un_tokenReturn : un_tokenIdentifier;
         case 't': return unLexerStringMatch(
             lexerPtr,
             1,
             3,
             "rue"
-        ) ? un_true : un_identifier;
+        ) ? un_tokenTrue : un_tokenIdentifier;
         case 'w': return unLexerStringMatch(
             lexerPtr,
             1,
             4,
             "hile"
-        ) ? un_while : un_identifier;
+        ) ? un_tokenWhile : un_tokenIdentifier;
     }
     /* otherwise, token is just a normal identifier */
-    return un_identifier;
+    return un_tokenIdentifier;
 }
 
 /* Reads an identifier from the specified lexer */
@@ -362,7 +362,7 @@ UNToken unLexerNext(UNLexer *lexerPtr){
 
     /* if at end, return eof token */
     if(unLexerIsAtEnd(lexerPtr)){
-        return unLexerMakeToken(lexerPtr, un_eof);
+        return unLexerMakeToken(lexerPtr, un_tokenEOF);
     }
 
     char c = unLexerAdvance(lexerPtr);
@@ -375,79 +375,79 @@ UNToken unLexerNext(UNLexer *lexerPtr){
     switch(c){
         case '(': return unLexerMakeToken(
             lexerPtr,
-            un_leftParen
+            un_tokenLeftParen
         );
         case ')': return unLexerMakeToken(
             lexerPtr,
-            un_rightParen
+            un_tokenRightParen
         );
         case '{': return unLexerMakeToken(
             lexerPtr,
-            un_leftBrace
+            un_tokenLeftBrace
         );
         case '}': return unLexerMakeToken(
             lexerPtr,
-            un_rightBrace
+            un_tokenRightBrace
         );
         case ';': return unLexerMakeToken(
             lexerPtr,
-            un_semicolon
+            un_tokenSemicolon
         );
         case ',': return unLexerMakeToken(
             lexerPtr,
-            un_comma
+            un_tokenComma
         );
         case '.': return unLexerMakeToken(
             lexerPtr,
-            un_dot
+            un_tokenDot
         );
         case '-': return unLexerMakeToken(
             lexerPtr,
-            un_minus
+            un_tokenMinus
         );
         case '+': return unLexerMakeToken(
             lexerPtr,
-            un_plus
+            un_tokenPlus
         );
         case '/': return unLexerMakeToken(
             lexerPtr,
-            un_slash
+            un_tokenSlash
         );
         case '*': return unLexerMakeToken(
             lexerPtr,
-            un_star
+            un_tokenStar
         );
         case '&': return unLexerMakeToken(
             lexerPtr,
-            un_ampersand
+            un_tokenAmpersand
         );
         case '|': return unLexerMakeToken(
             lexerPtr,
-            un_verticalBar
+            un_tokenVerticalBar
         );
         case '!': return unLexerMakeToken(
             lexerPtr,
             unLexerMatch(lexerPtr, '=')
-                ? un_bangEqual
-                : un_bang
+                ? un_tokenBangEqual
+                : un_tokenBang
         );
         case '=': return unLexerMakeToken(
             lexerPtr,
             unLexerMatch(lexerPtr, '=')
-                ? un_doubleEqual
-                : un_equal
+                ? un_tokenDoubleEqual
+                : un_tokenEqual
         );
         case '<': return unLexerMakeToken(
             lexerPtr,
             unLexerMatch(lexerPtr, '=')
-                ? un_lessEqual
-                : un_less
+                ? un_tokenLessEqual
+                : un_tokenLess
         );
         case '>': return unLexerMakeToken(
             lexerPtr,
             unLexerMatch(lexerPtr, '=')
-                ? un_greaterEqual
-                : un_greater
+                ? un_tokenGreaterEqual
+                : un_tokenGreater
         );
         case '"': return unLexerMakeString(lexerPtr);
     }

@@ -29,7 +29,7 @@ void unTest(){
 
     unProgramPushBackCode(&program, un_divide, 3);
     unProgramPushBackCode(&program, un_negate, 3);
-    unProgramPushBackCode(&program, un_return, 3);
+    unProgramPushBackCode(&program, un_tokenReturn, 3);
     //unProgramDisassemble(&program);
     printf("running vm\n");
     unVirtualMachineInterpret(&vm, &program);

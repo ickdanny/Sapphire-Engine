@@ -19,7 +19,7 @@ typedef enum UNInstruction {
     /* unary negation */
     un_negate,
     /* returns values from functions */
-    un_return,
+    un_tokenReturn,
 } UNInstruction;
 
 #endif
