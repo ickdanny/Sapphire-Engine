@@ -2,7 +2,17 @@
 
 /* todo: prints the specified value */
 void unValuePrint(UNValue value){
-    printf("%g", value);
+    switch(value.type){
+        case un_bool:
+            printf(unAsBool(value) ? "true" : "false");
+            break;
+        case un_number:
+            printf("%g", unAsNumber(value));
+            break;
+        case un_invalidValue:
+            printf("invalid value");
+            break;
+    }
 }
 
 #define literalsInitCapacity 8

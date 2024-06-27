@@ -11,7 +11,10 @@ UNVirtualMachine unVirtualMachineMake(){
     return toRet;
 }
 
-/* Pushes the specified value onto the stack */
+/*
+ * Pushes the specified value onto the stack of the
+ * specified virtual machine
+ */
 void unVirtualMachineStackPush(
     UNVirtualMachine *vmPtr,
     UNValue value
@@ -25,7 +28,10 @@ void unVirtualMachineStackPush(
     ++(vmPtr->stackPtr);
 }
 
-/* Pops the topmost value off the stack */
+/*
+ * Pops the topmost value off the stack of the
+ * specified virtual machine
+ */
 UNValue unVirtualMachineStackPop(
     UNVirtualMachine *vmPtr
 ){
@@ -34,6 +40,48 @@ UNValue unVirtualMachineStackPop(
     }
     --(vmPtr->stackPtr);
     return *(vmPtr->stackPtr);
+}
+
+/*
+ * Peeks at the topmost value on the stack of the
+ * specified virtual machine
+ */
+UNValue unVirtualMachineStackPeek(
+    UNVirtualMachine *vmPtr,
+    size_t distanceFromTop
+){
+    return vmPtr->stackPtr[-1 - distanceFromTop];
+}
+
+/*
+ * Throws a runtime error for the specified virtual
+ * machine
+ */
+void unVirtualMachineRuntimeError(
+    UNVirtualMachine *vmPtr,
+    const char *msg
+){
+    #define bufferSize 32
+    char buffer[bufferSize] = {0};
+    pgWarning("Unknown runtime error");
+    pgWarning(msg);
+    size_t instructionIndex
+        = vmPtr->instructionPtr
+            - (uint8_t*)vmPtr->programPtr->code._ptr
+                - 1;
+    uint16_t lineNumber = arrayListGet(uint16_t,
+        &(vmPtr->programPtr->lineNumbers),
+        instructionIndex
+    );
+    snprintf(
+        buffer,
+        bufferSize - 1,
+        "line %u",
+        lineNumber
+    );
+    pgError(buffer);
+    
+    #undef bufferSize
 }
 
 /*
@@ -120,9 +168,23 @@ static UNInterpretResult unVirtualMachineRun(
                 break;
             }
             case un_negate: {
+                if(unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    ).type != un_number
+                ){
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "Operand of unary '-' should "
+                        "be number"
+                    );
+                    return un_runtimeError;
+                }
                 unVirtualMachineStackPush(
                     vmPtr,
-                    -unVirtualMachineStackPop(vmPtr)
+                    unNumberValue(-unAsNumber(
+                        unVirtualMachineStackPop(vmPtr)
+                    ))
                 );
                 break;
             }
@@ -131,7 +193,7 @@ static UNInterpretResult unVirtualMachineRun(
                     vmPtr
                 ));
                 printf("\n");
-                return UN_OK;
+                return un_ok;
             }
         }
     }

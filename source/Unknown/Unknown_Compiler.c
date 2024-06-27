@@ -373,7 +373,7 @@ static void unCompilerExpressionPrecedence(
     /*
      * next token might indicate that the prefix 
      * expression is an operand of an infix one; make
-     * sure that precedence is low enough
+     * sure that its precedence is high enough
      */
     while(precedence <= getRule(
         compilerPtr->currentToken.type)->precedence
@@ -388,10 +388,10 @@ static void unCompilerExpressionPrecedence(
 
 /* Parses the next number for the specified compiler */
 void unCompilerNumber(UNCompiler *compilerPtr){
-    UNValue value = strtod(
+    UNValue value = unNumberValue(strtod(
         compilerPtr->prevToken.startPtr,
         NULL
-    );
+    ));
     unCompilerWriteLiteral(compilerPtr, value);
 }
  

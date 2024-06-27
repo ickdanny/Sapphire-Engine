@@ -11,9 +11,9 @@
  * program
  */
 typedef enum UNInterpretResult{
-    UN_OK,
-    UN_COMPILE_ERROR,
-    UN_RUNTIME_ERROR
+    un_ok,
+    un_compileError,
+    un_runtimeError
 } UNInterpretResult;
 
 /* the virtual machine which interprets UN programs */
