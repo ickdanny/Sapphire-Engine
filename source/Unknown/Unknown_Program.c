@@ -159,6 +159,16 @@ size_t unProgramDisassembleInstruction(
                 programPtr,
                 offset
             );
+        case un_true:
+            return printSimpleInstruction(
+                "TRUE",
+                offset
+            );
+        case un_false:
+            return printSimpleInstruction(
+                "FALSE",
+                offset
+            );
         case un_add:
             return printSimpleInstruction(
                 "ADD",
@@ -182,6 +192,26 @@ size_t unProgramDisassembleInstruction(
         case un_negate:
             return printSimpleInstruction(
                 "NEG",
+                offset
+            );
+        case un_equal:
+            return printSimpleInstruction(
+                "EQUAL",
+                offset
+            );
+        case un_greater:
+            return printSimpleInstruction(
+                "GREATER",
+                offset
+            );
+        case un_less:
+            return printSimpleInstruction(
+                "LESS",
+                offset
+            );
+        case un_not:
+            return printSimpleInstruction(
+                "NOT",
                 offset
             );
         case un_return:

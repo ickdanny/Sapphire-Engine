@@ -104,11 +104,29 @@ void unVirtualMachineRuntimeError(
  * Performs a binary arithmetic operation in the
  * specified virtual machine
  */
-#define binaryOperation(VMPTR, OP) \
+#define binaryOperation(VMPTR, VALUETYPE, OP) \
     do{ \
-        UNValue b = unVirtualMachineStackPop(VMPTR); \
-        UNValue a = unVirtualMachineStackPop(VMPTR); \
-        unVirtualMachineStackPush(VMPTR, a OP b); \
+        if(unVirtualMachineStackPeek((VMPTR), 0).type \
+                != un_number \
+            || unVirtualMachineStackPeek((VMPTR), 1) \
+                .type != un_number \
+        ){ \
+            unVirtualMachineRuntimeError( \
+                (VMPTR), \
+                "Operand should be numbers" \
+            ); \
+            return un_runtimeError; \
+        } \
+        double b = unAsNumber( \
+            unVirtualMachineStackPop(VMPTR) \
+        ); \
+        double a = unAsNumber( \
+            unVirtualMachineStackPop(VMPTR) \
+        ); \
+        unVirtualMachineStackPush( \
+            VMPTR, \
+            VALUETYPE(a OP b) \
+        ); \
     } while(false)
 
 /*
@@ -120,6 +138,8 @@ static UNInterpretResult unVirtualMachineRun(
     //todo run the virtual machine
     uint8_t instruction = 0;
     while(true){
+
+        /* debug printing */
         #ifdef _DEBUG
         printf("Stack:");
         for(UNValue *slotPtr = vmPtr->stack;
@@ -138,6 +158,7 @@ static UNInterpretResult unVirtualMachineRun(
                     ->code._ptr)
         );
         #endif
+
         /* read next instruction opcode */
         instruction = readByte(vmPtr);
         switch(instruction){
@@ -147,24 +168,52 @@ static UNInterpretResult unVirtualMachineRun(
                     vmPtr,
                     literal
                 );
-                unValuePrint(literal);
-                printf("\n");
+                break;
+            }
+            case un_true: {
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    unBoolValue(true)
+                );
+                break;
+            }
+            case un_false: {
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    unBoolValue(false)
+                );
                 break;
             }
             case un_add: {
-                binaryOperation(vmPtr, +);
+                binaryOperation(
+                    vmPtr,
+                    unNumberValue,
+                    +
+                );
                 break;
             }
             case un_subtract: {
-                binaryOperation(vmPtr, -);
+                binaryOperation(
+                    vmPtr,
+                    unNumberValue,
+                    -
+                );
                 break;
             }
             case un_multiply: {
-                binaryOperation(vmPtr, *);
+                binaryOperation(
+                    vmPtr,
+                    unNumberValue,
+                    *
+                );
                 break;
             }
             case un_divide: {
-                binaryOperation(vmPtr, /);
+                binaryOperation(
+                    vmPtr,
+                    unNumberValue,
+                    /
+                );
                 break;
             }
             case un_negate: {
@@ -183,6 +232,56 @@ static UNInterpretResult unVirtualMachineRun(
                 unVirtualMachineStackPush(
                     vmPtr,
                     unNumberValue(-unAsNumber(
+                        unVirtualMachineStackPop(vmPtr)
+                    ))
+                );
+                break;
+            }
+            case un_equal: {
+                UNValue b = unVirtualMachineStackPop(
+                    vmPtr
+                );
+                UNValue a = unVirtualMachineStackPop(
+                    vmPtr
+                );
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    unBoolValue(unValueEquals(a, b))
+                );
+                break;
+            }
+            case un_greater: {
+                binaryOperation(
+                    vmPtr,
+                    unBoolValue,
+                    >
+                );
+                break;
+            }
+            case un_less: {
+                binaryOperation(
+                    vmPtr,
+                    unBoolValue,
+                    <
+                );
+                break;
+            }
+            case un_not: {
+                if(unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    ).type != un_bool
+                ){
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "Operand of unary '!' should "
+                        "be bool"
+                    );
+                    return un_runtimeError;
+                }
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    unBoolValue(!unAsBool(
                         unVirtualMachineStackPop(vmPtr)
                     ))
                 );

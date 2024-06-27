@@ -30,22 +30,22 @@ void resourcesLoadDirectory(
 
 /*
  * Returns a pointer to the image resource specified
- * by the given WideString or NULL if no such image
+ * by the given String or NULL if no such image
  * exists
  */
 TFSprite *resourcesGetSprite(
     Resources *resourcesPtr,
-    WideString *wideStringPtr
+    String *stringPtr
 );
 
 /*
  * Returns a pointer to the midi resource specified
- * by the given WideString or NULL if no such midi
+ * by the given String or NULL if no such midi
  * exists
  */
 MidiSequence *resourcesGetMidi(
     Resources *resourcesPtr,
-    WideString *wideStringPtr
+    String *stringPtr
 );
 
 //todo get other resources (e.g. dialogue)

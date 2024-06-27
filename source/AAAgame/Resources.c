@@ -5,10 +5,10 @@
 
 /*
  * Isolates the file name from the given file path
- * and returns it as a WideString by value
+ * and returns it as a String by value
  */
-WideString isolateFileName(const char *fileName){
-    WideString toRet = wideStringMakeEmpty();
+String isolateFileName(const char *fileName){
+    String toRet = stringMakeEmpty();
 
     /* find last index of the period */
     int stringLength = strlen(fileName);
@@ -42,12 +42,12 @@ WideString isolateFileName(const char *fileName){
         stopIndexExclusive = stringLength;
     }
     
-    /* convert chars 1 by 1 to the wide string */
+    /* convert chars 1 by 1 to the string */
     for(int i = startIndexInclusive;
         i < stopIndexExclusive;
         ++i
     ){
-        wideStringPushBack(
+        stringPushBack(
             &toRet,
             fileName[i]
         );
@@ -64,15 +64,15 @@ static void loadImageIntoResources(
     HashMap *imageMapPtr = imageMapVoidPtr;
 
     TFSprite sprite = parseBitmapFile(fileName);
-    WideString stringID = isolateFileName(fileName);
-    if(hashMapHasKeyPtr(WideString, TFSprite,
+    String stringID = isolateFileName(fileName);
+    if(hashMapHasKeyPtr(String, TFSprite,
         imageMapPtr,
         &stringID
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same image");
     }
-    hashMapPutPtr(WideString, TFSprite,
+    hashMapPutPtr(String, TFSprite,
         imageMapPtr,
         &stringID,
         &sprite
@@ -87,15 +87,15 @@ static void loadMidiIntoResources(
     HashMap *midiMapPtr = midiMapVoidPtr;
 
     MidiSequence midi = parseMidiFile(fileName);
-    WideString stringID = isolateFileName(fileName);
-    if(hashMapHasKeyPtr(WideString, MidiSequence,
+    String stringID = isolateFileName(fileName);
+    if(hashMapHasKeyPtr(String, MidiSequence,
         midiMapPtr,
         &stringID
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same midi");
     }
-    hashMapPutPtr(WideString, MidiSequence,
+    hashMapPutPtr(String, MidiSequence,
         midiMapPtr,
         &stringID,
         &midi
@@ -119,16 +119,16 @@ Resources resourcesMake(){
         sizeof(*(toRet._midiMapPtr))
     );
     (*toRet._imageMapPtr) = hashMapMake(
-        WideString, TFSprite,
+        String, TFSprite,
         initImageCapacity,
-        constructureWideStringHash,
-        constructureWideStringEquals
+        constructureStringHash,
+        constructureStringEquals
     );
     (*toRet._midiMapPtr) = hashMapMake(
-        WideString, MidiSequence,
+        String, MidiSequence,
         initMidiCapacity,
-        constructureWideStringHash,
-        constructureWideStringEquals
+        constructureStringHash,
+        constructureStringEquals
     );
 
     /* create and configure loader */
@@ -171,31 +171,31 @@ void resourcesLoadDirectory(
 
 /*
  * Returns a pointer to the image resource specified
- * by the given WideString or NULL if no such image
+ * by the given String or NULL if no such image
  * exists
  */
 TFSprite *resourcesGetSprite(
     Resources *resourcesPtr,
-    WideString *wideStringPtr
+    String *stringPtr
 ){
-    return hashMapGetPtr(WideString, TFSprite,
+    return hashMapGetPtr(String, TFSprite,
         resourcesPtr->_imageMapPtr,
-        wideStringPtr
+        stringPtr
     );
 }
 
 /*
  * Returns a pointer to the midi resource specified
- * by the given WideString or NULL if no such midi
+ * by the given String or NULL if no such midi
  * exists
  */
 MidiSequence *resourcesGetMidi(
     Resources *resourcesPtr,
-    WideString *wideStringPtr
+    String *stringPtr
 ){
-    return hashMapGetPtr(WideString, MidiSequence,
+    return hashMapGetPtr(String, MidiSequence,
         resourcesPtr->_midiMapPtr,
-        wideStringPtr
+        stringPtr
     );
 }
 
@@ -210,29 +210,29 @@ void resourcesFree(Resources *resourcesPtr){
     blResourceLoaderFree(&(resourcesPtr->_loader));
 
     /* free image map */
-    hashMapApply(WideString, TFSprite,
+    hashMapApply(String, TFSprite,
         resourcesPtr->_imageMapPtr,
         tfSpriteFree
     );
-    hashMapKeyApply(WideString, TFSprite,
+    hashMapKeyApply(String, TFSprite,
         resourcesPtr->_imageMapPtr,
-        wideStringFree
+        stringFree
     );
-    hashMapFree(WideString, TFSprite,
+    hashMapFree(String, TFSprite,
         resourcesPtr->_imageMapPtr
     );
     pgFree(resourcesPtr->_imageMapPtr);
 
     /* free midi map */
-    hashMapApply(WideString, MidiSequence,
+    hashMapApply(String, MidiSequence,
         resourcesPtr->_midiMapPtr,
         midiSequenceFree
     );
-    hashMapKeyApply(WideString, MidiSequence,
+    hashMapKeyApply(String, MidiSequence,
         resourcesPtr->_midiMapPtr,
-        wideStringFree
+        stringFree
     );
-    hashMapFree(WideString, MidiSequence,
+    hashMapFree(String, MidiSequence,
         resourcesPtr->_midiMapPtr
     );
     pgFree(resourcesPtr->_midiMapPtr);

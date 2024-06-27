@@ -8,6 +8,10 @@ typedef enum UNInstruction {
      * FORMAT: [op][index]
      */
     un_literal,
+    /* instructs VM to load "true" */
+    un_true,
+    /* instructs VM to load "false" */
+    un_false,
     /* binary addition */
     un_add,
     /* binary subtraction */
@@ -18,6 +22,14 @@ typedef enum UNInstruction {
     un_divide,
     /* unary negation */
     un_negate,
+    /* binary equality comparison */
+    un_equal,
+    /* binary greater comparison */
+    un_greater,
+    /* binary less comparison */
+    un_less,
+    /* unary boolean not */
+    un_not,
     /* returns values from functions */
     un_return,
 } UNInstruction;

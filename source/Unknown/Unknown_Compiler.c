@@ -319,7 +319,7 @@ static uint8_t unCompilerMakeLiteral(
      * error if the lit index doesn't fit in a single
      * byte since it needs to fit in the instruction
      */
-    if(value > UINT8_MAX){
+    if(litIndex > UINT8_MAX){
         unCompilerErrorPrev(
             compilerPtr,
             "too many constants to fit index in byte"
@@ -414,13 +414,18 @@ void unCompilerUnary(UNCompiler *compilerPtr){
     );
 
     switch(operatorType){
+        case un_tokenBang:
+            unCompilerWriteByte(
+                compilerPtr,
+                un_not
+            );
+            break;
         case un_tokenMinus:
             unCompilerWriteByte(
                 compilerPtr,
                 un_negate
             );
             break;
-        //todo: unary bang
         default:
             /* do nothing */
             break;
@@ -466,9 +471,50 @@ void unCompilerBinary(UNCompiler *compilerPtr){
                 un_divide
             );
             break;
-        default:
-            /* do nothing */
+        case un_tokenBangEqual:
+            unCompilerWriteBytes(
+                compilerPtr,
+                un_equal,
+                un_not
+            );
             break;
+        case un_tokenDoubleEqual:
+            unCompilerWriteByte(
+                compilerPtr,
+                un_equal
+            );
+            break;
+        case un_tokenGreater:
+            unCompilerWriteByte(
+                compilerPtr,
+                un_greater
+            );
+            break;
+        case un_tokenGreaterEqual:
+            unCompilerWriteBytes(
+                compilerPtr,
+                un_less,
+                un_not
+            );
+            break;
+        case un_tokenLess:
+            unCompilerWriteByte(
+                compilerPtr,
+                un_less
+            );
+            break;
+        case un_tokenLessEqual:
+            unCompilerWriteBytes(
+                compilerPtr,
+                un_greater,
+                un_not
+            );
+            break;
+        default:
+            pgError(
+                "unexpected default in binary; "
+                SRC_LOCATION
+            );
     }
 }
 
@@ -539,10 +585,28 @@ void unCompilerOr(UNCompiler *compilerPtr){
 
 /*
  * Parses a bool for the specified compiler
- * //todo
  */
 void unCompilerBool(UNCompiler *compilerPtr){
-    //todo bool body
+    switch(compilerPtr->prevToken.type){
+        case un_tokenFalse:
+            unCompilerWriteByte(
+                compilerPtr,
+                un_false
+            );
+            break;
+        case un_tokenTrue:
+            unCompilerWriteByte(
+                compilerPtr,
+                un_true
+            );
+            break;
+        default:
+            pgError(
+                "expect default to be unreachable; "
+                SRC_LOCATION
+            );
+            return;
+    }
 }
 
 /*
