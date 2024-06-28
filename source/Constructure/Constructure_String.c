@@ -1,5 +1,7 @@
 #include "Constructure_String.h"
 
+#include "ZMath.h"
+
 /*
  * Unlike the generic containers in the rest
  * of Constructure, the String types will
@@ -72,6 +74,45 @@ TYPENAME PREFIX##MakeC( \
 \
 /* \
  * Creates a string copy of the given null \
+ * terminated C string of the character type \
+ * up to the given maximum number of characters \
+ * copied (not including the null terminator) and \
+ * returns it by value \
+ */ \
+TYPENAME PREFIX##MakeCLength( \
+    const CHARTYPE *cStringPtr, \
+    size_t maxCharsCopied \
+){ \
+    TYPENAME toRet = {0}; \
+    size_t toCopyLength \
+        = _##PREFIX##CLength(cStringPtr); \
+    toRet.length = minSizeT( \
+        toCopyLength, \
+        maxCharsCopied \
+    ); \
+    toRet._capacity = lengthIncludingNull( \
+        toRet.length \
+    ); \
+    toRet._ptr = (CHARTYPE *)pgAlloc( \
+        toRet._capacity,  \
+        sizeof(CHARTYPE) \
+    ); \
+\
+    /*  \
+     * use memcpy instead of a custom \
+     * _cStringCopy since the lengths of strings \
+     * are already stored \
+     */ \
+    memcpy( \
+        toRet._ptr,  \
+        cStringPtr,  \
+        toRet._capacity * sizeof(CHARTYPE) \
+    ); \
+    return toRet; \
+} \
+\
+/* \
+ * Creates a string copy of the given null \
  * terminated C string of type "char" and returns \
  * it by value \
  */ \
@@ -80,6 +121,37 @@ TYPENAME PREFIX##MakeCharC( \
 ){ \
     TYPENAME toRet = {0}; \
     toRet.length = strlen(cStringPtr); \
+    toRet._capacity = lengthIncludingNull( \
+        toRet.length \
+    ); \
+    toRet._ptr = (CHARTYPE *)pgAlloc( \
+        toRet._capacity,  \
+        sizeof(CHARTYPE) \
+    ); \
+    /* copy chars 1 by 1 into possibly larger type */ \
+    for(size_t i = 0; i < toRet.length; ++i){ \
+        toRet._ptr[i] = cStringPtr[i]; \
+    } \
+    return toRet; \
+} \
+\
+/* \
+ * Creates a string copy of the given null \
+ * terminated C string of type "char" \
+ * up to the given maximum number of characters \
+ * copied (not including the null terminator) and \
+ * returns it by value \
+ */ \
+TYPENAME PREFIX##MakeCharCLength( \
+    const char *cStringPtr, \
+    size_t maxCharsCopied \
+){ \
+    TYPENAME toRet = {0}; \
+    size_t toCopyLength = strlen(cStringPtr); \
+    toRet.length = minSizeT( \
+        toCopyLength, \
+        maxCharsCopied \
+    ); \
     toRet._capacity = lengthIncludingNull( \
         toRet.length \
     ); \

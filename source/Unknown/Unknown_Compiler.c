@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "Unknown_Object.h"
+
 /*
  * Represents the precedence hiearchy of the grammar 
  * of Unknown from lowest to highest
@@ -566,9 +568,12 @@ void unCompilerString(UNCompiler *compilerPtr){
     unCompilerWriteLiteral(
         compilerPtr,
         unObjectValue(
-
+            unObjectStringCopy(
+                compilerPtr->prevToken.startPtr + 1,
+                compilerPtr->prevToken.length - 2
+            )
         )
-    )
+    );
 }
 
 /*

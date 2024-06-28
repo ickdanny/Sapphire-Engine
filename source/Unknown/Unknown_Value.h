@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "PGUtil.h"
+
 /* forward declares */
 typedef struct UNObject UNObject;
 typedef struct UNObjectString UNObjectString;

@@ -79,13 +79,34 @@ static inline char *unObjectAsCString(UNValue value){
 }
 
 /*
- * Creates and returns a new UNObjectString by copying
- * the specified number of characters from the given
- * character pointer
+ * Allocates and returns a new UNObjectString by
+ * pointer, copying the specified number of characters
+ * from the given character pointer
  */
-UNObjectString unObjectStringCopy(
+UNObjectString *unObjectStringCopy(
     const char *chars,
     size_t length
 );
+
+/*
+ * Allocates and returns a new UNObjectString by
+ * pointer, holding the concatenation of the two
+ * specified UNObjectStrings
+ */
+UNObjectString *unObjectStringConcat(
+    UNObjectString *leftStringPtr,
+    UNObjectString *rightStringPtr
+);
+
+/*
+ * Returns true if the two specified objects are equal,
+ * false otherwise
+ */
+bool unObjectEquals(UNObject *a, UNObject *b);
+
+/* Prints the value if it an object, error otherwise */
+void unObjectPrint(UNValue value);
+
+//todo free funcs
 
 #endif

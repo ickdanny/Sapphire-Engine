@@ -1,4 +1,5 @@
 #include "Unknown_Value.h"
+#include "Unknown_Object.h"
 
 #include "PGUtil.h"
 
@@ -15,6 +16,11 @@ bool unValueEquals(UNValue a, UNValue b){
             return unAsBool(a) == unAsBool(b);
         case un_number:
             return unAsNumber(a) == unAsNumber(b);
+        case un_object:
+            return unObjectEquals(
+                a.as.object,
+                b.as.object
+            );
         default:
             pgError(
                 "unexpected default in value equals; "
@@ -33,8 +39,17 @@ void unValuePrint(UNValue value){
         case un_number:
             printf("%g", unAsNumber(value));
             break;
+        case un_object:
+            unObjectPrint(value);
+            break;
         case un_invalidValue:
             printf("invalid value");
+            break;
+        default:
+            pgError(
+                "unexpected default; "
+                SRC_LOCATION
+            );
             break;
     }
 }

@@ -1,6 +1,7 @@
 #include "Unknown_VirtualMachine.h"
 
 #include "Unknown_Instructions.h"
+#include "Unknown_Object.h"
 
 /*
  * Constructs and returns a new UNVirtualMachine by
@@ -132,6 +133,27 @@ void unVirtualMachineRuntimeError(
     } while(false)
 
 /*
+ * Concatenates two strings for the specified virtual
+ * machine and pushes the result to the stack
+ */
+static void unVirtualMachineConcatenate(
+    UNVirtualMachine *vmPtr
+){
+    UNObjectString *b = unObjectAsString(
+        unVirtualMachineStackPop(vmPtr)
+    );
+    UNObjectString *a = unObjectAsString(
+        unVirtualMachineStackPop(vmPtr)
+    );
+    UNObjectString *concatenation
+        = unObjectStringConcat(a, b);
+    unVirtualMachineStackPush(
+        vmPtr,
+        unObjectValue(concatenation)
+    );
+}
+
+/*
  * Runs the specified virtual machine
  */
 static UNInterpretResult unVirtualMachineRun(
@@ -187,11 +209,61 @@ static UNInterpretResult unVirtualMachineRun(
                 break;
             }
             case un_add: {
-                binaryOperation(
-                    vmPtr,
-                    unNumberValue,
-                    +
-                );
+                /*
+                 * if both operands are strings,
+                 * concatenate them
+                 */
+                if(unIsString(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) && unIsString(
+                        unVirtualMachineStackPeek(
+                            vmPtr, 1
+                        )
+                    )
+                ){
+                    unVirtualMachineConcatenate(vmPtr);
+                }
+                /*
+                 * otherwise, they could be two numbers
+                 */
+                else if(unIsNumber(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) && unIsNumber(
+                        unVirtualMachineStackPeek(
+                            vmPtr, 1
+                        )
+                    )
+                ){
+                    double b = unAsNumber(
+                        unVirtualMachineStackPop(
+                            vmPtr
+                        )
+                    );
+                    double a = unAsNumber(
+                        unVirtualMachineStackPop(
+                            vmPtr
+                        )
+                    );
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unNumberValue(a + b)
+                    );
+                }
+                /* otherwise, error */
+                else{
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "Operands of '+' should be "
+                        "numbers or strings"
+                    );
+                    return un_runtimeError;
+                }
                 break;
             }
             case un_subtract: {

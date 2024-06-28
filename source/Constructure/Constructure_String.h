@@ -67,11 +67,35 @@ TYPENAME PREFIX##MakeC( \
 \
 /* \
  * Creates a string copy of the given null \
+ * terminated C string of the character type \
+ * up to the given maximum number of characters \
+ * copied (not including the null terminator) and \
+ * returns it by value \
+ */ \
+TYPENAME PREFIX##MakeCLength( \
+    const CHARTYPE *cStringPtr, \
+    size_t maxCharsCopied \
+); \
+\
+/* \
+ * Creates a string copy of the given null \
  * terminated C string of type "char" and returns \
  * it by value \
  */ \
 TYPENAME PREFIX##MakeCharC( \
     const char *cStringPtr \
+); \
+\
+/* \
+ * Creates a string copy of the given null \
+ * terminated C string of type "char" \
+ * up to the given maximum number of characters \
+ * copied (not including the null terminator) and \
+ * returns it by value \
+ */ \
+TYPENAME PREFIX##MakeCharCLength( \
+    const char *cStringPtr, \
+    size_t maxCharsCopied \
 ); \
 \
 /* \
