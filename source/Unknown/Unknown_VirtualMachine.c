@@ -106,14 +106,16 @@ void unVirtualMachineRuntimeError(
  */
 #define binaryOperation(VMPTR, VALUETYPE, OP) \
     do{ \
-        if(unVirtualMachineStackPeek((VMPTR), 0).type \
-                != un_number \
-            || unVirtualMachineStackPeek((VMPTR), 1) \
-                .type != un_number \
+        if(!unIsNumber( \
+                unVirtualMachineStackPeek((VMPTR), 0) \
+            ) \
+            || !unIsNumber( \
+                unVirtualMachineStackPeek((VMPTR), 1) \
+            ) \
         ){ \
             unVirtualMachineRuntimeError( \
                 (VMPTR), \
-                "Operand should be numbers" \
+                "Operands should be numbers" \
             ); \
             return un_runtimeError; \
         } \
@@ -217,11 +219,12 @@ static UNInterpretResult unVirtualMachineRun(
                 break;
             }
             case un_negate: {
-                if(unVirtualMachineStackPeek(
+                if(!unIsNumber(
+                    unVirtualMachineStackPeek(
                         vmPtr,
                         0
-                    ).type != un_number
-                ){
+                    )
+                )){
                     unVirtualMachineRuntimeError(
                         vmPtr,
                         "Operand of unary '-' should "
@@ -267,11 +270,12 @@ static UNInterpretResult unVirtualMachineRun(
                 break;
             }
             case un_not: {
-                if(unVirtualMachineStackPeek(
+                if(!unIsBool(
+                    unVirtualMachineStackPeek(
                         vmPtr,
                         0
-                    ).type != un_bool
-                ){
+                    )
+                )){
                     unVirtualMachineRuntimeError(
                         vmPtr,
                         "Operand of unary '!' should "

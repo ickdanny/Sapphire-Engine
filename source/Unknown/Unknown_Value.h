@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
+/* forward declares */
+typedef struct UNObject UNObject;
+typedef struct UNObjectString UNObjectString;
+
 /*
  * Enumerates the types of values that Unknown
  * supports
@@ -40,11 +44,29 @@ typedef struct UNValue{
     })
 
 /*
+ * Returns true if the specified UNValue is a bool,
+ * false otherwise
+ */
+#define unIsBool(VALUE) ((VALUE).type == un_bool)
+
+/*
+ * Returns true if the specified UNValue is a number,
+ * false otherwise
+ */
+#define unIsNumber(VALUE) ((VALUE).type == un_number)
+
+/*
+ * Returns true if the specified UNValue is an object,
+ * false otherwise
+ */
+#define unIsObject(VALUE) ((VALUE).type == un_object)
+
+/*
  * Unboxes the specified UNValue as a bool, error if
  * invalid tag
  */
 static inline bool unAsBool(UNValue value){
-    if(value.type == un_bool){
+    if(unIsBool(value)){
         return value.as.boolean;
     }
     else{
@@ -58,7 +80,7 @@ static inline bool unAsBool(UNValue value){
  * invalid tag
  */
 static inline double unAsNumber(UNValue value){
-    if(value.type == un_number){
+    if(unIsNumber(value)){
         return value.as.number;
     }
     else{
@@ -72,7 +94,7 @@ static inline double unAsNumber(UNValue value){
  * if invalid tag
  */
 static inline UNObject *unAsObject(UNValue value){
-    if(value.type == un_object){
+    if(unIsObject(value)){
         return value.as.object;
     }
     else{

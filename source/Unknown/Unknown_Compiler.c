@@ -561,10 +561,14 @@ void unCompilerVariable(UNCompiler *compilerPtr){
 
 /*
  * Parses a string for the specified compiler
- * //todo
  */
 void unCompilerString(UNCompiler *compilerPtr){
-    //todo string body
+    unCompilerWriteLiteral(
+        compilerPtr,
+        unObjectValue(
+
+        )
+    )
 }
 
 /*
