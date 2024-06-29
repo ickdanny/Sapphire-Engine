@@ -565,15 +565,22 @@ void unCompilerVariable(UNCompiler *compilerPtr){
  * Parses a string for the specified compiler
  */
 void unCompilerString(UNCompiler *compilerPtr){
+    /*
+     * The object is not referenced from the VM's
+     * object list as it is always accessible from
+     * the literals
+     */
     unCompilerWriteLiteral(
         compilerPtr,
         unObjectValue(
             unObjectStringCopy(
                 compilerPtr->prevToken.startPtr + 1,
-                compilerPtr->prevToken.length - 2
+                compilerPtr->prevToken.length - 2,
+                NULL
             )
         )
     );
+    //todo: free literals
 }
 
 /*

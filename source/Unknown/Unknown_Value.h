@@ -114,4 +114,9 @@ bool unValueEquals(UNValue a, UNValue b);
 /* prints the specified value */
 void unValuePrint(UNValue value);
 
+/*
+ * Frees the memory associated with the specified value
+ */
+void unValueFree(UNValue value);
+
 #endif

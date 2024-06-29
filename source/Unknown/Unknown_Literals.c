@@ -41,11 +41,21 @@ size_t unLiteralsPushBack(
     return literalsPtr->literals.size - 1;
 }
 
+/* Used to free objects allocated by the compiler */
+static void _unValueFree(UNValue *valuePtr){
+    unValueFree(*valuePtr);
+}
+
 /*
  * Frees the memory associated with the specified
  * UNLiterals
  */
 void unLiteralsFree(UNLiterals *literalsPtr){
+    /* free objects on the heap */
+    arrayListApply(UNValue,
+        &(literalsPtr->literals),
+        _unValueFree
+    );
     arrayListFree(UNValue, &(literalsPtr->literals));
     memset(literalsPtr, 0, sizeof(*literalsPtr));
 }

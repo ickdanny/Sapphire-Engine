@@ -26,6 +26,8 @@ typedef struct UNVirtualMachine{
     UNValue stack[UN_STACK_SIZE];
     /* pointer to one past the top of the stack */
     UNValue *stackPtr;
+    /* pointer to the head of the object list */
+    UNObject *objectListHeadPtr;
 } UNVirtualMachine;
 
 /*

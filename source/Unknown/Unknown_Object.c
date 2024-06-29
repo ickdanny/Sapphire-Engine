@@ -2,33 +2,49 @@
 
 /*
  * Allocates a new UNObject of the specified size
- * with the given type
+ * with the given type and inserts it at the head of
+ * the specified object list (nullable)
  */
 static UNObject *_unObjectAlloc(
     size_t size,
-    UNObjectType type
+    UNObjectType type,
+    UNObject **listHeadPtrPtr
 ){
     UNObject *toRet = pgAlloc(1, size);
     toRet->type = type;
+
+    if(listHeadPtrPtr){
+        toRet->nextPtr = *listHeadPtrPtr;
+        *(listHeadPtrPtr) = toRet;
+    }
+
     return toRet;
 }
 
 /* Allocates a new UNObject of the specified type */
-#define unObjectAlloc(TYPE, OBJTYPE) \
-    (TYPE*)_unObjectAlloc(sizeof(TYPE), OBJTYPE)
+#define unObjectAlloc(TYPE, OBJTYPE, LISTHEADPTRPTR) \
+    (TYPE*)_unObjectAlloc( \
+        sizeof(TYPE), \
+        OBJTYPE, \
+        LISTHEADPTRPTR \
+    )
 
 /*
  * Allocates and returns a new UNObjectString by
  * pointer, copying the specified number of characters
- * from the given character pointer
+ * from the given character pointer, and inserting that
+ * object at the start of the given object list
+ * (nullable)
  */
 UNObjectString *unObjectStringCopy(
     const char *chars,
-    size_t length
+    size_t length,
+    UNObject **listHeadPtrPtr
 ){
     UNObjectString *toRet = unObjectAlloc(
         UNObjectString,
-        un_stringObject
+        un_stringObject,
+        listHeadPtrPtr
     );
     toRet->string = stringMakeCLength(chars, length);
     return toRet;
@@ -37,15 +53,19 @@ UNObjectString *unObjectStringCopy(
 /*
  * Allocates and returns a new UNObjectString by
  * pointer, holding the concatenation of the two
- * specified UNObjectStrings
+ * specified UNObjectStrings, and also inserts that
+ * object at the start of the given object list
+ * (nullable)
  */
 UNObjectString *unObjectStringConcat(
     UNObjectString *leftStringPtr,
-    UNObjectString *rightStringPtr
+    UNObjectString *rightStringPtr,
+    UNObject **listHeadPtrPtr
 ){
     UNObjectString *toRet = unObjectAlloc(
         UNObjectString,
-        un_stringObject
+        un_stringObject,
+        listHeadPtrPtr
     );
     size_t totalLength = leftStringPtr->string.length
         + rightStringPtr->string.length;
@@ -112,4 +132,34 @@ void unObjectPrint(UNValue value){
             );
             break;
     }
+}
+
+/*
+ * Frees the memory associated with the specified
+ * object
+ */
+void unObjectFree(UNObject *objectPtr){
+    assertNotNull(
+        objectPtr,
+        "null passed to unObjectFree; "SRC_LOCATION
+    );
+
+    switch(objectPtr->type){
+        case un_stringObject: {
+            UNObjectString *stringPtr
+                = (UNObjectString*)objectPtr;
+            printf(
+                "free: %s\n",
+                stringPtr->string._ptr
+            );
+            stringFree(&(stringPtr->string));
+            break;
+        }
+        default:
+            /* do nothing */
+            return;
+    }
+
+    /* all objects are on the heap */
+    pgFree(objectPtr);
 }

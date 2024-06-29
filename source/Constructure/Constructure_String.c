@@ -106,7 +106,7 @@ TYPENAME PREFIX##MakeCLength( \
     memcpy( \
         toRet._ptr,  \
         cStringPtr,  \
-        toRet._capacity * sizeof(CHARTYPE) \
+        toRet.length * sizeof(CHARTYPE) \
     ); \
     return toRet; \
 } \

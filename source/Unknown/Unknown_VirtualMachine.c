@@ -146,7 +146,11 @@ static void unVirtualMachineConcatenate(
         unVirtualMachineStackPop(vmPtr)
     );
     UNObjectString *concatenation
-        = unObjectStringConcat(a, b);
+        = unObjectStringConcat(
+            a,
+            b,
+            &(vmPtr->objectListHeadPtr)
+        );
     unVirtualMachineStackPush(
         vmPtr,
         unObjectValue(concatenation)
@@ -391,13 +395,29 @@ UNInterpretResult unVirtualMachineInterpret(
 }
 
 /*
+ * Frees all objects in the object list of the given
+ * virtual machine
+ */
+static void unVirtualMachineFreeObjects(
+    UNVirtualMachine *vmPtr
+){
+    UNObject *currentPtr = vmPtr->objectListHeadPtr;
+    UNObject *nextPtr = NULL;
+    while(currentPtr){
+        nextPtr = currentPtr->nextPtr;
+        unObjectFree(currentPtr);
+        currentPtr = nextPtr;
+    }
+}
+
+/*
  * Resets the state of the given UNVirtualMachine
  */
 void unVirtualMachineReset(UNVirtualMachine *vmPtr){
     vmPtr->programPtr = NULL;
     vmPtr->instructionPtr = 0;
     vmPtr->stackPtr = vmPtr->stack;
-    //todo: no state yet in vm
+    unVirtualMachineFreeObjects(vmPtr);
 }
 
 /*
@@ -405,6 +425,6 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
  * UNVirtualMachine
  */
 void unVirtualMachineFree(UNVirtualMachine *vmPtr){
-    //todo: no state yet in vm
+    unVirtualMachineFreeObjects(vmPtr);
     memset(vmPtr, 0, sizeof(*vmPtr));
 }

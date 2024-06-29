@@ -13,11 +13,11 @@ typedef enum UNObjectType{
     un_stringObject,
 } UNObjectType;
 
-//todo
-
 /* the base struct for all object types */
 typedef struct UNObject{
     UNObjectType type;
+    /* forms a linked list of objects for GC */
+    struct UNObject *nextPtr;
 } UNObject;
 
 /* An object holding a string */
@@ -81,21 +81,27 @@ static inline char *unObjectAsCString(UNValue value){
 /*
  * Allocates and returns a new UNObjectString by
  * pointer, copying the specified number of characters
- * from the given character pointer
+ * from the given character pointer, and inserting that
+ * object at the start of the given object list
+ * (nullable)
  */
 UNObjectString *unObjectStringCopy(
     const char *chars,
-    size_t length
+    size_t length,
+    UNObject **listHeadPtrPtr
 );
 
 /*
  * Allocates and returns a new UNObjectString by
  * pointer, holding the concatenation of the two
- * specified UNObjectStrings
+ * specified UNObjectStrings, and also inserts that
+ * object at the start of the given object list
+ * (nullable)
  */
 UNObjectString *unObjectStringConcat(
     UNObjectString *leftStringPtr,
-    UNObjectString *rightStringPtr
+    UNObjectString *rightStringPtr,
+    UNObject **listHeadPtrPtr
 );
 
 /*
@@ -107,6 +113,10 @@ bool unObjectEquals(UNObject *a, UNObject *b);
 /* Prints the value if it an object, error otherwise */
 void unObjectPrint(UNValue value);
 
-//todo free funcs
+/*
+ * Frees the memory associated with the specified
+ * object
+ */
+void unObjectFree(UNObject *objectPtr);
 
 #endif

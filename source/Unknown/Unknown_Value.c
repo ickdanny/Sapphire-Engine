@@ -53,3 +53,17 @@ void unValuePrint(UNValue value){
             break;
     }
 }
+
+/*
+ * Frees the memory associated with the specified value
+ */
+void unValueFree(UNValue value){
+    switch(value.type){
+        case un_object:
+            unObjectFree(value.as.object);
+            break;
+        default:
+            /* do nothing */
+            return;
+    }
+}
