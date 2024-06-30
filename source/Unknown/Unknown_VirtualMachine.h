@@ -30,6 +30,7 @@ typedef struct UNVirtualMachine{
     UNObject *objectListHeadPtr;
     /* hashmap of UNObjectString* to UNValue */
     HashMap stringMap;
+    bool stringMapAllocated;
 
 } UNVirtualMachine;
 

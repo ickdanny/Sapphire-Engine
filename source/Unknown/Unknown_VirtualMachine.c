@@ -11,13 +11,11 @@
  */
 UNVirtualMachine unVirtualMachineMake(){
     UNVirtualMachine toRet = {0};
-    toRet.stringMap = hashMapMake(
-        UNObjectString*,
-        UNValue,
-        stringMapInitCapacity,
-        _unObjectStringPtrHash,
-        _unObjectStringPtrEquals
-    );
+    /*
+     * do not allocate the string map; defer to when
+     * the virtual machine actually starts to run
+     * a program
+     */
     return toRet;
 }
 
@@ -414,6 +412,8 @@ UNInterpretResult unVirtualMachineInterpret(
         UNValue,
         &(programPtr->literals.stringMap)
     );
+    vmPtr->stringMapAllocated = true;
+    
     return unVirtualMachineRun(vmPtr);
 }
 
@@ -434,6 +434,26 @@ static void unVirtualMachineFreeObjects(
 }
 
 /*
+ * Frees the string map of the given virtual machine
+ * if it is allocated, does nothing otherwise
+ */
+static void unVirtualMachineFreeStringMap(
+    UNVirtualMachine *vmPtr
+){
+    /*
+     * Free the string map but not any of the strings
+     * themselves since they are not owned by the
+     * string map
+     */
+    if(vmPtr->stringMapAllocated){
+        hashMapFree(UNObjectString*, UNValue,
+            &(vmPtr->stringMap)
+        );
+        vmPtr->stringMapAllocated = false;
+    }
+}
+
+/*
  * Resets the state of the given UNVirtualMachine
  */
 void unVirtualMachineReset(UNVirtualMachine *vmPtr){
@@ -441,9 +461,7 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
     vmPtr->instructionPtr = 0;
     vmPtr->stackPtr = vmPtr->stack;
     unVirtualMachineFreeObjects(vmPtr);
-    hashMapClear(UNObjectString*, UNValue,
-        &(vmPtr->stringMap)
-    );
+    unVirtualMachineFreeStringMap(vmPtr);
 }
 
 /*
@@ -452,13 +470,6 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
  */
 void unVirtualMachineFree(UNVirtualMachine *vmPtr){
     unVirtualMachineFreeObjects(vmPtr);
-    /*
-     * Free the string map but not any of the strings
-     * themselves since they are not owned by the
-     * string map
-     */
-    hashMapFree(UNObjectString*, UNValue,
-        &(vmPtr->stringMap)
-    );
+    unVirtualMachineFreeStringMap(vmPtr);
     memset(vmPtr, 0, sizeof(*vmPtr));
 }
