@@ -53,43 +53,36 @@ void unCompilerGrouping(UNCompiler *compilerPtr);
 
 /*
  * Parses a function call for the specified compiler
- * //todo
  */
 void unCompilerCall(UNCompiler *compilerPtr);
 
 /*
  * Parses a variable for the specified compiler
- * //todo
  */
 void unCompilerVariable(UNCompiler *compilerPtr);
 
 /*
  * Parses a string for the specified compiler
- * //todo
  */
 void unCompilerString(UNCompiler *compilerPtr);
 
 /*
  * Parses a boolean AND for the specified compiler
- * //todo
  */
 void unCompilerAnd(UNCompiler *compilerPtr);
 
 /*
  * Parses a boolean OR for the specified compiler
- * //todo
  */
 void unCompilerOr(UNCompiler *compilerPtr);
 
 /*
  * Parses a bool for the specified compiler
- * //todo
  */
 void unCompilerBool(UNCompiler *compilerPtr);
 
 /*
  * Parses a dot for the specified compiler
- * //todo
  */
 void unCompilerDot(UNCompiler *compilerPtr);
 

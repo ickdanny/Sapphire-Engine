@@ -30,16 +30,45 @@ static UNObject *_unObjectAlloc(
     )
 
 /*
+ * An equals function for UNObjectString* that actually
+ * walks the strings, used for string interning
+ */
+static bool _unObjectStringPtrCharwiseEquals(
+    const void *voidPtr1,
+    const void *voidPtr2
+){
+    UNObjectString **stringPtrPtr1
+        = (UNObjectString**)voidPtr1;
+    UNObjectString *stringPtr1 = *stringPtrPtr1;
+    UNObjectString **stringPtrPtr2
+        = (UNObjectString**)voidPtr2;
+    UNObjectString *stringPtr2 = *stringPtrPtr2;
+
+    return constructureStringEquals(
+        &(stringPtr1->string),
+        &(stringPtr2->string)
+    );
+}
+
+/*
  * Allocates and returns a new UNObjectString by
  * pointer, copying the specified number of characters
  * from the given character pointer, and inserting that
  * object at the start of the given object list
- * (nullable)
+ * (nullable); however, if the string to copy is
+ * already interned in the given HashMap, this
+ * function simply returns a pointer to the
+ * preexisting string and does not insert it in the
+ * object list, otherwise inserts the string
+ * into the map (NOTE: compile-constant strings are
+ * owned by the literals and do not show up in the
+ * virtual machine object list)
  */
 UNObjectString *unObjectStringCopy(
     const char *chars,
     size_t length,
-    UNObject **listHeadPtrPtr
+    UNObject **listHeadPtrPtr,
+    HashMap *stringMapPtr
 ){
     UNObjectString *toRet = unObjectAlloc(
         UNObjectString,
@@ -47,6 +76,58 @@ UNObjectString *unObjectStringCopy(
         listHeadPtrPtr
     );
     toRet->string = stringMakeCLength(chars, length);
+    toRet->cachedHashCode = constructureStringHash(
+        &(toRet->string)
+    );
+
+    /*
+     * swap out the equals func for a O(n) charwise
+     * string compare
+     */
+    stringMapPtr->_equalsFunc
+        = _unObjectStringPtrCharwiseEquals;
+    /*
+     * if string map has an identical string, free
+     * the newly allocated string and return a pointer
+     * to the preexisting one
+     */
+    if(hashMapHasKey(UNObjectString*, UNValue,
+        stringMapPtr,
+        toRet
+    )){
+        //todo debug msg
+        printf("found interned key (copy)\n");
+        /*
+         * remove the temp string from the object list
+         */
+        if(listHeadPtrPtr){
+            *listHeadPtrPtr
+                = toRet->objectBase.nextPtr;
+        }
+        /*
+         * get the matching key in the string map,
+         * i.e. the pointer to the interned string
+         */
+        UNObjectString *preexistingStringPtr
+            = hashMapGetKey(UNObjectString*, UNValue,
+                stringMapPtr,
+                toRet
+            );
+        unObjectFree((UNObject*)toRet);
+        toRet = preexistingStringPtr;
+    }
+    /* otherwise, insert into the hashmap */
+    else{
+        hashMapPut(UNObjectString*, UNValue,
+            stringMapPtr,
+            toRet,
+            0
+        );
+    }
+    /* unswap the equals func */
+    stringMapPtr->_equalsFunc
+        = _unObjectStringPtrEquals;
+    
     return toRet;
 }
 
@@ -55,12 +136,20 @@ UNObjectString *unObjectStringCopy(
  * pointer, holding the concatenation of the two
  * specified UNObjectStrings, and also inserts that
  * object at the start of the given object list
- * (nullable)
+ * (nullable); however, if the string to copy is
+ * already interned in the given HashMap, this
+ * function simply returns a pointer to the
+ * preexisting string and does not insert it in the
+ * object list, otherwise inserts the string
+ * into the map (NOTE: compile-constant strings are
+ * owned by the literals and do not show up in the
+ * virtual machine object list)
  */
 UNObjectString *unObjectStringConcat(
     UNObjectString *leftStringPtr,
     UNObjectString *rightStringPtr,
-    UNObject **listHeadPtrPtr
+    UNObject **listHeadPtrPtr,
+    HashMap *stringMapPtr
 ){
     UNObjectString *toRet = unObjectAlloc(
         UNObjectString,
@@ -82,6 +171,57 @@ UNObjectString *unObjectStringConcat(
         &(toRet->string),
         &(rightStringPtr->string)
     );
+    toRet->cachedHashCode = constructureStringHash(
+        &(toRet->string)
+    );
+
+    /*
+     * swap out the equals func for a O(n) charwise
+     * string compare
+     */
+    stringMapPtr->_equalsFunc
+        = _unObjectStringPtrCharwiseEquals;
+    /*
+     * if string map has an identical string, free
+     * the newly allocated string and return a pointer
+     * to the preexisting one
+     */
+    if(hashMapHasKey(UNObjectString*, UNValue,
+        stringMapPtr,
+        toRet
+    )){
+        //todo debug msg
+        printf("found interned key (concat)\n");
+        /*
+         * remove the temp string from the object list
+         */
+        if(listHeadPtrPtr){
+            *listHeadPtrPtr
+                = toRet->objectBase.nextPtr;
+        }
+        /*
+         * get the matching key in the string map,
+         * i.e. the pointer to the interned string
+         */
+        UNObjectString *preexistingStringPtr
+            = hashMapGetKey(UNObjectString*, UNValue,
+                stringMapPtr,
+                toRet
+            );
+        unObjectFree((UNObject*)toRet);
+        toRet = preexistingStringPtr;
+    }
+    /* otherwise, insert into the hashmap */
+    else{
+        hashMapPut(UNObjectString*, UNValue,
+            stringMapPtr,
+            toRet,
+            0
+        );
+    }
+    /* unswap the equals func */
+    stringMapPtr->_equalsFunc
+        = _unObjectStringPtrEquals;
 
     return toRet;
 }
@@ -96,14 +236,11 @@ bool unObjectEquals(UNObject *a, UNObject *b){
     }
     switch(a->type){
         case un_stringObject: {
-            UNObjectString *strPtr1
-                = (UNObjectString*)a;
-            UNObjectString *strPtr2
-                = (UNObjectString*)b;
-            return stringEquals(
-                &(strPtr1->string),
-                &(strPtr2->string)
-            );
+            /*
+             * due to string interning, we can check
+             * string equality with pointer equality
+             */
+            return a == b;
         }
         default:
             pgError(
@@ -162,4 +299,28 @@ void unObjectFree(UNObject *objectPtr){
 
     /* all objects are on the heap */
     pgFree(objectPtr);
+}
+
+/* For use with the Constructure Hashmap */
+size_t _unObjectStringPtrHash(const void *voidPtr){
+    UNObjectString **stringPtrPtr
+        = (UNObjectString**)voidPtr;
+    UNObjectString *stringPtr = *stringPtrPtr;
+    return stringPtr->cachedHashCode;
+}
+
+/* For use with the Constructure Hashmap */
+bool _unObjectStringPtrEquals(
+    const void *voidPtr1,
+    const void *voidPtr2
+){
+    UNObjectString **stringPtrPtr1
+        = (UNObjectString**)voidPtr1;
+    UNObjectString *stringPtr1 = *stringPtrPtr1;
+    UNObjectString **stringPtrPtr2
+        = (UNObjectString**)voidPtr2;
+    UNObjectString *stringPtr2 = *stringPtrPtr2;
+
+    /* use pointer equality since string interning */
+    return stringPtr1 == stringPtr2;
 }

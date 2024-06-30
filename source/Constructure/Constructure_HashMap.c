@@ -433,6 +433,42 @@ void *_hashMapGetPtr(
 }
 
 /*
+ * Returns a pointer to the key matching the given key
+ * in the given hashmap or returns NULL if no such key
+ * exists
+ */
+void *_hashMapGetKeyPtr(
+    HashMap *hashMapPtr,
+    const void *keyPtr,
+    size_t slotSize
+    #ifdef _DEBUG 
+    , const char *keyTypeName
+    , const char *valueTypeName
+    #endif
+){
+    #ifdef _DEBUG
+    _hashMapPtrTypeCheck(
+        keyTypeName, 
+        valueTypeName, 
+        hashMapPtr
+    );
+    #endif
+
+    void *slotPtr = _findSlotOfKey(
+        hashMapPtr,
+        keyPtr,
+        slotSize,
+        NULL
+    );
+    if(slotPtr){
+        return _getKeyPtr(slotPtr);
+    }
+    else{
+        return NULL;
+    }
+}
+
+/*
  * Copies the specified value into the given
  * hashmap and associates it with the given
  * key, possibly replacing its previously

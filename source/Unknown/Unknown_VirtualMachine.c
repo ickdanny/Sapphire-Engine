@@ -3,12 +3,21 @@
 #include "Unknown_Instructions.h"
 #include "Unknown_Object.h"
 
+#define stringMapInitCapacity 50
+
 /*
  * Constructs and returns a new UNVirtualMachine by
  * value
  */
 UNVirtualMachine unVirtualMachineMake(){
     UNVirtualMachine toRet = {0};
+    toRet.stringMap = hashMapMake(
+        UNObjectString*,
+        UNValue,
+        stringMapInitCapacity,
+        _unObjectStringPtrHash,
+        _unObjectStringPtrEquals
+    );
     return toRet;
 }
 
@@ -149,7 +158,8 @@ static void unVirtualMachineConcatenate(
         = unObjectStringConcat(
             a,
             b,
-            &(vmPtr->objectListHeadPtr)
+            &(vmPtr->objectListHeadPtr),
+            &(vmPtr->stringMap)
         );
     unVirtualMachineStackPush(
         vmPtr,
@@ -163,7 +173,6 @@ static void unVirtualMachineConcatenate(
 static UNInterpretResult unVirtualMachineRun(
     UNVirtualMachine *vmPtr
 ){
-    //todo run the virtual machine
     uint8_t instruction = 0;
     while(true){
 
@@ -391,6 +400,20 @@ UNInterpretResult unVirtualMachineInterpret(
     vmPtr->instructionPtr = unProgramGetEntryPoint(
         programPtr
     );
+    /*
+     * copy compile-time strings from the program
+     * literals into the runtime string interning
+     * hashmap; the strings are owned either by the
+     * literals, in the case of compile-time strings,
+     * or by the object list, in the case of runtime
+     * strings, and should not be freed from the map
+     * itself.
+     */
+    vmPtr->stringMap = hashMapCopy(
+        UNObjectString*,
+        UNValue,
+        &(programPtr->literals.stringMap)
+    );
     return unVirtualMachineRun(vmPtr);
 }
 
@@ -418,6 +441,9 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
     vmPtr->instructionPtr = 0;
     vmPtr->stackPtr = vmPtr->stack;
     unVirtualMachineFreeObjects(vmPtr);
+    hashMapClear(UNObjectString*, UNValue,
+        &(vmPtr->stringMap)
+    );
 }
 
 /*
@@ -426,5 +452,13 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
  */
 void unVirtualMachineFree(UNVirtualMachine *vmPtr){
     unVirtualMachineFreeObjects(vmPtr);
+    /*
+     * Free the string map but not any of the strings
+     * themselves since they are not owned by the
+     * string map
+     */
+    hashMapFree(UNObjectString*, UNValue,
+        &(vmPtr->stringMap)
+    );
     memset(vmPtr, 0, sizeof(*vmPtr));
 }

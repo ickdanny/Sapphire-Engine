@@ -9,13 +9,20 @@
 typedef struct UNLiterals{
     //todo: an array list of UNValue for now
     ArrayList literals;
+
+    /*
+     * hashmap of UNObjectString* to UNValue to be
+     * copied by the virtual machine for string
+     * interning
+     */
+    HashMap stringMap;
 } UNLiterals;
 
 /* Constructs and returns a new UNLiterals by value */
 UNLiterals unLiteralsMake();
 
 /*
- * Returns the todo: UNValue at the specified index
+ * Returns the UNValue at the specified index
  * in the given UNLiterals
  */
 UNValue unLiteralsGet(
@@ -24,7 +31,7 @@ UNValue unLiteralsGet(
 );
 
 /*
- * Pushes the specified todo: UNValue to the back of
+ * Pushes the specified UNValue to the back of
  * the specified UNLiterals and returns the index
  * where it was written
  */

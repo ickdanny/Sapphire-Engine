@@ -576,11 +576,12 @@ void unCompilerString(UNCompiler *compilerPtr){
             unObjectStringCopy(
                 compilerPtr->prevToken.startPtr + 1,
                 compilerPtr->prevToken.length - 2,
-                NULL
+                NULL,
+                &(compilerPtr->compiledProgram.
+                    literals.stringMap)
             )
         )
     );
-    //todo: free literals
 }
 
 /*

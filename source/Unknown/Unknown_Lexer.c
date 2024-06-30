@@ -356,7 +356,6 @@ UNToken unLexerMakeIdentifier(UNLexer *lexerPtr){
 
 /* Gets the next token from the specified lexer */
 UNToken unLexerNext(UNLexer *lexerPtr){
-    //todo
     unLexerSkipWhitespace(lexerPtr);
     lexerPtr->startPtr = lexerPtr->currentPtr;
 

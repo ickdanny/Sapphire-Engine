@@ -502,6 +502,77 @@ void *_hashMapGetPtr(
     )))
 
 /*
+ * Returns a pointer to the key matching the given key
+ * in the given hashmap or returns NULL if no such key
+ * exists
+ */
+void *_hashMapGetKeyPtr(
+    HashMap *hashMapPtr,
+    const void *keyPtr,
+    size_t slotSize
+    #ifdef _DEBUG 
+    , const char *keyTypeName
+    , const char *valueTypeName
+    #endif
+);
+
+#ifndef _DEBUG
+/*
+ * Returns a pointer to the key matching the given key
+ * in the given hashmap of the specified key and value
+ * types or returns NULL if no such value exists
+ */
+#define hashMapGetKeyPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR \
+) \
+    ((KEYTYPENAME*)(_hashMapGetKeyPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME) \
+    )))
+#else
+/*
+ * Returns a pointer to the key matching the given key
+ * in the given hashmap of the specified key and value
+ * types or returns NULL if no such value exists
+ */
+#define hashMapGetKeyPtr( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEYPTR \
+) \
+    ((KEYTYPENAME*)(_hashMapGetKeyPtr( \
+        HASHMAPPTR, \
+        KEYPTR, \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        #KEYTYPENAME, \
+        #VALUETYPENAME \
+    )))
+#endif
+
+/*
+ * Returns the key matching the given key in the given
+ * hashmap of the specified key and value types; will
+ * cause an error if there is no such key
+ */
+#define hashMapGetKey( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    KEY \
+) \
+    (*(hashMapGetKeyPtr( \
+        KEYTYPENAME, \
+        VALUETYPENAME, \
+        HASHMAPPTR, \
+        &(KEYTYPENAME){KEY} \
+    )))
+
+/*
  * Copies the specified value into the given
  * hashmap and associates it with the given
  * key, possibly replacing its previously

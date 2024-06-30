@@ -24,6 +24,7 @@ typedef struct UNObject{
 typedef struct UNObjectString{
     UNObject objectBase;
     String string;
+    size_t cachedHashCode;
 } UNObjectString;
 
 /*
@@ -83,12 +84,20 @@ static inline char *unObjectAsCString(UNValue value){
  * pointer, copying the specified number of characters
  * from the given character pointer, and inserting that
  * object at the start of the given object list
- * (nullable)
+ * (nullable); however, if the string to copy is
+ * already interned in the given HashMap, this
+ * function simply returns a pointer to the
+ * preexisting string and does not insert it in the
+ * object list, otherwise inserts the string
+ * into the map (NOTE: compile-constant strings are
+ * owned by the literals and do not show up in the
+ * virtual machine object list)
  */
 UNObjectString *unObjectStringCopy(
     const char *chars,
     size_t length,
-    UNObject **listHeadPtrPtr
+    UNObject **listHeadPtrPtr,
+    HashMap *stringMapPtr
 );
 
 /*
@@ -96,12 +105,20 @@ UNObjectString *unObjectStringCopy(
  * pointer, holding the concatenation of the two
  * specified UNObjectStrings, and also inserts that
  * object at the start of the given object list
- * (nullable)
+ * (nullable); however, if the string to copy is
+ * already interned in the given HashMap, this
+ * function simply returns a pointer to the
+ * preexisting string and does not insert it in the
+ * object list, otherwise inserts the string
+ * into the map (NOTE: compile-constant strings are
+ * owned by the literals and do not show up in the
+ * virtual machine object list)
  */
 UNObjectString *unObjectStringConcat(
     UNObjectString *leftStringPtr,
     UNObjectString *rightStringPtr,
-    UNObject **listHeadPtrPtr
+    UNObject **listHeadPtrPtr,
+    HashMap *stringMapPtr
 );
 
 /*
@@ -118,5 +135,14 @@ void unObjectPrint(UNValue value);
  * object
  */
 void unObjectFree(UNObject *objectPtr);
+
+/* For use with the Constructure Hashmap */
+size_t _unObjectStringPtrHash(const void *voidPtr);
+
+/* For use with the Constructure Hashmap */
+bool _unObjectStringPtrEquals(
+    const void *voidPtr1,
+    const void *voidPtr2
+);
 
 #endif

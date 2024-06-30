@@ -28,6 +28,9 @@ typedef struct UNVirtualMachine{
     UNValue *stackPtr;
     /* pointer to the head of the object list */
     UNObject *objectListHeadPtr;
+    /* hashmap of UNObjectString* to UNValue */
+    HashMap stringMap;
+
 } UNVirtualMachine;
 
 /*

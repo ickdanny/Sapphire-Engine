@@ -13,6 +13,7 @@ bool intEquals(
     return *((int*)intPtr1) == *((int*)intPtr2);
 }
 
+/* the hash algorithm for null terminated strings */
 #define NULL_TERMINATED_STRING_HASH_ALGORITHM( \
     CHAR_PTR_NAME \
 ) \
