@@ -23,7 +23,7 @@ typedef enum UNPrecedence{
 } UNPrecedence;
 
 /* A function which is associated with a parse rule */
-typedef void (*ParseFunc)(UNCompiler*);
+typedef void (*ParseFunc)(UNCompiler*, bool);
 
 /*
  * Encapsulates the behavior of the compiler upon
@@ -250,28 +250,52 @@ static void unCompilerAdvance(UNCompiler *compilerPtr){
 }
 
 /*
- * Advances the specified compiler to the next token
- * and makes sure it matches the given type
+ * Returns true if the current token in the specified
+ * compiler matches the given type, false otherwise
  */
-static void unCompilerMatch(
+static bool unCompilerCheckType(
     UNCompiler *compilerPtr,
-    UNTokenType type,
-    const char *errorMsgIfNoMatch
+    UNTokenType type
 ){
-    if(compilerPtr->currentToken.type == type){
-        unCompilerAdvance(compilerPtr);
-        return;
-    }
-
-    unCompilerErrorCurrent(
-        compilerPtr,
-        errorMsgIfNoMatch
-    );
+    return compilerPtr->currentToken.type == type;
 }
 
 /*
+ * Advances the specified compiler to the next token
+ * if matches the given type, returns true if
+ * match found, false otherwise
+ */
+static bool unCompilerMatch(
+    UNCompiler *compilerPtr,
+    UNTokenType type
+){
+    if(unCompilerCheckType(compilerPtr, type)){
+        unCompilerAdvance(compilerPtr);
+        return true;
+    }
+    return false;
+}
+
+/*
+ * Advances the specified compiler to the next token
+ * if it matches the given type, error if it doesn't
+ */
+#define unCompilerConsume( \
+    COMPILERPTR, \
+    TYPE, \
+    ERRORMSG \
+) \
+    assertTrue( \
+        unCompilerMatch( \
+            (COMPILERPTR), \
+            (TYPE) \
+        ), \
+        ERRORMSG \
+    )
+
+/*
  * Gets the current program from the specified compiler
- * //todo: update later
+ * //todo: update getCurrentProgram later
  */
 static UNProgram *unCompilerGetCurrentProgram(
     UNCompiler *compilerPtr
@@ -303,6 +327,43 @@ static UNProgram *unCompilerGetCurrentProgram(
         unCompilerWriteByte(COMPILERPTR, BYTE1); \
         unCompilerWriteByte(COMPILERPTR, BYTE2); \
     } while(false)
+
+/*
+ * After a compiler error, the compiler will try to
+ * move to the next sync point i.e. the next statement
+ * boundary
+ */
+static void unCompilerSynchronize(
+    UNCompiler *compilerPtr
+){
+    compilerPtr->inPanicMode = false;
+    while(compilerPtr->currentToken.type
+        != un_tokenEOF
+    ){
+        /* if passed a semicolon, reached sync point */
+        if(compilerPtr->prevToken.type
+            == un_tokenSemicolon
+        ){
+            return;
+        }
+        switch(compilerPtr->currentToken.type){
+            //todo: possible other types of declares
+            case un_tokenFunc:
+            case un_tokenLet:
+            case un_tokenFor:
+            case un_tokenIf:
+            case un_tokenWhile:
+            case un_tokenPrint:
+            case un_tokenReturn:
+                return;
+            default:
+                /* do nothing */
+                break;
+        }
+
+        unCompilerAdvance(compilerPtr);
+    }
+}
 
 /*
  * Adds a literal to the current program of the
@@ -355,7 +416,6 @@ static void unCompilerExpressionPrecedence(
     UNCompiler *compilerPtr,
     UNPrecedence precedence
 ){
-    //todo expr precedence
     /* read next token, check for prefix rule */
     unCompilerAdvance(compilerPtr);
     ParseFunc prefixFunc = getRule(
@@ -370,7 +430,8 @@ static void unCompilerExpressionPrecedence(
         );
         return;
     }
-    prefixFunc(compilerPtr);
+    bool canAssign = precedence <= un_precAssign;
+    prefixFunc(compilerPtr, canAssign);
 
     /*
      * next token might indicate that the prefix 
@@ -384,12 +445,25 @@ static void unCompilerExpressionPrecedence(
         ParseFunc infixFunc = getRule(
             compilerPtr->prevToken.type
         )->infixFunc;
-        infixFunc(compilerPtr);
+        infixFunc(compilerPtr, canAssign);
+    }
+
+    /* error if trailing '=' */
+    if(canAssign
+        && unCompilerMatch(compilerPtr, un_tokenEqual)
+    ){
+        unCompilerErrorPrev(
+            compilerPtr,
+            "Invalid assignment target"
+        );
     }
 }
 
 /* Parses the next number for the specified compiler */
-void unCompilerNumber(UNCompiler *compilerPtr){
+void unCompilerNumber(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     UNValue value = unNumberValue(strtod(
         compilerPtr->prevToken.startPtr,
         NULL
@@ -401,7 +475,10 @@ void unCompilerNumber(UNCompiler *compilerPtr){
  * Parses the next unary operator for the specified
  * compiler
  */
-void unCompilerUnary(UNCompiler *compilerPtr){
+void unCompilerUnary(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     /*
      * save the type (since we have to read the rest
      * of the expression)
@@ -438,7 +515,10 @@ void unCompilerUnary(UNCompiler *compilerPtr){
  * Parses the next infix binary operator for the
  * specified compiler
  */
-void unCompilerBinary(UNCompiler *compilerPtr){
+void unCompilerBinary(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     /*
      * save the type (since we have to read the rest
      * of the expression)
@@ -524,7 +604,9 @@ void unCompilerBinary(UNCompiler *compilerPtr){
  * Parses the next expression for the specified
  * compiler
  */
-void unCompilerExpression(UNCompiler *compilerPtr){
+void unCompilerExpression(
+    UNCompiler *compilerPtr
+){
     unCompilerExpressionPrecedence(
         compilerPtr,
         un_precAssign
@@ -532,16 +614,179 @@ void unCompilerExpression(UNCompiler *compilerPtr){
 }
 
 /*
+ * Parses the next declaration for the specified
+ * compiler; a declaration includes declares whereas
+ * a statement does not
+ */
+void unCompilerDeclaration(UNCompiler *compilerPtr){
+    if(unCompilerMatch(compilerPtr, un_tokenLet)){
+        unCompilerVariableDeclaration(compilerPtr);
+    }
+    else{
+        unCompilerStatement(compilerPtr);
+    }
+
+    /* if compile error, go to a sync point */
+    if(compilerPtr->inPanicMode){
+        unCompilerSynchronize(compilerPtr);
+    }
+}
+
+/*
+ * Creates a new string literal for the specified
+ * identifier and returns its literal index
+ */
+static uint8_t unCompilerIdentifierLiteral(
+    UNCompiler *compilerPtr,
+    UNToken *tokenPtr
+){
+    return unCompilerMakeLiteral(
+        compilerPtr,
+        unObjectValue(
+            unObjectStringCopy(
+                tokenPtr->startPtr,
+                tokenPtr->length,
+                NULL,
+                &(compilerPtr->compiledProgram
+                    .literals.stringMap)
+            )
+        )
+    );
+}
+
+/*
+ * Parses the name of the next variable for the given
+ * compiler and returns the index of the string
+ * constant for the name
+ */
+static uint8_t unCompilerParseVariable(
+    UNCompiler *compilerPtr,
+    const char *errorMsg
+){
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenIdentifier,
+        errorMsg
+    );
+    return unCompilerIdentifierLiteral(
+        compilerPtr,
+        &(compilerPtr->prevToken)
+    );
+}
+
+/*
+ * Emits the bytecode for a global variable declaration
+ * for the specified compiler
+ */
+static void unCompilerDefineVariable(
+    UNCompiler *compilerPtr,
+    uint8_t globalIndex
+){
+    unCompilerWriteBytes(
+        compilerPtr,
+        un_defineGlobal,
+        globalIndex
+    );
+}
+
+/*
+ * Parses the next variable declaration for the
+ * specified compiler; uninitialized variables get the
+ * default value of FALSE
+ */
+void unCompilerVariableDeclaration(
+    UNCompiler *compilerPtr
+){
+    uint8_t globalIndex = unCompilerParseVariable(
+        compilerPtr,
+        "expect variable name"
+    );
+
+    if(unCompilerMatch(compilerPtr, un_tokenEqual)){
+        unCompilerExpression(compilerPtr);
+    }
+    else{
+        /*
+         * if uninitialized, variables get set to
+         * the value FALSE
+         */
+        unCompilerWriteByte(compilerPtr, un_false);
+    }
+
+    /* eat the semicolon */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenSemicolon,
+        "expect ';' after var declare; "
+    );
+
+    unCompilerDefineVariable(compilerPtr, globalIndex);
+}
+
+/*
+ * Parses the next statement for the specified
+ * compiler; a declaration includes declares whereas
+ * a statement does not
+ */
+void unCompilerStatement(UNCompiler *compilerPtr){
+    if(unCompilerMatch(compilerPtr, un_tokenPrint)){
+        unCompilerPrintStatement(compilerPtr);
+    }
+    /* if none of the above, expression statement */
+    else{
+        unCompilerExpressionStatement(compilerPtr);
+    }
+}
+
+/*
+ * Parses the next print statement for the specified
+ * compiler
+ */
+void unCompilerPrintStatement(UNCompiler *compilerPtr){
+    /* compile the expression after "print" */
+    unCompilerExpression(compilerPtr);
+    /* eat the semicolon */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenSemicolon,
+        "expect ';' after print statement; "
+    );
+    /* print the result of the expression */
+    unCompilerWriteByte(compilerPtr, un_print);
+}
+
+/*
+ * Parses the next expression statement for the
+ * specified compiler
+ */
+void unCompilerExpressionStatement(
+    UNCompiler *compilerPtr
+){
+    unCompilerExpression(compilerPtr);
+    /* eat the semicolon */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenSemicolon,
+        "expect ';' after expr statement; "
+    );
+    /* discard the result of the expression */
+    unCompilerWriteByte(compilerPtr, un_pop);
+}
+
+/*
  * Parses an expression within a set of parenthesis
  * for the specified compiler - should be called after
  * the first parenthesis has been matched
  */
-void unCompilerGrouping(UNCompiler *compilerPtr){
+void unCompilerGrouping(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     unCompilerExpression(compilerPtr);
-    unCompilerMatch(
+    unCompilerConsume(
         compilerPtr,
         un_tokenRightParen,
-        "expect ')' after expression"
+        "expect ')' after expression; "
     );
 }
 
@@ -549,22 +794,68 @@ void unCompilerGrouping(UNCompiler *compilerPtr){
  * Parses a function call for the specified compiler
  * //todo
  */
-void unCompilerCall(UNCompiler *compilerPtr){
+void unCompilerCall(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     //todo call body
 }
 
 /*
- * Parses a variable for the specified compiler
- * //todo
+ * Emits a un_getGlobal instruction for the specified
+ * variable passed as a token for the given compiler
  */
-void unCompilerVariable(UNCompiler *compilerPtr){
-    //todo var body
+static void unCompilerNamedVariable(
+    UNCompiler *compilerPtr,
+    UNToken varName,
+    bool canAssign
+){
+    uint8_t nameIndex = unCompilerIdentifierLiteral(
+        compilerPtr,
+        &varName
+    );
+
+    /* if following token is equal, assignment */
+    if(canAssign
+        && unCompilerMatch(compilerPtr, un_tokenEqual)
+    ){
+        unCompilerExpression(compilerPtr);
+        unCompilerWriteBytes(
+            compilerPtr,
+            un_setGlobal,
+            nameIndex
+        );
+    }
+    else{
+        unCompilerWriteBytes(
+            compilerPtr,
+            un_getGlobal,
+            nameIndex
+        );
+    }
+}
+
+/*
+ * Parses a variable for the specified compiler
+ */
+void unCompilerVariable(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
+    unCompilerNamedVariable(
+        compilerPtr,
+        compilerPtr->prevToken,
+        canAssign
+    );
 }
 
 /*
  * Parses a string for the specified compiler
  */
-void unCompilerString(UNCompiler *compilerPtr){
+void unCompilerString(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     /*
      * The object is not referenced from the VM's
      * object list as it is always accessible from
@@ -588,7 +879,10 @@ void unCompilerString(UNCompiler *compilerPtr){
  * Parses a boolean AND for the specified compiler
  * //todo
  */
-void unCompilerAnd(UNCompiler *compilerPtr){
+void unCompilerAnd(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     //todo and body
 }
 
@@ -596,14 +890,20 @@ void unCompilerAnd(UNCompiler *compilerPtr){
  * Parses a boolean OR for the specified compiler
  * //todo
  */
-void unCompilerOr(UNCompiler *compilerPtr){
+void unCompilerOr(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     //todo or body
 }
 
 /*
  * Parses a bool for the specified compiler
  */
-void unCompilerBool(UNCompiler *compilerPtr){
+void unCompilerBool(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     switch(compilerPtr->prevToken.type){
         case un_tokenFalse:
             unCompilerWriteByte(
@@ -630,7 +930,10 @@ void unCompilerBool(UNCompiler *compilerPtr){
  * Parses a dot for the specified compiler
  * //todo
  */
-void unCompilerDot(UNCompiler *compilerPtr){
+void unCompilerDot(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
     //todo dot body
 }
 
@@ -672,12 +975,14 @@ UNProgram unCompilerCompile(
     compilerPtr->compiledProgram = unProgramMake();
 
     unCompilerAdvance(compilerPtr);
-    unCompilerExpression(compilerPtr);
-    unCompilerMatch(
+
+    while(!unCompilerMatch(
         compilerPtr,
-        un_tokenEOF,
-        "expect end of expression"
-    );
+        un_tokenEOF
+    )){
+        unCompilerDeclaration(compilerPtr);
+    }
+
     unCompilerEnd(compilerPtr);
 
     bool hadError = compilerPtr->hadError;

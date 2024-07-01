@@ -28,10 +28,18 @@ typedef struct UNVirtualMachine{
     UNValue *stackPtr;
     /* pointer to the head of the object list */
     UNObject *objectListHeadPtr;
-    /* hashmap of UNObjectString* to UNValue */
+    /*
+     * hashmap of UNObjectString* to UNValue for string
+     * interning
+     */
     HashMap stringMap;
     bool stringMapAllocated;
-
+    /*
+     * hashmap of UNObjectString* to UNValue for global
+     * variables
+     */
+    HashMap globalsMap;
+    //todo: allocate and free globals map
 } UNVirtualMachine;
 
 /*

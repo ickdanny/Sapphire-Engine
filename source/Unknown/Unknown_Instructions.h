@@ -8,6 +8,20 @@ typedef enum UNInstruction {
      * FORMAT: [op][index]
      */
     un_literal,
+    /* instructs VM to pop the top value */
+    un_pop,
+    /* instructs VM to define a new global variable */
+    un_defineGlobal,
+    /*
+     * instructs VM to retrieve the value of a global
+     * variable
+     */
+    un_getGlobal,
+    /*
+     * instructs VM to set the value of a global
+     * variable to the top of the stack
+     */
+    un_setGlobal,
     /* instructs VM to load "true" */
     un_true,
     /* instructs VM to load "false" */
@@ -30,6 +44,8 @@ typedef enum UNInstruction {
     un_less,
     /* unary boolean not */
     un_not,
+    /* prints out a string */
+    un_print,
     /* returns values from functions */
     un_return,
 } UNInstruction;

@@ -4,6 +4,7 @@
 #include "Unknown_Object.h"
 
 #define stringMapInitCapacity 50
+#define globalsMapInitCapacity 20
 
 /*
  * Constructs and returns a new UNVirtualMachine by
@@ -12,9 +13,21 @@
 UNVirtualMachine unVirtualMachineMake(){
     UNVirtualMachine toRet = {0};
     /*
+     * allocate the globals map; only free when
+     * VM is freed, cleared upon reset
+     */
+    toRet.globalsMap = hashMapMake(
+        UNObjectString*,
+        UNValue,
+        globalsMapInitCapacity,
+        _unObjectStringPtrHash,
+        _unObjectStringPtrEquals
+    );
+
+    /*
      * do not allocate the string map; defer to when
      * the virtual machine actually starts to run
-     * a program
+     * a program (since we copy the map from literals)
      */
     return toRet;
 }
@@ -96,7 +109,8 @@ void unVirtualMachineRuntimeError(
  * Reads the next byte in the specified virtual
  * machine and advances the instruction pointer
  */
-#define readByte(VMPTR) (*(vmPtr->instructionPtr++))
+#define readByte(VMPTR) \
+    (*(vmPtr->instructionPtr++))
 
 /*
  * Reads the next literal value in the specified
@@ -107,6 +121,13 @@ void unVirtualMachineRuntimeError(
         &(VMPTR->programPtr->literals), \
         readByte(VMPTR) \
     )
+
+/*
+ * Reads the next string in the specified virtual
+ * machine and advances the instruction pointer
+ */
+#define readString(VMPTR) \
+    unObjectAsString(readLiteral(VMPTR))
 
 /*
  * Performs a binary arithmetic operation in the
@@ -202,6 +223,98 @@ static UNInterpretResult unVirtualMachineRun(
                 unVirtualMachineStackPush(
                     vmPtr,
                     literal
+                );
+                break;
+            }
+            case un_pop: {
+                unVirtualMachineStackPop(vmPtr);
+                break;
+            }
+            case un_defineGlobal: {
+                /*
+                 * associate the name of the global
+                 * with its value (top of stack)
+                 */
+                UNObjectString *name
+                    = readString(vmPtr);
+                UNValue value
+                    = unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    );
+                hashMapPutPtr(
+                    UNObjectString*,
+                    UNValue,
+                    &(vmPtr->globalsMap),
+                    &name,
+                    &value
+                );
+                unVirtualMachineStackPop(vmPtr);
+                break;
+            }
+            case un_getGlobal: {
+                /*
+                 * get the name of the global from the
+                 * top of the stack
+                 */
+                UNObjectString *name
+                    = readString(vmPtr);
+                if(!hashMapHasKey(
+                    UNObjectString*,
+                    UNValue,
+                    &(vmPtr->globalsMap),
+                    name
+                )){
+                    pgWarning(name->string._ptr);
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "undefined variable" 
+                    );
+                    return un_runtimeError;
+                }
+                UNValue value = hashMapGet(
+                    UNObjectString*,
+                    UNValue,
+                    &(vmPtr->globalsMap),
+                    name
+                );
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    value
+                );
+                break;
+            }
+            case un_setGlobal: {
+                /*
+                 * get the name of the global from the
+                 * top of the stack
+                 */
+                UNObjectString *name
+                    = readString(vmPtr);
+                if(!hashMapHasKey(
+                    UNObjectString*,
+                    UNValue,
+                    &(vmPtr->globalsMap),
+                    name
+                )){
+                    pgWarning(name->string._ptr);
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "undefined variable" 
+                    );
+                    return un_runtimeError;
+                }
+                UNValue value
+                    = unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    );
+                hashMapPutPtr(
+                    UNObjectString*,
+                    UNValue,
+                    &(vmPtr->globalsMap),
+                    &name,
+                    &value
                 );
                 break;
             }
@@ -374,11 +487,16 @@ static UNInterpretResult unVirtualMachineRun(
                 );
                 break;
             }
-            case un_return:{
+            case un_print:{
                 unValuePrint(unVirtualMachineStackPop(
                     vmPtr
                 ));
                 printf("\n");
+                break;
+            }
+            case un_return:{
+                //todo: return temporarily does nothing
+                printf("(return not implemented)\n");
                 return un_ok;
             }
         }
@@ -413,7 +531,7 @@ UNInterpretResult unVirtualMachineInterpret(
         &(programPtr->literals.stringMap)
     );
     vmPtr->stringMapAllocated = true;
-    
+
     return unVirtualMachineRun(vmPtr);
 }
 
@@ -462,6 +580,11 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
     vmPtr->stackPtr = vmPtr->stack;
     unVirtualMachineFreeObjects(vmPtr);
     unVirtualMachineFreeStringMap(vmPtr);
+    hashMapClear(
+        UNObjectString*,
+        UNValue,
+        &(vmPtr->globalsMap)
+    );
 }
 
 /*
@@ -471,5 +594,10 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
 void unVirtualMachineFree(UNVirtualMachine *vmPtr){
     unVirtualMachineFreeObjects(vmPtr);
     unVirtualMachineFreeStringMap(vmPtr);
+    hashMapFree(
+        UNObjectString*,
+        UNValue,
+        &(vmPtr->globalsMap)
+    );
     memset(vmPtr, 0, sizeof(*vmPtr));
 }

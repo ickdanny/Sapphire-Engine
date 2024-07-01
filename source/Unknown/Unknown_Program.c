@@ -159,6 +159,29 @@ size_t unProgramDisassembleInstruction(
                 programPtr,
                 offset
             );
+        case un_pop:
+            return printSimpleInstruction(
+                "POP",
+                offset
+            );
+        case un_defineGlobal:
+            return printLiteralInstruction(
+                "DEFGLOB",
+                programPtr,
+                offset
+            );
+        case un_getGlobal:
+            return printLiteralInstruction(
+                "GETGLOB",
+                programPtr,
+                offset
+            );
+        case un_setGlobal:
+            return printLiteralInstruction(
+                "SETGLOB",
+                programPtr,
+                offset
+            );
         case un_true:
             return printSimpleInstruction(
                 "TRUE",
@@ -212,6 +235,11 @@ size_t unProgramDisassembleInstruction(
         case un_not:
             return printSimpleInstruction(
                 "NOT",
+                offset
+            );
+        case un_print:
+            return printSimpleInstruction(
+                "PRINT",
                 offset
             );
         case un_return:

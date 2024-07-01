@@ -24,67 +24,139 @@ typedef struct UNCompiler{
 UNCompiler unCompilerMake();
 
 /* Parses the next number for the specified compiler */
-void unCompilerNumber(UNCompiler *compilerPtr);
+void unCompilerNumber(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses the next unary operator for the specified
  * compiler
  */
-void unCompilerUnary(UNCompiler *compilerPtr);
+void unCompilerUnary(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses the next infix binary operator for the
  * specified compiler
  */
-void unCompilerBinary(UNCompiler *compilerPtr);
+void unCompilerBinary(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses the next expression for the specified
  * compiler
  */
-void unCompilerExpression(UNCompiler *compilerPtr);
+void unCompilerExpression(
+    UNCompiler *compilerPtr
+);
+
+/*
+ * Parses the next declaration for the specified
+ * compiler; a declaration includes declares whereas
+ * a statement does not
+ */
+void unCompilerDeclaration(UNCompiler *compilerPtr);
+
+/*
+ * Parses the next variable declaration for the
+ * specified compiler; uninitialized variables get the
+ * default value of FALSE
+ */
+void unCompilerVariableDeclaration(
+    UNCompiler *compilerPtr
+);
+
+/*
+ * Parses the next statement for the specified
+ * compiler; a declaration includes declares whereas
+ * a statement does not
+ */
+void unCompilerStatement(UNCompiler *compilerPtr);
+
+/*
+ * Parses the next print statement for the specified
+ * compiler
+ */
+void unCompilerPrintStatement(UNCompiler *compilerPtr);
+
+/*
+ * Parses the next expression statement for the
+ * specified compiler
+ */
+void unCompilerExpressionStatement(
+    UNCompiler *compilerPtr
+);
 
 /*
  * Parses an expression within a set of parenthesis
  * for the specified compiler - should be called after
  * the first parenthesis has been matched
  */
-void unCompilerGrouping(UNCompiler *compilerPtr);
+void unCompilerGrouping(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses a function call for the specified compiler
  */
-void unCompilerCall(UNCompiler *compilerPtr);
+void unCompilerCall(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses a variable for the specified compiler
  */
-void unCompilerVariable(UNCompiler *compilerPtr);
+void unCompilerVariable(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses a string for the specified compiler
  */
-void unCompilerString(UNCompiler *compilerPtr);
+void unCompilerString(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses a boolean AND for the specified compiler
  */
-void unCompilerAnd(UNCompiler *compilerPtr);
+void unCompilerAnd(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses a boolean OR for the specified compiler
  */
-void unCompilerOr(UNCompiler *compilerPtr);
+void unCompilerOr(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses a bool for the specified compiler
  */
-void unCompilerBool(UNCompiler *compilerPtr);
+void unCompilerBool(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Parses a dot for the specified compiler
  */
-void unCompilerDot(UNCompiler *compilerPtr);
+void unCompilerDot(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
 
 /*
  * Frees the memory associated with the specified
