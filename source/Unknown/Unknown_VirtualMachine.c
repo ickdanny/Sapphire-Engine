@@ -318,6 +318,34 @@ static UNInterpretResult unVirtualMachineRun(
                 );
                 break;
             }
+            case un_getLocal: {
+                /* get the stack slot of the local */
+                uint8_t slot = readByte(vmPtr);
+                /*
+                 * push the value of the local to the
+                 * top of the stack
+                 */
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    vmPtr->stack[slot]
+                );
+                break;
+            }
+            case un_setLocal: {
+                /* get the stack slot of the local */
+                uint8_t slot = readByte(vmPtr);
+                /*
+                 * write the value of the stack top
+                 * to the slot (but don't pop it off
+                 * since assignment is an expression)
+                 */
+                vmPtr->stack[slot]
+                    = unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    );
+                break;
+            }
             case un_true: {
                 unVirtualMachineStackPush(
                     vmPtr,

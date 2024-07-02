@@ -141,12 +141,18 @@ static const UNParseRule *getRule(UNTokenType type){
     return &(parseRules[type]);
 }
 
+/* Resets the state of the specified local info */
+void unLocalInfoReset(UNLocalInfo *localInfoPtr){
+    memset(localInfoPtr, 0, sizeof(*localInfoPtr));
+}
+
 /*
  * Constructs and returns a new UNCompiler for the
  * specified file by value
  */
 UNCompiler unCompilerMake(){
     UNCompiler toRet = {0};
+    unLocalInfoReset(&(toRet.localInfo));
     toRet.hadError = false;
     toRet.inPanicMode = false;
     return toRet;
@@ -155,6 +161,7 @@ UNCompiler unCompilerMake(){
 /* Resets the state of the specified compiler */
 void unCompilerReset(UNCompiler *compilerPtr){
     memset(compilerPtr, 0, sizeof(*compilerPtr));
+    unLocalInfoReset(&(compilerPtr->localInfo));
     compilerPtr->hadError = false;
     compilerPtr->inPanicMode = false;
 }
@@ -655,6 +662,100 @@ static uint8_t unCompilerIdentifierLiteral(
 }
 
 /*
+ * Adds information about local variable having the
+ * given token as its name for the specified compiler
+ */
+static void unCompilerAddLocal(
+    UNCompiler *compilerPtr,
+    UNToken name
+){
+    UNLocalInfo *localInfoPtr
+        = &(compilerPtr->localInfo);
+    if(localInfoPtr->localCount == _uint8_t_count){
+        unCompilerErrorPrev(
+            compilerPtr,
+            "Too many locals in func"
+        );
+        return;
+    }
+    UNLocal *localPtr= &(localInfoPtr->locals[
+        localInfoPtr->localCount++
+    ]);
+    localPtr->name = name;
+
+    /* use -1 as sentinel value for uninitialized */
+    localPtr->depth = -1;
+}
+
+/*
+ * Returns true if the two given tokens represent the
+ * same identifier, false otherwise
+ */
+static bool identifiersEqual(
+    UNToken *tokenPtr1,
+    UNToken *tokenPtr2
+){
+    if(tokenPtr1->length != tokenPtr2->length){
+        return false;
+    }
+    return memcmp(
+        tokenPtr1->startPtr,
+        tokenPtr2->startPtr,
+        tokenPtr1->length
+    ) == 0;
+}
+
+/*
+ * Registers information about a local variable for the
+ * specified compiler
+ */
+static void unCompilerDeclareVariable(
+    UNCompiler *compilerPtr
+){
+    UNLocalInfo *localInfoPtr
+        = &(compilerPtr->localInfo);
+
+    /* bail if in global scope */
+    if(localInfoPtr->scopeDepth == 0){
+        return;
+    }
+
+    UNToken *namePtr = &(compilerPtr->prevToken);
+
+    /*
+     * error if two variables in same depth w/ same
+     * name
+     */
+    for(int i = localInfoPtr->localCount - 1;
+        i >= 0;
+        --i
+    ){
+        UNLocal *localPtr = &(localInfoPtr->locals[i]);
+
+        /* break out if find local in higher depth */
+        if(localPtr->depth != -1
+            && localPtr->depth
+                < localInfoPtr->scopeDepth
+        ){
+            break;
+        }
+
+        if(identifiersEqual(
+            namePtr,
+            &(localPtr->name)
+        )){
+            unCompilerErrorPrev(
+                compilerPtr,
+                "Preexisting variable with this name "
+                "in this scope"
+            );
+        }
+    }
+
+    unCompilerAddLocal(compilerPtr, *namePtr);
+}
+
+/*
  * Parses the name of the next variable for the given
  * compiler and returns the index of the string
  * constant for the name
@@ -668,6 +769,18 @@ static uint8_t unCompilerParseVariable(
         un_tokenIdentifier,
         errorMsg
     );
+
+    unCompilerDeclareVariable(compilerPtr);
+
+    /*
+     * if parser within a block, do not register a
+     * string for its name (only globals looked up by
+     * name at runtime)
+     */
+    if(compilerPtr->localInfo.scopeDepth > 0){
+        return 0;
+    }
+
     return unCompilerIdentifierLiteral(
         compilerPtr,
         &(compilerPtr->prevToken)
@@ -675,13 +788,37 @@ static uint8_t unCompilerParseVariable(
 }
 
 /*
- * Emits the bytecode for a global variable declaration
+ * Marks the topmost local as finished initialized
+ * for the specified compiler
+ */
+static void unCompilerMarkLocalInitialized(
+    UNCompiler *compilerPtr
+){
+    UNLocalInfo *localInfoPtr
+        = &(compilerPtr->localInfo);
+    localInfoPtr->locals[
+        localInfoPtr->localCount - 1
+    ].depth = localInfoPtr->scopeDepth;
+}
+
+/*
+ * Emits the bytecode for a variable declaration
  * for the specified compiler
  */
 static void unCompilerDefineVariable(
     UNCompiler *compilerPtr,
     uint8_t globalIndex
 ){
+    /*
+     * do nothing if local variable - already sits
+     * on top of stack
+     */
+    if(compilerPtr->localInfo.scopeDepth > 0){
+        unCompilerMarkLocalInitialized(compilerPtr);
+        return;
+    }
+
+    /* write global variables */
     unCompilerWriteBytes(
         compilerPtr,
         un_defineGlobal,
@@ -723,14 +860,50 @@ void unCompilerVariableDeclaration(
     unCompilerDefineVariable(compilerPtr, globalIndex);
 }
 
+/* Used to have the compiler enter a new local scope */
+#define unCompilerBeginScope(COMPILERPTR) \
+    (++((COMPILERPTR)->localInfo.scopeDepth))
+
+/* Used to have the compiler exit a local scope */
+static void unCompilerEndScope(
+    UNCompiler *compilerPtr
+){
+    UNLocalInfo *localInfoPtr
+        = &(compilerPtr->localInfo);
+    --(localInfoPtr->scopeDepth);
+
+    /*
+     * for every local in the scope, pop it off
+     * the stack
+     */
+    while(localInfoPtr->localCount > 0
+        && localInfoPtr->locals[
+            localInfoPtr->localCount - 1
+        ].depth > localInfoPtr->scopeDepth
+    ){
+        unCompilerWriteByte(compilerPtr, un_pop);
+        --(localInfoPtr->localCount);
+    }
+}
+
 /*
  * Parses the next statement for the specified
  * compiler; a declaration includes declares whereas
  * a statement does not
  */
 void unCompilerStatement(UNCompiler *compilerPtr){
+    /* match the print statement */
     if(unCompilerMatch(compilerPtr, un_tokenPrint)){
         unCompilerPrintStatement(compilerPtr);
+    }
+    /* match a block */
+    else if(unCompilerMatch(
+        compilerPtr,
+        un_tokenLeftBrace)
+    ){
+        unCompilerBeginScope(compilerPtr);
+        unCompilerBlock(compilerPtr);
+        unCompilerEndScope(compilerPtr);
     }
     /* if none of the above, expression statement */
     else{
@@ -753,6 +926,26 @@ void unCompilerPrintStatement(UNCompiler *compilerPtr){
     );
     /* print the result of the expression */
     unCompilerWriteByte(compilerPtr, un_print);
+}
+
+/* Parses the next block for the specified compiler */
+void unCompilerBlock(UNCompiler *compilerPtr){
+    while(!unCompilerCheckType(
+            compilerPtr,
+            un_tokenRightBrace
+        ) && !unCompilerCheckType(
+            compilerPtr,
+            un_tokenEOF
+        )
+    ){
+        unCompilerDeclaration(compilerPtr);
+    }
+
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenRightBrace,
+        "Expect '}' after block"
+    );
 }
 
 /*
@@ -802,7 +995,45 @@ void unCompilerCall(
 }
 
 /*
- * Emits a un_getGlobal instruction for the specified
+ * Returns the index of the local with the same name
+ * as the given token, or -1 if no such local is found;
+ * The index returned is the same as the index of the
+ * local on the stack during runtime since the layout
+ * of the local info is the same as the layout of the
+ * stack
+ */
+static int unCompilerResolveLocal(
+    UNCompiler *compilerPtr,
+    UNToken *name
+){
+    UNLocalInfo *localInfoPtr
+        = &(compilerPtr->localInfo);
+    for(int i = localInfoPtr->localCount - 1;
+        i >= 0;
+        -- i
+    ){
+        UNLocal *localPtr = &(localInfoPtr->locals[i]);
+        if(identifiersEqual(name, &(localPtr->name))){
+            /*
+             * handle case of uninitialized local
+             * trying to read itself by checking for
+             * the sentinel value -1
+             */
+            if(localPtr->depth == -1){
+                unCompilerErrorPrev(
+                    compilerPtr,
+                    "Cannot read local var in its own "
+                    "initializer"
+                );
+            }
+            return i;
+        }
+    }
+    return -1;
+}
+
+/*
+ * Emits instructions for the specified global or local
  * variable passed as a token for the given compiler
  */
 static void unCompilerNamedVariable(
@@ -810,10 +1041,32 @@ static void unCompilerNamedVariable(
     UNToken varName,
     bool canAssign
 ){
-    uint8_t nameIndex = unCompilerIdentifierLiteral(
+    uint8_t getOp = 0;
+    uint8_t setOp = 0;
+
+    /*
+     * eventually becomes the second byte following
+     * the instruction code; the stack slot for locals
+     * and the index of the name literal for globals
+     */
+    int arg = unCompilerResolveLocal(
         compilerPtr,
         &varName
     );
+
+    /* if variable was resolved to a local */
+    if(arg != -1){
+        getOp = un_getLocal;
+        setOp = un_setLocal;
+    }
+    else{
+        arg = unCompilerIdentifierLiteral(
+            compilerPtr,
+            &varName
+        );
+        getOp = un_getGlobal;
+        setOp = un_setGlobal;
+    }
 
     /* if following token is equal, assignment */
     if(canAssign
@@ -822,15 +1075,15 @@ static void unCompilerNamedVariable(
         unCompilerExpression(compilerPtr);
         unCompilerWriteBytes(
             compilerPtr,
-            un_setGlobal,
-            nameIndex
+            setOp,
+            (uint8_t)arg
         );
     }
     else{
         unCompilerWriteBytes(
             compilerPtr,
-            un_getGlobal,
-            nameIndex
+            getOp,
+            (uint8_t)arg
         );
     }
 }
@@ -877,7 +1130,6 @@ void unCompilerString(
 
 /*
  * Parses a boolean AND for the specified compiler
- * //todo
  */
 void unCompilerAnd(
     UNCompiler *compilerPtr,
@@ -888,7 +1140,6 @@ void unCompilerAnd(
 
 /*
  * Parses a boolean OR for the specified compiler
- * //todo
  */
 void unCompilerOr(
     UNCompiler *compilerPtr,
@@ -928,7 +1179,6 @@ void unCompilerBool(
 
 /*
  * Parses a dot for the specified compiler
- * //todo
  */
 void unCompilerDot(
     UNCompiler *compilerPtr,

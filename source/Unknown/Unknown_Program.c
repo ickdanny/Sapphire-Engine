@@ -86,7 +86,7 @@ void unProgramDisassemble(UNProgram *programPtr){
  * that occupies a single byte and returns the new
  * offset
  */
-size_t printSimpleInstruction(
+static size_t printSimpleInstruction(
     const char *name,
     size_t offset
 ){
@@ -95,10 +95,29 @@ size_t printSimpleInstruction(
 }
 
 /*
+ * Prints out the disassembly of a 2-byte instruction
+ * with the second byte printed out as an integer
+ */
+static size_t printByteInstruction(
+    const char *name,
+    UNProgram *programPtr,
+    int offset
+){
+    /* get the slot from the next byte in the code */
+    uint8_t slot = arrayListGet(uint8_t,
+        &(programPtr->code),
+        offset + 1
+    );
+
+    printf("%-8s %4d\n", name, slot);
+    return offset + 2;
+}
+
+/*
  * Prints out the disassembly of a literal instruction
  * and returns the new offset
  */
-size_t printLiteralInstruction(
+static size_t printLiteralInstruction(
     const char *name,
     UNProgram *programPtr,
     size_t offset
@@ -179,6 +198,18 @@ size_t unProgramDisassembleInstruction(
         case un_setGlobal:
             return printLiteralInstruction(
                 "SETGLOB",
+                programPtr,
+                offset
+            );
+        case un_getLocal:
+            return printByteInstruction(
+                "GETLOCAL",
+                programPtr,
+                offset
+            );
+        case un_setLocal:
+            return printByteInstruction(
+                "SETLOCAL",
                 programPtr,
                 offset
             );

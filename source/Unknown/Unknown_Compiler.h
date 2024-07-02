@@ -7,6 +7,27 @@
 #include "Unknown_Program.h"
 #include "Unknown_Instructions.h"
 
+#define _uint8_t_count (UINT8_MAX + 1)
+
+/*
+ * Stores metadata about a single local variable for
+ * a compiler
+ */
+typedef struct UNLocal{
+    UNToken name;
+    int depth;
+} UNLocal;
+
+/*
+ * Stores metadata related to the process of compiling
+ * local variables for a compiler
+ */
+typedef struct UNLocalInfo{
+    UNLocal locals[_uint8_t_count];
+    int localCount;
+    int scopeDepth;
+} UNLocalInfo;
+
 /*
  * Stores data related to the compilation process of
  * a single file
@@ -15,6 +36,7 @@ typedef struct UNCompiler{
     UNToken currentToken;
     UNToken prevToken;
     UNLexer lexer;
+    UNLocalInfo localInfo;
     UNProgram compiledProgram;
     bool hadError;
     bool inPanicMode;
@@ -83,6 +105,9 @@ void unCompilerStatement(UNCompiler *compilerPtr);
  * compiler
  */
 void unCompilerPrintStatement(UNCompiler *compilerPtr);
+
+/* Parses the next block for the specified compiler */
+void unCompilerBlock(UNCompiler *compilerPtr);
 
 /*
  * Parses the next expression statement for the

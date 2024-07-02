@@ -22,6 +22,16 @@ typedef enum UNInstruction {
      * variable to the top of the stack
      */
     un_setGlobal,
+    /*
+     * instructs VM to retrieve the value of a local
+     * variable
+     */
+    un_getLocal,
+    /*
+     * instructs VM to set the value of a local
+     * variable to the top of the stack
+     */
+    un_setLocal,
     /* instructs VM to load "true" */
     un_true,
     /* instructs VM to load "false" */
