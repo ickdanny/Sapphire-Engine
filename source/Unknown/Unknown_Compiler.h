@@ -106,6 +106,24 @@ void unCompilerStatement(UNCompiler *compilerPtr);
  */
 void unCompilerPrintStatement(UNCompiler *compilerPtr);
 
+/*
+ * Parses the next if statement for the specified
+ * compiler
+ */
+void unCompilerIfStatement(UNCompiler *compilerPtr);
+
+/*
+ * Parses the next while statement for the specified
+ * compiler
+ */
+void unCompilerWhileStatement(UNCompiler *compilerPtr);
+
+/*
+ * Parses the next for statement for the specified
+ * compiler
+ */
+void unCompilerForStatement(UNCompiler *compilerPtr);
+
 /* Parses the next block for the specified compiler */
 void unCompilerBlock(UNCompiler *compilerPtr);
 

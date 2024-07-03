@@ -113,6 +113,15 @@ void unVirtualMachineRuntimeError(
     (*(vmPtr->instructionPtr++))
 
 /*
+ * Reads the next short in the specified virtual
+ * machine and advances the instruction pointer twice
+ */
+#define readShort(VMPTR) \
+    (vmPtr->instructionPtr += 2, \
+        (uint16_t)((vmPtr->instructionPtr[-2] << 8) \
+            | (vmPtr->instructionPtr[-1])))
+
+/*
  * Reads the next literal value in the specified
  * virtual machine and advances the instruction pointer
  */
@@ -515,14 +524,40 @@ static UNInterpretResult unVirtualMachineRun(
                 );
                 break;
             }
-            case un_print:{
+            case un_print: {
                 unValuePrint(unVirtualMachineStackPop(
                     vmPtr
                 ));
                 printf("\n");
                 break;
             }
-            case un_return:{
+            case un_jump: {
+                uint16_t offset = readShort(vmPtr);
+                vmPtr->instructionPtr += offset;
+                break;
+            }
+            case un_jumpIfFalse: {
+                uint16_t offset = readShort(vmPtr);
+                /* peek; compiler pops if needed */
+                UNValue condition
+                    = unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    );
+                /* jump if false */
+                if(condition.type == un_bool
+                    && !unAsBool(condition)
+                ){
+                    vmPtr->instructionPtr += offset;
+                }
+                break;
+            }
+            case un_loop: {
+                uint16_t offset = readShort(vmPtr);
+                vmPtr->instructionPtr -= offset;
+                break;
+            }
+            case un_return: {
                 //todo: return temporarily does nothing
                 printf("(return not implemented)\n");
                 return un_ok;

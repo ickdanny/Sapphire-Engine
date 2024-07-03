@@ -113,6 +113,32 @@ static size_t printByteInstruction(
     return offset + 2;
 }
 
+/* Prints out the disassembly of a jump instruction */
+static size_t printJumpInstruction(
+    const char *name,
+    int sign,
+    UNProgram *programPtr,
+    int offset
+){
+    uint16_t jump = (uint16_t)arrayListGet(uint8_t,
+        &(programPtr->code),
+        offset + 1
+    );
+    jump <<= 8;
+    jump |= arrayListGet(uint8_t,
+        &(programPtr->code),
+        offset + 2
+    );
+
+    printf(
+        "%-8s %4d -> %d\n",
+        name,
+        offset,
+        offset + 3 + sign * jump
+    );
+    return offset + 3;
+}
+
 /*
  * Prints out the disassembly of a literal instruction
  * and returns the new offset
@@ -271,6 +297,27 @@ size_t unProgramDisassembleInstruction(
         case un_print:
             return printSimpleInstruction(
                 "PRINT",
+                offset
+            );
+        case un_jump:
+            return printJumpInstruction(
+                "JMP",
+                1,
+                programPtr,
+                offset
+            );
+        case un_jumpIfFalse:
+            return printJumpInstruction(
+                "JFALSE",
+                1,
+                programPtr,
+                offset
+            );
+        case un_loop:
+            return printJumpInstruction(
+                "LOOP",
+                -1,
+                programPtr,
                 offset
             );
         case un_return:

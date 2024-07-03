@@ -292,13 +292,17 @@ static bool unCompilerMatch(
     TYPE, \
     ERRORMSG \
 ) \
-    assertTrue( \
-        unCompilerMatch( \
+    do{ \
+        if(!unCompilerMatch( \
             (COMPILERPTR), \
             (TYPE) \
-        ), \
-        ERRORMSG \
-    )
+        )){ \
+            unCompilerErrorPrev( \
+                COMPILERPTR, \
+                ERRORMSG \
+            ); \
+        } \
+    } while(false);
 
 /*
  * Gets the current program from the specified compiler
@@ -382,7 +386,8 @@ static uint8_t unCompilerMakeLiteral(
     UNValue value
 ){
     size_t litIndex = unLiteralsPushBack(
-        &(compilerPtr->compiledProgram.literals),
+        &(unCompilerGetCurrentProgram(compilerPtr)
+            ->literals),
         value
     );
     /*
@@ -409,8 +414,9 @@ static uint8_t unCompilerMakeLiteral(
         COMPILERPTR, \
         un_literal, \
         unLiteralsPushBack( \
-            &((COMPILERPTR)->compiledProgram \
-                .literals), \
+            &(unCompilerGetCurrentProgram( \
+                COMPILERPTR \
+            )->literals), \
             VALUE \
         ) \
     )
@@ -654,8 +660,8 @@ static uint8_t unCompilerIdentifierLiteral(
                 tokenPtr->startPtr,
                 tokenPtr->length,
                 NULL,
-                &(compilerPtr->compiledProgram
-                    .literals.stringMap)
+                &(unCompilerGetCurrentProgram(
+                    compilerPtr)->literals.stringMap)
             )
         )
     );
@@ -896,6 +902,21 @@ void unCompilerStatement(UNCompiler *compilerPtr){
     if(unCompilerMatch(compilerPtr, un_tokenPrint)){
         unCompilerPrintStatement(compilerPtr);
     }
+    /* match an if statement */
+    else if(unCompilerMatch(compilerPtr, un_tokenIf)){
+        unCompilerIfStatement(compilerPtr);
+    }
+    /* match a while loop */
+    else if(unCompilerMatch(
+        compilerPtr,
+        un_tokenWhile
+    )){
+        unCompilerWhileStatement(compilerPtr);
+    }
+    /* match a for loop */
+    else if(unCompilerMatch(compilerPtr, un_tokenFor)){
+        unCompilerForStatement(compilerPtr);
+    }
     /* match a block */
     else if(unCompilerMatch(
         compilerPtr,
@@ -926,6 +947,308 @@ void unCompilerPrintStatement(UNCompiler *compilerPtr){
     );
     /* print the result of the expression */
     unCompilerWriteByte(compilerPtr, un_print);
+}
+
+/*
+ * Writes a jump instruction for the specified compiler
+ * and returns the index in the code of the instruction
+ */
+static int unCompilerWriteJump(
+    UNCompiler *compilerPtr,
+    uint8_t instruction
+){
+    unCompilerWriteByte(compilerPtr, instruction);
+
+    /* emit 2 bytes of placeholder values */
+    unCompilerWriteByte(compilerPtr, 0xFF);
+    unCompilerWriteByte(compilerPtr, 0xFF);
+
+    /* return index of instruction */
+    return unCompilerGetCurrentProgram(
+        compilerPtr
+    )->code.size - 2;
+}
+
+/*
+ * Patches the jump distance into the jump instruction
+ * at the given index for the specified compiler
+ */
+static void unCompilerPatchJump(
+    UNCompiler *compilerPtr,
+    int jumpInstructionIndex
+){
+    UNProgram *currentProgramPtr
+        = unCompilerGetCurrentProgram(compilerPtr);
+    /*
+     * calculate how far the jump is; -2 to account
+     * for the fact that the ditsance itself is going
+     * to be encoded in the code
+     */
+    int jumpDist = currentProgramPtr->code.size
+        - jumpInstructionIndex - 2;
+
+    if(jumpDist > UINT16_MAX){
+        unCompilerErrorPrev(
+            compilerPtr,
+            "Too much code to jump over"
+        );
+    }
+
+    /* encode the jump distance */
+    arrayListSet(uint8_t,
+        &(currentProgramPtr->code),
+        jumpInstructionIndex,
+        (jumpDist >> 8) & 0xFF
+    );
+    arrayListSet(uint8_t,
+        &(currentProgramPtr->code),
+        jumpInstructionIndex + 1,
+        jumpDist & 0xFF
+    );
+}
+
+/*
+ * Parses the next if statement for the specified
+ * compiler
+ */
+void unCompilerIfStatement(UNCompiler *compilerPtr){
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenLeftParen,
+        "Expect '(' after \"if\""
+    );
+    unCompilerExpression(compilerPtr);
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenRightParen,
+        "Expect ')' after if condition"
+    );
+
+    /*
+     * save the index to write the address of the jump
+     * instruction
+     */
+    int thenJumpInstructionIndex = unCompilerWriteJump(
+        compilerPtr,
+        un_jumpIfFalse
+    );
+
+    /* have the VM pop off the condition if true */
+    unCompilerWriteByte(compilerPtr, un_pop);
+
+    /* parse the then block */
+    unCompilerStatement(compilerPtr);
+
+    /* write unconditional jump past else block */
+    int elseJumpInstructionIndex = unCompilerWriteJump(
+        compilerPtr,
+        un_jump
+    );
+
+    /* write the address after compiling statement */
+    unCompilerPatchJump(
+        compilerPtr,
+        thenJumpInstructionIndex
+    );
+
+    /* have the VM pop off the condition if false */
+    unCompilerWriteByte(compilerPtr, un_pop);
+
+    /* check for else branch */
+    if(unCompilerMatch(compilerPtr, un_tokenElse)){
+        unCompilerStatement(compilerPtr);
+    }
+
+    /* patch the unconditional jump past the else */
+    unCompilerPatchJump(
+        compilerPtr,
+        elseJumpInstructionIndex
+    );
+}
+
+/*
+ * Writes a loop instruction for the specified
+ * compiler (a loop instruction is just a backwards
+ * jump)
+ */
+static void unCompilerWriteLoop(
+    UNCompiler *compilerPtr,
+    int loopStartIndex
+){
+    unCompilerWriteByte(compilerPtr, un_loop);
+
+    /* +2 to account for size of operands */
+    int offset
+        = unCompilerGetCurrentProgram(compilerPtr)
+            ->code.size - loopStartIndex + 2;
+    if(offset > UINT16_MAX){
+        unCompilerErrorPrev(
+            compilerPtr,
+            "Loop body too large"
+        );
+    }
+
+    unCompilerWriteByte(
+        compilerPtr,
+        (offset >> 8) & 0xFF
+    );
+    unCompilerWriteByte(compilerPtr, offset & 0xFF);
+}
+
+/*
+ * Parses the next while statement for the specified
+ * compiler
+ */
+void unCompilerWhileStatement(UNCompiler *compilerPtr){
+    /* save index before the condition check */
+    int loopStartIndex
+        = unCompilerGetCurrentProgram(compilerPtr)
+            ->code.size;
+
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenLeftParen,
+        "Expect '(' after \"while\""
+    );
+    unCompilerExpression(compilerPtr);
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenRightParen,
+        "Expect ')' after while condition"
+    );
+
+    int exitJumpInstructionIndex = unCompilerWriteJump(
+        compilerPtr,
+        un_jumpIfFalse
+    );
+    unCompilerWriteByte(compilerPtr, un_pop);
+    unCompilerStatement(compilerPtr);
+    unCompilerWriteLoop(compilerPtr, loopStartIndex);
+
+    unCompilerPatchJump(
+        compilerPtr,
+        exitJumpInstructionIndex
+    );
+}
+
+/*
+ * Parses the next for statement for the specified
+ * compiler
+ */
+void unCompilerForStatement(UNCompiler *compilerPtr){
+    /*
+     * a for loop has its own scope in case the
+     * initializer is a var declare
+     */
+    unCompilerBeginScope(compilerPtr);
+
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenLeftParen,
+        "Expect '(' after \"for\""
+    );
+
+    /* parse initializer */
+    if(unCompilerMatch(
+        compilerPtr,
+        un_tokenSemicolon
+    )){
+        /* no initializer */
+    }
+    else if(unCompilerMatch(compilerPtr, un_tokenLet)){
+        /* variable declaration initializer */
+        unCompilerVariableDeclaration(compilerPtr);
+    }
+    else{
+        /* expression statement initializer */
+        unCompilerExpressionStatement(compilerPtr);
+    }
+
+    /* save index before the condition check */
+    int loopStartIndex
+        = unCompilerGetCurrentProgram(compilerPtr)
+            ->code.size;
+
+    /* parse condition */
+    int exitJumpInstructionIndex = -1;
+    if(!unCompilerMatch(
+        compilerPtr,
+        un_tokenSemicolon)
+    ){
+        /* expr not stmt since don't want to pop */
+        unCompilerExpression(compilerPtr);
+        unCompilerConsume(
+            compilerPtr,
+            un_tokenSemicolon,
+            "Expect ';'"
+        );
+
+        /* jump out if condition false */
+        exitJumpInstructionIndex = unCompilerWriteJump(
+            compilerPtr,
+            un_jumpIfFalse
+        );
+        unCompilerWriteByte(compilerPtr, un_pop);
+    }
+
+    /* parse increment */
+    if(!unCompilerMatch(
+        compilerPtr,
+        un_tokenRightParen)
+    ){
+        /*
+         * jump over increment, run body, then jump
+         * back to the increment
+         */
+        int bodyJumpInstructionIndex
+            = unCompilerWriteJump(
+                compilerPtr,
+                un_jump
+            );
+        int incrementStartIndex
+            = unCompilerGetCurrentProgram(compilerPtr)
+                ->code.size;
+        /* expr since no semicolon at end */
+        unCompilerExpression(compilerPtr);
+        unCompilerWriteByte(compilerPtr, un_pop);
+
+        unCompilerConsume(
+            compilerPtr,
+            un_tokenRightParen,
+            "Expect ')' after for clauses"
+        );
+
+        /* jump to condition check */
+        unCompilerWriteLoop(
+            compilerPtr,
+            loopStartIndex
+        );
+        /* make it so the body jumps to increment */
+        loopStartIndex = incrementStartIndex;
+        /* jump past the increment at first */
+        unCompilerPatchJump(
+            compilerPtr,
+            bodyJumpInstructionIndex
+        );
+    }
+
+    unCompilerStatement(compilerPtr);
+    /*
+     * loops to either the condition or the increment
+     * if it is present
+     */
+    unCompilerWriteLoop(compilerPtr, loopStartIndex);
+
+    /* patch the jump from the condition */
+    if(exitJumpInstructionIndex != -1){
+        unCompilerPatchJump(
+            compilerPtr,
+            exitJumpInstructionIndex
+        );
+        unCompilerWriteByte(compilerPtr, un_pop);
+    }
+
+    unCompilerEndScope(compilerPtr);
 }
 
 /* Parses the next block for the specified compiler */
@@ -1121,8 +1444,9 @@ void unCompilerString(
                 compilerPtr->prevToken.startPtr + 1,
                 compilerPtr->prevToken.length - 2,
                 NULL,
-                &(compilerPtr->compiledProgram.
-                    literals.stringMap)
+                &(unCompilerGetCurrentProgram(
+                    compilerPtr
+                )->literals.stringMap)
             )
         )
     );
@@ -1135,7 +1459,26 @@ void unCompilerAnd(
     UNCompiler *compilerPtr,
     bool canAssign
 ){
-    //todo and body
+    /*
+     * if stack top is false, the left hand side of
+     * the AND is false thus we short circuit and
+     * skip computing the right hand side; otherwise,
+     * discard the left hand side and evalute the
+     * right hand side as the entire expression
+     */
+    int endJumpInstructionIndex = unCompilerWriteJump(
+        compilerPtr,
+        un_jumpIfFalse
+    );
+    unCompilerWriteByte(compilerPtr, un_pop);
+    unCompilerExpressionPrecedence(
+        compilerPtr,
+        un_precAnd
+    );
+    unCompilerPatchJump(
+        compilerPtr,
+        endJumpInstructionIndex
+    );
 }
 
 /*
@@ -1145,7 +1488,31 @@ void unCompilerOr(
     UNCompiler *compilerPtr,
     bool canAssign
 ){
-    //todo or body
+    /*
+     * if left hand is false, jump over the next jump
+     * to the end which would short circuit
+     */
+    int elseJumpInstructionIndex = unCompilerWriteJump(
+        compilerPtr,
+        un_jumpIfFalse
+    );
+    int endJumpInstructionIndex = unCompilerWriteJump(
+        compilerPtr,
+        un_jump
+    );
+    unCompilerPatchJump(
+        compilerPtr,
+        elseJumpInstructionIndex
+    );
+    unCompilerWriteByte(compilerPtr, un_pop);
+    unCompilerExpressionPrecedence(
+        compilerPtr,
+        un_precAnd
+    );
+    unCompilerPatchJump(
+        compilerPtr,
+        endJumpInstructionIndex
+    );
 }
 
 /*

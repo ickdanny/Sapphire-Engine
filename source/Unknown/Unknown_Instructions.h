@@ -56,6 +56,21 @@ typedef enum UNInstruction {
     un_not,
     /* prints out a string */
     un_print,
+    /*
+     * unconditionally jumps the specified distance;
+     * distance is 2 bytes long
+     */
+    un_jump,
+    /*
+     * jumps the specified distance if FALSE is on
+     * the top of the stack; distance is 2 bytes long
+     */
+    un_jumpIfFalse,
+    /*
+     * unconditionally jumps backwards the specified
+     * distance; distance is 2 bytes long
+     */
+    un_loop,
     /* returns values from functions */
     un_return,
 } UNInstruction;
