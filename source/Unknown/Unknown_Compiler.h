@@ -6,6 +6,7 @@
 #include "Unknown_Lexer.h"
 #include "Unknown_Program.h"
 #include "Unknown_Instructions.h"
+#include "Unknown_Object.h"
 
 #define _uint8_t_count (UINT8_MAX + 1)
 
@@ -19,14 +20,28 @@ typedef struct UNLocal{
 } UNLocal;
 
 /*
- * Stores metadata related to the process of compiling
- * local variables for a compiler
+ * Indicates what type of function is currently being
+ * compiled
  */
-typedef struct UNLocalInfo{
+typedef enum UNFuncType{
+    un_invalidFuncType,
+    un_scriptFuncType,
+    un_functionFuncType
+} UNFuncType;
+
+/*
+ * Stores data related to the compilation process
+ * of a single function (should be allocated on the
+ * stack by functions)
+ */
+typedef struct _UNFuncCompiler{
+    struct _UNFuncCompiler *enclosingPtr;
+    UNObjectFunc *funcPtr;
+    UNFuncType funcType;
     UNLocal locals[_uint8_t_count];
     int localCount;
     int scopeDepth;
-} UNLocalInfo;
+} _UNFuncCompiler;
 
 /*
  * Stores data related to the compilation process of
@@ -36,8 +51,11 @@ typedef struct UNCompiler{
     UNToken currentToken;
     UNToken prevToken;
     UNLexer lexer;
-    UNLocalInfo localInfo;
-    UNProgram compiledProgram;
+    /*
+     * does not own; func compilers live on the stack
+     * and are created within functions
+     */
+    _UNFuncCompiler *currentFuncCompilerPtr;
     bool hadError;
     bool inPanicMode;
 } UNCompiler;
@@ -83,6 +101,14 @@ void unCompilerExpression(
  * a statement does not
  */
 void unCompilerDeclaration(UNCompiler *compilerPtr);
+
+/*
+ * Parses the next function declaration for the
+ * specified compiler
+ */
+void unCompilerFunctionDeclaration(
+    UNCompiler *compilerPtr
+);
 
 /*
  * Parses the next variable declaration for the
@@ -209,9 +235,10 @@ void unCompilerFree(UNCompiler *compilerPtr);
 
 /*
  * compiles the specified Unknown source file and
- * returns the program; error on compiler error
+ * returns the program as a pointer to a newly
+ * allocated UNObjectFunc; error on compiler error
  */
-UNProgram unCompilerCompile(
+UNObjectFunc *unCompilerCompile(
     UNCompiler *compilerPtr,
     const char *fileName
 );

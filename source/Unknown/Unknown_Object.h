@@ -2,6 +2,8 @@
 #define UNKNOWN_OBJECT_H
 
 #include "Unknown_Value.h"
+#include "Unknown_Program.h"
+
 #include "PGUtil.h"
 #include "Constructure.h"
 
@@ -11,6 +13,7 @@
 typedef enum UNObjectType{
     un_invalidObject,
     un_stringObject,
+    un_funcObject
 } UNObjectType;
 
 /* the base struct for all object types */
@@ -26,6 +29,14 @@ typedef struct UNObjectString{
     String string;
     size_t cachedHashCode;
 } UNObjectString;
+
+/* An object referring to a function */
+typedef struct UNObjectFunc{
+    UNObject objectBase;
+    int arity;
+    UNProgram program;
+    UNObjectString *namePtr;
+} UNObjectFunc;
 
 /*
  * Returns true if the specified value is an object of
@@ -54,6 +65,13 @@ static inline bool unObjectCheckType(
     unObjectCheckType((VALUE), un_stringObject)
 
 /*
+ * Returns true if the specified value is a func
+ * object, false otherwise
+ */
+#define unIsFunc(VALUE) \
+    unObjectCheckType((VALUE), un_funcObject)
+
+/*
  * Returns a pointer to the String Object contained in
  * the specified value, error if the value is not a
  * String object
@@ -77,6 +95,23 @@ static inline UNObjectString *unObjectAsString(
  */
 static inline char *unObjectAsCString(UNValue value){
     return unObjectAsString(value)->string._ptr;
+}
+
+/*
+ * Returns a pointer to the func object contained in
+ * the specified value, error if the value is not a
+ * func object
+ */
+static inline UNObjectFunc *unObjectAsFunc(
+    UNValue value
+){
+    if(!unIsFunc(value)){
+        pgError(
+            "value is not a func; "
+            SRC_LOCATION
+        );
+    }
+    return (UNObjectFunc*) unAsObject(value);
 }
 
 /*
@@ -120,6 +155,9 @@ UNObjectString *unObjectStringConcat(
     UNObject **listHeadPtrPtr,
     HashMap *stringMapPtr
 );
+
+/* Creates and returns a new UNObjectFunc by pointer */
+UNObjectFunc *unObjectFuncMake();
 
 /*
  * Returns true if the two specified objects are equal,

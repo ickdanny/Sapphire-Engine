@@ -7,7 +7,7 @@
 
 /* Holds a collection of literals for a program */
 typedef struct UNLiterals{
-    //todo: an array list of UNValue for now
+    /* an array list of UNValues */
     ArrayList literals;
 
     /*

@@ -86,12 +86,15 @@ void unVirtualMachineRuntimeError(
     char buffer[bufferSize] = {0};
     pgWarning("Unknown runtime error");
     pgWarning(msg);
+    UNCallFrame *framePtr = &(vmPtr->callStack[
+        vmPtr->frameCount - 1
+    ]);
     size_t instructionIndex
-        = vmPtr->instructionPtr
-            - (uint8_t*)vmPtr->programPtr->code._ptr
-                - 1;
+        = framePtr->instructionPtr
+            - (uint8_t*)framePtr->funcPtr->program
+                .code._ptr - 1;
     uint16_t lineNumber = arrayListGet(uint16_t,
-        &(vmPtr->programPtr->lineNumbers),
+        &(framePtr->funcPtr->program.lineNumbers),
         instructionIndex
     );
     snprintf(
@@ -106,37 +109,38 @@ void unVirtualMachineRuntimeError(
 }
 
 /*
- * Reads the next byte in the specified virtual
- * machine and advances the instruction pointer
+ * Reads the next byte in the specified call frame
+ * and advances the instruction pointer
  */
-#define readByte(VMPTR) \
-    (*(vmPtr->instructionPtr++))
+#define readByte(FRAMEPTR) \
+    (*(FRAMEPTR->instructionPtr++))
 
 /*
- * Reads the next short in the specified virtual
- * machine and advances the instruction pointer twice
+ * Reads the next short in the specified call frame
+ * and advances the instruction pointer twice
  */
-#define readShort(VMPTR) \
-    (vmPtr->instructionPtr += 2, \
-        (uint16_t)((vmPtr->instructionPtr[-2] << 8) \
-            | (vmPtr->instructionPtr[-1])))
+#define readShort(FRAMEPTR) \
+    (FRAMEPTR->instructionPtr += 2, \
+        (uint16_t)((FRAMEPTR->instructionPtr[-2] \
+                << 8 \
+            ) | (FRAMEPTR->instructionPtr[-1])))
 
 /*
- * Reads the next literal value in the specified
- * virtual machine and advances the instruction pointer
+ * Reads the next literal value in the specified call
+ * frame and advances the instruction pointer
  */
-#define readLiteral(VMPTR) \
+#define readLiteral(FRAMEPTR) \
     unLiteralsGet( \
-        &(VMPTR->programPtr->literals), \
-        readByte(VMPTR) \
+        &(FRAMEPTR->funcPtr->program.literals), \
+        readByte(FRAMEPTR) \
     )
 
 /*
- * Reads the next string in the specified virtual
- * machine and advances the instruction pointer
+ * Reads the next string in the specified call frame
+ * and advances the instruction pointer
  */
-#define readString(VMPTR) \
-    unObjectAsString(readLiteral(VMPTR))
+#define readString(FRAMEPTR) \
+    unObjectAsString(readLiteral(FRAMEPTR))
 
 /*
  * Performs a binary arithmetic operation in the
@@ -201,6 +205,9 @@ static void unVirtualMachineConcatenate(
 static UNInterpretResult unVirtualMachineRun(
     UNVirtualMachine *vmPtr
 ){
+    UNCallFrame *framePtr = &(
+        vmPtr->callStack[vmPtr->frameCount - 1]
+    );
     uint8_t instruction = 0;
     while(true){
 
@@ -217,18 +224,19 @@ static UNInterpretResult unVirtualMachineRun(
         }
         printf("\n");
         unProgramDisassembleInstruction(
-            vmPtr->programPtr,
-            (size_t)(vmPtr->instructionPtr
-                - (uint8_t*)vmPtr->programPtr
-                    ->code._ptr)
+            &(framePtr->funcPtr->program),
+            (size_t)(framePtr->instructionPtr
+                - (uint8_t*)framePtr->funcPtr->program
+                    .code._ptr)
         );
         #endif
 
         /* read next instruction opcode */
-        instruction = readByte(vmPtr);
+        instruction = readByte(framePtr);
         switch(instruction){
             case un_literal: {
-                UNValue literal = readLiteral(vmPtr);
+                UNValue literal
+                    = readLiteral(framePtr);
                 unVirtualMachineStackPush(
                     vmPtr,
                     literal
@@ -245,7 +253,7 @@ static UNInterpretResult unVirtualMachineRun(
                  * with its value (top of stack)
                  */
                 UNObjectString *name
-                    = readString(vmPtr);
+                    = readString(framePtr);
                 UNValue value
                     = unVirtualMachineStackPeek(
                         vmPtr,
@@ -267,7 +275,7 @@ static UNInterpretResult unVirtualMachineRun(
                  * top of the stack
                  */
                 UNObjectString *name
-                    = readString(vmPtr);
+                    = readString(framePtr);
                 if(!hashMapHasKey(
                     UNObjectString*,
                     UNValue,
@@ -299,7 +307,7 @@ static UNInterpretResult unVirtualMachineRun(
                  * top of the stack
                  */
                 UNObjectString *name
-                    = readString(vmPtr);
+                    = readString(framePtr);
                 if(!hashMapHasKey(
                     UNObjectString*,
                     UNValue,
@@ -329,26 +337,29 @@ static UNInterpretResult unVirtualMachineRun(
             }
             case un_getLocal: {
                 /* get the stack slot of the local */
-                uint8_t slot = readByte(vmPtr);
+                uint8_t slot = readByte(framePtr);
                 /*
                  * push the value of the local to the
-                 * top of the stack
+                 * top of the stack; get the local
+                 * relative to the call frame
                  */
                 unVirtualMachineStackPush(
                     vmPtr,
-                    vmPtr->stack[slot]
+                    framePtr->slots[slot]
                 );
                 break;
             }
             case un_setLocal: {
                 /* get the stack slot of the local */
-                uint8_t slot = readByte(vmPtr);
+                uint8_t slot = readByte(framePtr);
                 /*
                  * write the value of the stack top
                  * to the slot (but don't pop it off
-                 * since assignment is an expression)
+                 * since assignment is an expression);
+                 * set the local relative to the call
+                 * frame
                  */
-                vmPtr->stack[slot]
+                framePtr->slots[slot]
                     = unVirtualMachineStackPeek(
                         vmPtr,
                         0
@@ -532,12 +543,12 @@ static UNInterpretResult unVirtualMachineRun(
                 break;
             }
             case un_jump: {
-                uint16_t offset = readShort(vmPtr);
-                vmPtr->instructionPtr += offset;
+                uint16_t offset = readShort(framePtr);
+                framePtr->instructionPtr += offset;
                 break;
             }
             case un_jumpIfFalse: {
-                uint16_t offset = readShort(vmPtr);
+                uint16_t offset = readShort(framePtr);
                 /* peek; compiler pops if needed */
                 UNValue condition
                     = unVirtualMachineStackPeek(
@@ -548,13 +559,13 @@ static UNInterpretResult unVirtualMachineRun(
                 if(condition.type == un_bool
                     && !unAsBool(condition)
                 ){
-                    vmPtr->instructionPtr += offset;
+                    framePtr->instructionPtr += offset;
                 }
                 break;
             }
             case un_loop: {
-                uint16_t offset = readShort(vmPtr);
-                vmPtr->instructionPtr -= offset;
+                uint16_t offset = readShort(framePtr);
+                framePtr->instructionPtr -= offset;
                 break;
             }
             case un_return: {
@@ -572,13 +583,24 @@ static UNInterpretResult unVirtualMachineRun(
  */
 UNInterpretResult unVirtualMachineInterpret(
     UNVirtualMachine *vmPtr,
-    UNProgram *programPtr
+    UNObjectFunc *funcObjectProgramPtr
 ){
     unVirtualMachineReset(vmPtr);
-    vmPtr->programPtr = programPtr;
-    vmPtr->instructionPtr = unProgramGetEntryPoint(
-        programPtr
+
+    /* store the func on the stack */
+    unVirtualMachineStackPush(
+        vmPtr,
+        unObjectValue(funcObjectProgramPtr)
     );
+    /* initialize first call frame */
+    UNCallFrame *framePtr = &(vmPtr->callStack[
+        vmPtr->frameCount++
+    ]);
+    framePtr->funcPtr = funcObjectProgramPtr;
+    framePtr->instructionPtr = unProgramGetEntryPoint(
+        &(funcObjectProgramPtr->program)
+    );
+    framePtr->slots = vmPtr->stackPtr;
     /*
      * copy compile-time strings from the program
      * literals into the runtime string interning
@@ -588,10 +610,13 @@ UNInterpretResult unVirtualMachineInterpret(
      * strings, and should not be freed from the map
      * itself.
      */
+    //todo: need to copy strings whenever new stack frame?
+    //todo: hashmap needs keyValue apply?
     vmPtr->stringMap = hashMapCopy(
         UNObjectString*,
         UNValue,
-        &(programPtr->literals.stringMap)
+        &(funcObjectProgramPtr
+            ->program.literals.stringMap)
     );
     vmPtr->stringMapAllocated = true;
 
@@ -638,9 +663,8 @@ static void unVirtualMachineFreeStringMap(
  * Resets the state of the given UNVirtualMachine
  */
 void unVirtualMachineReset(UNVirtualMachine *vmPtr){
-    vmPtr->programPtr = NULL;
-    vmPtr->instructionPtr = 0;
     vmPtr->stackPtr = vmPtr->stack;
+    vmPtr->frameCount = 0;
     unVirtualMachineFreeObjects(vmPtr);
     unVirtualMachineFreeStringMap(vmPtr);
     hashMapClear(

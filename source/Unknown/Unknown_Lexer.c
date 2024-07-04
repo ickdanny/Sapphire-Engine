@@ -282,21 +282,27 @@ UNTokenType unLexerDeduceIdentifierType(
                             2,
                             3,
                             "lse"
-                        ) ? un_tokenFalse : un_tokenIdentifier;
+                        )
+                            ? un_tokenFalse
+                            : un_tokenIdentifier;
                     case 'o':
                         return unLexerStringMatch(
                             lexerPtr,
                             2,
                             1,
                             "r"
-                        ) ? un_tokenFor : un_tokenIdentifier;
+                        )
+                            ? un_tokenFor
+                            : un_tokenIdentifier;
                     case 'u':
                         return unLexerStringMatch(
                             lexerPtr,
                             2,
-                            3,
-                            "unc"
-                        ) ? un_tokenFunc : un_tokenIdentifier;
+                            2,
+                            "nc"
+                        )
+                            ? un_tokenFunc
+                            : un_tokenIdentifier;
                 } /* end 'f' branch */
             }
             break;

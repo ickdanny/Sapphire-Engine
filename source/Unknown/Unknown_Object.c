@@ -226,6 +226,19 @@ UNObjectString *unObjectStringConcat(
     return toRet;
 }
 
+/* Creates and returns a new UNObjectFunc by pointer */
+UNObjectFunc *unObjectFuncMake(){
+    UNObjectFunc *toRet = unObjectAlloc(
+        UNObjectFunc,
+        un_funcObject,
+        NULL /* null for list; called by compiler */
+    );
+    toRet->arity = 0;
+    toRet->namePtr = NULL;
+    toRet->program = unProgramMake();
+    return toRet;
+}
+
 /*
  * Returns true if the two specified objects are equal,
  * false otherwise
@@ -251,6 +264,16 @@ bool unObjectEquals(UNObject *a, UNObject *b){
     }
 }
 
+/* prints the specified function object */
+static void printFunction(UNObjectFunc *funcPtr){
+    printf(
+        "<fn %s>",
+        funcPtr->namePtr != NULL
+            ? funcPtr->namePtr->string._ptr
+            : "<unnamed script>"
+    );
+}
+
 /* Prints the value if it an object, error otherwise */
 void unObjectPrint(UNValue value){
     assertTrue(
@@ -261,6 +284,9 @@ void unObjectPrint(UNValue value){
     switch(unObjectGetType(value)){
         case un_stringObject:
             printf("%s", unObjectAsCString(value));
+            break;
+        case un_funcObject:
+            printFunction(unObjectAsFunc(value));
             break;
         default:
             pgError(
@@ -292,12 +318,25 @@ void unObjectFree(UNObject *objectPtr){
             stringFree(&(stringPtr->string));
             break;
         }
+        case un_funcObject: {
+            UNObjectFunc *funcPtr
+                = (UNObjectFunc*)objectPtr;
+            printf(
+                "free func: %s\n",
+                funcPtr->namePtr != NULL
+                    ? funcPtr->namePtr->string._ptr
+                    : "<unnamed script>"
+            );
+            /* functions own their own code; free it */
+            unProgramFree(&(funcPtr->program));
+            break;
+        }
         default:
             /* do nothing */
             return;
     }
 
-    /* all objects are on the heap */
+    /* free all objects; they are on the heap */
     pgFree(objectPtr);
 }
 

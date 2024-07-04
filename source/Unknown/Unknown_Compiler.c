@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "Unknown_Object.h"
+#define maxParams 255
 
 /*
  * Represents the precedence hiearchy of the grammar 
@@ -19,7 +19,7 @@ typedef enum UNPrecedence{
     un_precFactor,
     un_precUnary,
     un_precCall,
-    un_precPrimary,
+    un_precPrimary,z
 } UNPrecedence;
 
 /* A function which is associated with a parse rule */
@@ -141,9 +141,60 @@ static const UNParseRule *getRule(UNTokenType type){
     return &(parseRules[type]);
 }
 
-/* Resets the state of the specified local info */
-void unLocalInfoReset(UNLocalInfo *localInfoPtr){
-    memset(localInfoPtr, 0, sizeof(*localInfoPtr));
+/*
+ * Reserves the first stack slot for the VM's internal
+ * use; error if called when locals already exist
+ */
+static void _unFuncCompilerReserveFirstStackSlot(
+    _UNFuncCompiler *funcCompilerPtr
+){
+    assertTrue(
+        funcCompilerPtr->localCount == 0,
+        "error: must be called when local count is 0; "
+        SRC_LOCATION
+    );
+    UNLocal *reservedPtr= &(funcCompilerPtr->locals[
+        funcCompilerPtr->localCount++
+    ]);
+    reservedPtr->depth = 0;
+    reservedPtr->name.startPtr = "";
+    reservedPtr->name.length = 0;
+}
+
+/*
+ * Initializes the func compiler passed by pointer
+ * (it is a big struct)
+ */
+static void _unFuncCompilerInit(
+    _UNFuncCompiler *toInitPtr,
+    UNFuncType funcType,
+    UNCompiler *compilerPtr
+){
+    toInitPtr->enclosingPtr
+        = compilerPtr->currentFuncCompilerPtr;
+    compilerPtr->currentFuncCompilerPtr
+        = toInitPtr;
+    toInitPtr->funcPtr = NULL;
+    toInitPtr->funcType = funcType;
+    memset(
+        &(toInitPtr->locals),
+        0,
+        sizeof(toInitPtr->locals)
+    );
+    toInitPtr->localCount = 0;
+    toInitPtr->scopeDepth = 0;
+    toInitPtr->funcPtr = unObjectFuncMake();
+    /* each nested program gets its own string map */
+    if(funcType != un_scriptFuncType){
+        toInitPtr->funcPtr->namePtr
+            = unObjectStringCopy(
+                compilerPtr->prevToken.startPtr,
+                compilerPtr->prevToken.length,
+                NULL,
+                &(toInitPtr->funcPtr->program.literals
+                    .stringMap)
+            );
+    }
 }
 
 /*
@@ -152,18 +203,9 @@ void unLocalInfoReset(UNLocalInfo *localInfoPtr){
  */
 UNCompiler unCompilerMake(){
     UNCompiler toRet = {0};
-    unLocalInfoReset(&(toRet.localInfo));
     toRet.hadError = false;
     toRet.inPanicMode = false;
     return toRet;
-}
-
-/* Resets the state of the specified compiler */
-void unCompilerReset(UNCompiler *compilerPtr){
-    memset(compilerPtr, 0, sizeof(*compilerPtr));
-    unLocalInfoReset(&(compilerPtr->localInfo));
-    compilerPtr->hadError = false;
-    compilerPtr->inPanicMode = false;
 }
 
 /*
@@ -311,7 +353,8 @@ static bool unCompilerMatch(
 static UNProgram *unCompilerGetCurrentProgram(
     UNCompiler *compilerPtr
 ){
-    return &(compilerPtr->compiledProgram);
+    return &(compilerPtr->currentFuncCompilerPtr
+        ->funcPtr->program);
 }
 
 /*
@@ -338,6 +381,68 @@ static UNProgram *unCompilerGetCurrentProgram(
         unCompilerWriteByte(COMPILERPTR, BYTE1); \
         unCompilerWriteByte(COMPILERPTR, BYTE2); \
     } while(false)
+
+/* Used to have the compiler enter a new local scope */
+#define unCompilerBeginScope(COMPILERPTR) \
+    (++((COMPILERPTR)->currentFuncCompilerPtr \
+        ->scopeDepth))
+
+/* Used to have the compiler exit a local scope */
+static void unCompilerEndScope(
+    UNCompiler *compilerPtr
+){
+    _UNFuncCompiler *funcCompilerPtr
+        = compilerPtr->currentFuncCompilerPtr;
+    --(funcCompilerPtr->scopeDepth);
+
+    /*
+     * for every local in the scope, pop it off
+     * the stack
+     */
+    while(funcCompilerPtr->localCount > 0
+        && funcCompilerPtr->locals[
+            funcCompilerPtr->localCount - 1
+        ].depth > funcCompilerPtr->scopeDepth
+    ){
+        unCompilerWriteByte(compilerPtr, un_pop);
+        --(funcCompilerPtr->localCount);
+    }
+}
+
+/*
+ * Performs actions at the end of the compilation
+ * process for the specified compiler and returns the
+ * pointer to the UNObjectFunc holding the compiled
+ * program (or function)
+ */
+static UNObjectFunc *unCompilerEnd(
+    UNCompiler *compilerPtr
+){
+    //todo: temp emit return
+    unCompilerWriteByte(compilerPtr, un_return);
+    UNObjectFunc *toRet 
+        = compilerPtr->currentFuncCompilerPtr->funcPtr;
+    
+    #ifdef _DEBUG
+    if(!(compilerPtr->hadError)){
+        if(toRet->namePtr != NULL){
+            unObjectPrint(
+                unObjectValue(toRet->namePtr)
+            );
+        }
+        unProgramDisassemble(
+            &(toRet->program)
+        );
+    }
+    #endif
+
+    /* pop off the current func compiler */
+    compilerPtr->currentFuncCompilerPtr
+        = compilerPtr->currentFuncCompilerPtr
+            ->enclosingPtr;
+    
+    return toRet;
+}
 
 /*
  * After a compiler error, the compiler will try to
@@ -632,7 +737,10 @@ void unCompilerExpression(
  * a statement does not
  */
 void unCompilerDeclaration(UNCompiler *compilerPtr){
-    if(unCompilerMatch(compilerPtr, un_tokenLet)){
+    if(unCompilerMatch(compilerPtr, un_tokenFunc)){
+        unCompilerFunctionDeclaration(compilerPtr);
+    }
+    else if(unCompilerMatch(compilerPtr, un_tokenLet)){
         unCompilerVariableDeclaration(compilerPtr);
     }
     else{
@@ -675,17 +783,17 @@ static void unCompilerAddLocal(
     UNCompiler *compilerPtr,
     UNToken name
 ){
-    UNLocalInfo *localInfoPtr
-        = &(compilerPtr->localInfo);
-    if(localInfoPtr->localCount == _uint8_t_count){
+    _UNFuncCompiler *funcCompilerPtr
+        = compilerPtr->currentFuncCompilerPtr;
+    if(funcCompilerPtr->localCount == _uint8_t_count){
         unCompilerErrorPrev(
             compilerPtr,
             "Too many locals in func"
         );
         return;
     }
-    UNLocal *localPtr= &(localInfoPtr->locals[
-        localInfoPtr->localCount++
+    UNLocal *localPtr= &(funcCompilerPtr->locals[
+        funcCompilerPtr->localCount++
     ]);
     localPtr->name = name;
 
@@ -718,11 +826,11 @@ static bool identifiersEqual(
 static void unCompilerDeclareVariable(
     UNCompiler *compilerPtr
 ){
-    UNLocalInfo *localInfoPtr
-        = &(compilerPtr->localInfo);
+    _UNFuncCompiler *funcCompilerPtr
+        = compilerPtr->currentFuncCompilerPtr;
 
     /* bail if in global scope */
-    if(localInfoPtr->scopeDepth == 0){
+    if(funcCompilerPtr->scopeDepth == 0){
         return;
     }
 
@@ -732,16 +840,17 @@ static void unCompilerDeclareVariable(
      * error if two variables in same depth w/ same
      * name
      */
-    for(int i = localInfoPtr->localCount - 1;
+    for(int i = funcCompilerPtr->localCount - 1;
         i >= 0;
         --i
     ){
-        UNLocal *localPtr = &(localInfoPtr->locals[i]);
+        UNLocal *localPtr
+            = &(funcCompilerPtr->locals[i]);
 
         /* break out if find local in higher depth */
         if(localPtr->depth != -1
             && localPtr->depth
-                < localInfoPtr->scopeDepth
+                < funcCompilerPtr->scopeDepth
         ){
             break;
         }
@@ -783,7 +892,9 @@ static uint8_t unCompilerParseVariable(
      * string for its name (only globals looked up by
      * name at runtime)
      */
-    if(compilerPtr->localInfo.scopeDepth > 0){
+    if(compilerPtr->currentFuncCompilerPtr->scopeDepth
+        > 0
+    ){
         return 0;
     }
 
@@ -795,16 +906,21 @@ static uint8_t unCompilerParseVariable(
 
 /*
  * Marks the topmost local as finished initialized
- * for the specified compiler
+ * for the specified compiler; does nothing if the
+ * current variable being compiled is global
  */
 static void unCompilerMarkLocalInitialized(
     UNCompiler *compilerPtr
 ){
-    UNLocalInfo *localInfoPtr
-        = &(compilerPtr->localInfo);
-    localInfoPtr->locals[
-        localInfoPtr->localCount - 1
-    ].depth = localInfoPtr->scopeDepth;
+    _UNFuncCompiler *funcCompilerPtr
+        = compilerPtr->currentFuncCompilerPtr;
+    /* special case for ignoring global functions */
+    if(funcCompilerPtr->scopeDepth == 0){
+        return;
+    }
+    funcCompilerPtr->locals[
+        funcCompilerPtr->localCount - 1
+    ].depth = funcCompilerPtr->scopeDepth;
 }
 
 /*
@@ -819,7 +935,9 @@ static void unCompilerDefineVariable(
      * do nothing if local variable - already sits
      * on top of stack
      */
-    if(compilerPtr->localInfo.scopeDepth > 0){
+    if(compilerPtr->currentFuncCompilerPtr->scopeDepth
+        > 0
+    ){
         unCompilerMarkLocalInitialized(compilerPtr);
         return;
     }
@@ -832,6 +950,109 @@ static void unCompilerDefineVariable(
     );
 }
 
+/* Helps the specified compiler parse a function */
+static void unCompilerFunction(
+    UNCompiler *compilerPtr,
+    UNFuncType funcType
+){
+    /* create new func compiler for the new function */
+    _UNFuncCompiler newFuncCompiler = {0};
+    _unFuncCompilerInit(
+        &newFuncCompiler,
+        funcType,
+        compilerPtr
+    );
+    /* no corresponding end scope; unneeded */
+    unCompilerBeginScope(compilerPtr);
+
+    /* consume syntax of function declaration */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenLeftParen,
+        "Expect '(' after func name"
+    );
+    /* get parameters */
+    if(!unCompilerCheckType(
+        compilerPtr,
+        un_tokenRightParen
+    )){
+        do{
+            ++(compilerPtr->currentFuncCompilerPtr
+                ->funcPtr->arity);
+            if(compilerPtr->currentFuncCompilerPtr
+                ->funcPtr->arity > maxParams
+            ){
+                unCompilerErrorCurrent(
+                    compilerPtr,
+                    "Parameters exceeding max"
+                );
+            }
+            uint8_t paramNameIndex
+                = unCompilerParseVariable(
+                    compilerPtr,
+                    "Expect parameter name"
+                );
+            unCompilerDefineVariable(
+                compilerPtr,
+                paramNameIndex
+            );
+        } while(unCompilerMatch(
+            compilerPtr,
+            un_tokenComma
+        ));
+    }
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenRightParen,
+        "Expect ')' after parameters"
+    );
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenLeftBrace,
+        "Expect '{' before function body"
+    );
+
+    /* compile function body */
+    unCompilerBlock(compilerPtr);
+
+    /*
+     * retrieve code for the function and write to the
+     * enclosing code as a literal
+     */
+    UNObjectFunc *funcPtr = unCompilerEnd(compilerPtr);
+    unCompilerWriteBytes(
+        compilerPtr,
+        un_literal,
+        unCompilerMakeLiteral(
+            compilerPtr,
+            unObjectValue(funcPtr)
+        )
+    );
+}
+
+/*
+ * Parses the next function declaration for the
+ * specified compiler
+ */
+void unCompilerFunctionDeclaration(
+    UNCompiler *compilerPtr
+){
+    uint8_t globalIndex = unCompilerParseVariable(
+        compilerPtr,
+        "Expect function name"
+    );
+    /*
+     * marks local functions as initialized but does
+     * nothing for global functions
+     */
+    unCompilerMarkLocalInitialized(compilerPtr);
+    unCompilerFunction(
+        compilerPtr,
+        un_functionFuncType
+    );
+    unCompilerDefineVariable(compilerPtr, globalIndex);
+}
+
 /*
  * Parses the next variable declaration for the
  * specified compiler; uninitialized variables get the
@@ -842,7 +1063,7 @@ void unCompilerVariableDeclaration(
 ){
     uint8_t globalIndex = unCompilerParseVariable(
         compilerPtr,
-        "expect variable name"
+        "Expect variable name"
     );
 
     if(unCompilerMatch(compilerPtr, un_tokenEqual)){
@@ -864,32 +1085,6 @@ void unCompilerVariableDeclaration(
     );
 
     unCompilerDefineVariable(compilerPtr, globalIndex);
-}
-
-/* Used to have the compiler enter a new local scope */
-#define unCompilerBeginScope(COMPILERPTR) \
-    (++((COMPILERPTR)->localInfo.scopeDepth))
-
-/* Used to have the compiler exit a local scope */
-static void unCompilerEndScope(
-    UNCompiler *compilerPtr
-){
-    UNLocalInfo *localInfoPtr
-        = &(compilerPtr->localInfo);
-    --(localInfoPtr->scopeDepth);
-
-    /*
-     * for every local in the scope, pop it off
-     * the stack
-     */
-    while(localInfoPtr->localCount > 0
-        && localInfoPtr->locals[
-            localInfoPtr->localCount - 1
-        ].depth > localInfoPtr->scopeDepth
-    ){
-        unCompilerWriteByte(compilerPtr, un_pop);
-        --(localInfoPtr->localCount);
-    }
 }
 
 /*
@@ -1329,13 +1524,14 @@ static int unCompilerResolveLocal(
     UNCompiler *compilerPtr,
     UNToken *name
 ){
-    UNLocalInfo *localInfoPtr
-        = &(compilerPtr->localInfo);
-    for(int i = localInfoPtr->localCount - 1;
+    _UNFuncCompiler *funcCompilerPtr
+        = compilerPtr->currentFuncCompilerPtr;
+    for(int i = funcCompilerPtr->localCount - 1;
         i >= 0;
         -- i
     ){
-        UNLocal *localPtr = &(localInfoPtr->locals[i]);
+        UNLocal *localPtr
+            = &(funcCompilerPtr->locals[i]);
         if(identifiersEqual(name, &(localPtr->name))){
             /*
              * handle case of uninitialized local
@@ -1554,20 +1750,16 @@ void unCompilerDot(
     //todo dot body
 }
 
-/*
- * Performs actions at the end of the compilation
- * process for the specified compiler
- */
-static void unCompilerEnd(UNCompiler *compilerPtr){
-    //todo: temp emit return
-    unCompilerWriteByte(compilerPtr, un_return);
-    #ifdef _DEBUG
-    if(!(compilerPtr->hadError)){
-        unProgramDisassemble(
-            &(compilerPtr->compiledProgram)
-        );
-    }
-    #endif
+/* Resets the state of the specified compiler */
+void unCompilerReset(UNCompiler *compilerPtr){
+    memset(compilerPtr, 0, sizeof(*compilerPtr));
+    compilerPtr->hadError = false;
+    compilerPtr->inPanicMode = false;
+    /*
+     * no need to take care of the func compiler stack
+     * since it lives on the C call stack as local
+     * function variables
+     */
 }
 
 /*
@@ -1581,15 +1773,24 @@ void unCompilerFree(UNCompiler *compilerPtr){
 
 /*
  * compiles the specified Unknown source file and
- * returns the program; error on compiler error
+ * returns the program as a pointer to a newly
+ * allocated UNObjectFunc; error on compiler error
  */
-UNProgram unCompilerCompile(
+UNObjectFunc *unCompilerCompile(
     UNCompiler *compilerPtr,
     const char *fileName
 ){
+    /* nulls the funcPtr also */
     unCompilerReset(compilerPtr);
     compilerPtr->lexer = unLexerMake(fileName);
-    compilerPtr->compiledProgram = unProgramMake();
+
+    /* create the outermost func compiler */
+    _UNFuncCompiler scriptFuncCompiler = {0};
+    _unFuncCompilerInit(
+        &scriptFuncCompiler,
+        un_scriptFuncType,
+        compilerPtr
+    );
 
     unCompilerAdvance(compilerPtr);
 
@@ -1600,7 +1801,7 @@ UNProgram unCompilerCompile(
         unCompilerDeclaration(compilerPtr);
     }
 
-    unCompilerEnd(compilerPtr);
+    UNObjectFunc *toRet = unCompilerEnd(compilerPtr);
 
     bool hadError = compilerPtr->hadError;
 
@@ -1611,12 +1812,14 @@ UNProgram unCompilerCompile(
     unCompilerFree(compilerPtr);
     
     if(hadError){
+        unObjectFree((UNObject*)toRet);
+        toRet = NULL;
         pgError(
             "halting due to Unknown compiler error(s)"
         );
     }
 
-    UNProgram toRet = compilerPtr->compiledProgram;
     unCompilerReset(compilerPtr);
+    
     return toRet;
 }

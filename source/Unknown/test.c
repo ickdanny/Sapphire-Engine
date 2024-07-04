@@ -5,14 +5,17 @@ void unTest(){
     UNCompiler compiler = unCompilerMake();
 
     printf("compiling\n");
-    UNProgram program = unCompilerCompile(
+    UNObjectFunc *programPtr = unCompilerCompile(
         &compiler,
         "test_script.un"
     );
 
     printf("running vm\n");
-    unVirtualMachineInterpret(&vm, &program);
-    unProgramFree(&program);
+    unVirtualMachineInterpret(
+        &vm,
+        programPtr
+    );
+    unObjectFree((UNObject*)programPtr);
     unVirtualMachineFree(&vm);
     unCompilerFree(&compiler);
 }

@@ -2,9 +2,13 @@
 #define UNKNOWN_VIRTUALMACHINE_H
 
 #include "Unknown_Program.h"
+#include "Unknown_Object.h"
 
 /* size of the stack */
 #define UN_STACK_SIZE 256
+
+/* size of the call stack */
+#define UN_CALLSTACK_SIZE 16
 
 /*
  * used to report back the result of interpreting a
@@ -16,12 +20,19 @@ typedef enum UNInterpretResult{
     un_runtimeError
 } UNInterpretResult;
 
+/* Stores information regarding a function call */
+typedef struct UNCallFrame{
+    UNObjectFunc *funcPtr;
+    uint8_t *instructionPtr;
+    UNValue *slots;
+} UNCallFrame;
+
 /* the virtual machine which interprets UN programs */
 typedef struct UNVirtualMachine{
-    /* pointer to currently executing program */
-    UNProgram *programPtr;
-    /* pointer to next executing instruction */
-    uint8_t *instructionPtr;
+    /* stack used by VM to keep track of func calls */
+    UNCallFrame callStack[UN_CALLSTACK_SIZE];
+    /* stores height of call stack i.e. num calls */
+    int frameCount;
     /* stack used by VM to store all values */
     UNValue stack[UN_STACK_SIZE];
     /* pointer to one past the top of the stack */
@@ -39,7 +50,6 @@ typedef struct UNVirtualMachine{
      * variables
      */
     HashMap globalsMap;
-    //todo: allocate and free globals map
 } UNVirtualMachine;
 
 /*
@@ -59,7 +69,7 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr);
  */
 UNInterpretResult unVirtualMachineInterpret(
     UNVirtualMachine *vmPtr,
-    UNProgram *programPtr
+    UNObjectFunc *funcObjectProgramPtr
 );
 
 /*
