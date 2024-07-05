@@ -71,6 +71,8 @@ typedef enum UNInstruction {
      * distance; distance is 2 bytes long
      */
     un_loop,
+    /* calls a function */
+    un_call,
     /* returns values from functions */
     un_return,
 } UNInstruction;

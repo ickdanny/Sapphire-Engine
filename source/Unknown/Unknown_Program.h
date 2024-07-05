@@ -18,8 +18,11 @@ typedef struct UNProgram{
     UNLiterals literals;
 } UNProgram;
 
-/* Constructs and returns a new UNProgram by value */
-UNProgram unProgramMake();
+/*
+ * Constructs and returns a new UNProgram by value;
+ * the enclosing program pointer is nullable
+ */
+UNProgram unProgramMake(UNProgram *enclosingPtr);
 
 /*
  * Returns a pointer to the first instruction in the

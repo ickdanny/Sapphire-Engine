@@ -11,15 +11,21 @@ typedef struct UNLiterals{
     ArrayList literals;
 
     /*
-     * hashmap of UNObjectString* to UNValue to be
+     * ptr hashmap of UNObjectString* to UNValue to be
      * copied by the virtual machine for string
      * interning
      */
-    HashMap stringMap;
+    HashMap *stringMapPtr;
+    bool ownsStringMap;
 } UNLiterals;
 
-/* Constructs and returns a new UNLiterals by value */
-UNLiterals unLiteralsMake();
+/*
+ * Constructs and returns a new UNLiterals by value;
+ * the string map pointer is nullable, and if null is
+ * passed, the new literals will allocate its own
+ * string map and own it
+ */
+UNLiterals unLiteralsMake(HashMap *stringMapPtr);
 
 /*
  * Returns the UNValue at the specified index

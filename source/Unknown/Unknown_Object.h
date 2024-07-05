@@ -156,8 +156,13 @@ UNObjectString *unObjectStringConcat(
     HashMap *stringMapPtr
 );
 
-/* Creates and returns a new UNObjectFunc by pointer */
-UNObjectFunc *unObjectFuncMake();
+/*
+ * Creates and returns a new UNObjectFunc by pointer;
+ * the enclosing function object pointer is nullable
+ */
+UNObjectFunc *unObjectFuncMake(
+    UNObjectFunc *enclosingPtr
+);
 
 /*
  * Returns true if the two specified objects are equal,

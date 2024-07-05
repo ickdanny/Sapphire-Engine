@@ -109,6 +109,78 @@ HashMap _hashMapCopy(
 }
 
 /*
+ * Copies all key/value pairs from the second hashmap
+ * into the first if an equal key is not present
+ */
+void _hashMapAddAllFrom(
+    HashMap *hashMapPtr,
+    HashMap *toCopyPtr,
+    size_t slotSize,
+    size_t keySize,
+    size_t valueSize
+    #ifdef _DEBUG 
+    , const char *keyTypeName
+    , const char *valueTypeName
+    #endif
+){
+    #ifdef _DEBUG
+    _hashMapPtrTypeCheck(
+        keyTypeName, 
+        valueTypeName, 
+        hashMapPtr
+    );
+    _hashMapPtrTypeCheck(
+        keyTypeName, 
+        valueTypeName, 
+        toCopyPtr
+    );
+    #endif
+
+    /* linear search the copied hashmap */
+    void *currentSlot = toCopyPtr->_ptr;
+    for(size_t u = 0u; u < toCopyPtr->_capacity; ++u){
+        if(_isOccupied(currentSlot)){
+            /* if occupied, copy the key and value */
+            void* keyPtr = _getKeyPtr(currentSlot);
+            void* valuePtr = _getValuePtr(
+                currentSlot,
+                keySize
+            );
+            /*
+             * only copy if the first hashmap doesn't
+             * have an equal key
+             */
+            if(!_hashMapHasKeyPtr(
+                hashMapPtr,
+                keyPtr,
+                slotSize
+                #ifdef _DEBUG
+                , keyTypeName
+                , valueTypeName
+                #endif
+            )){
+                _hashMapPutPtr(
+                    hashMapPtr,
+                    keyPtr,
+                    valuePtr,
+                    slotSize,
+                    keySize,
+                    valueSize
+                    #ifdef _DEBUG
+                    , keyTypeName
+                    , valueTypeName
+                    #endif
+                );
+            }
+        }
+        currentSlot = voidPtrAdd(
+            currentSlot,
+            slotSize
+        );
+    }
+}
+
+/*
  * Returns true if the given hashmap is empty,
  * false otherwise
  */

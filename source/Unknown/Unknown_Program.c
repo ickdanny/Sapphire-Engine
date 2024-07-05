@@ -4,8 +4,11 @@
 
 #define codeInitCapacity 8
 
-/* Constructs and returns a new UNProgram by value */
-UNProgram unProgramMake(){
+/*
+ * Constructs and returns a new UNProgram by value;
+ * the enclosing program pointer is nullable
+ */
+UNProgram unProgramMake(UNProgram *enclosingPtr){
     UNProgram toRet = {0};
     toRet.code = arrayListMake(uint8_t,
         codeInitCapacity
@@ -13,7 +16,14 @@ UNProgram unProgramMake(){
     toRet.lineNumbers = arrayListMake(uint16_t,
         codeInitCapacity
     );
-    toRet.literals = unLiteralsMake();
+    if(enclosingPtr){
+        toRet.literals = unLiteralsMake(
+            enclosingPtr->literals.stringMapPtr
+        );
+    }
+    else{
+        toRet.literals = unLiteralsMake(NULL);
+    }
     return toRet;
 }
 
@@ -317,6 +327,12 @@ size_t unProgramDisassembleInstruction(
             return printJumpInstruction(
                 "LOOP",
                 -1,
+                programPtr,
+                offset
+            );
+        case un_call:
+            return printByteInstruction(
+                "CALL",
                 programPtr,
                 offset
             );

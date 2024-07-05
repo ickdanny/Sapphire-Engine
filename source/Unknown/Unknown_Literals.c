@@ -6,19 +6,38 @@
 
 #define stringMapInitCapacity 50
 
-/* Constructs and returns a new UNLiterals by value */
-UNLiterals unLiteralsMake(){
+/*
+ * Constructs and returns a new UNLiterals by value;
+ * the string map pointer is nullable, and if null is
+ * passed, the new literals will allocate its own
+ * string map and own it
+ */
+UNLiterals unLiteralsMake(HashMap *stringMapPtr){
     UNLiterals toRet = {0};
     toRet.literals = arrayListMake(UNValue,
         literalsInitCapacity
     );
-    toRet.stringMap = hashMapMake(
-        UNObjectString*,
-        UNValue,
-        stringMapInitCapacity,
-        _unObjectStringPtrHash,
-        _unObjectStringPtrEquals
-    );
+
+    /* if null passed, allocate new string map */
+    if(!stringMapPtr){
+        toRet.stringMapPtr= pgAlloc(
+            1,
+            sizeof(*(toRet.stringMapPtr))
+        );
+        *(toRet.stringMapPtr) = hashMapMake(
+            UNObjectString*,
+            UNValue,
+            stringMapInitCapacity,
+            _unObjectStringPtrHash,
+            _unObjectStringPtrEquals
+        );
+        toRet.ownsStringMap = true;
+    }
+    /* otherwise it's a weak ptr */
+    else{
+        toRet.stringMapPtr = stringMapPtr;
+        toRet.ownsStringMap = false;
+    }
     return toRet;
 }
 
@@ -71,9 +90,16 @@ void unLiteralsFree(UNLiterals *literalsPtr){
         _unValueFree
     );
     arrayListFree(UNValue, &(literalsPtr->literals));
-    /* free the hashmap (doesn't own anything) */
-    hashMapFree(UNObjectString*, UNValue,
-        &(literalsPtr->stringMap)
-    );
+    /*
+     * free the hashmap if owned (the map itself
+     * doesn't own anything, it just points into the
+     * literals arraylist which was already freed)
+     */
+    if(literalsPtr->ownsStringMap){
+        hashMapFree(UNObjectString*, UNValue,
+            literalsPtr->stringMapPtr
+        );
+        pgFree(literalsPtr->stringMapPtr);
+    }
     memset(literalsPtr, 0, sizeof(*literalsPtr));
 }

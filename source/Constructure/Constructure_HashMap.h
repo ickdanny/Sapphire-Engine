@@ -252,6 +252,66 @@ HashMap _hashMapCopy(
 #endif
 
 /*
+ * Copies all key/value pairs from the second hashmap
+ * into the first if an equal key is not present
+ */
+void _hashMapAddAllFrom(
+    HashMap *hashMapPtr,
+    HashMap *toCopyPtr,
+    size_t slotSize,
+    size_t keySize,
+    size_t valueSize
+    #ifdef _DEBUG 
+    , const char *keyTypeName
+    , const char *valueTypeName
+    #endif
+);
+
+#ifndef _DEBUG
+/*
+ * Copies all key/value pairs from the second hashmap
+ * into the first with both hashmaps having the
+ * specified key and value types if an equal key is
+ * not present
+ */
+#define hashMapAddAllFrom( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    TOCOPYPTR \
+) \
+    _hashMapAddAllFrom( \
+        (HASHMAPPTR), \
+        (TOCOPYPTR), \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        sizeof(KEYTYPENAME), \
+        sizeof(VALUETYPENAME) \
+    )
+#else
+/*
+ * Copies all key/value pairs from the second hashmap
+ * into the first with both hashmaps having the
+ * specified key and value types if an equal key is
+ * not present
+ */
+#define hashMapAddAllFrom( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    TOCOPYPTR \
+) \
+    _hashMapAddAllFrom( \
+        (HASHMAPPTR), \
+        (TOCOPYPTR), \
+        _slotSize(KEYTYPENAME, VALUETYPENAME), \
+        sizeof(KEYTYPENAME), \
+        sizeof(VALUETYPENAME), \
+        #KEYTYPENAME, \
+        #VALUETYPENAME \
+    )
+#endif
+
+/*
  * Returns true if the given hashmap is empty,
  * false otherwise
  */
@@ -906,6 +966,103 @@ void _hashMapRemovePtr(
                 FUNC( \
                     (KEYTYPENAME*) \
                     (_getKeyPtr(currentSlot)) \
+                ); \
+            } \
+            currentSlot = voidPtrAdd( \
+                currentSlot, \
+                slotSize \
+            ); \
+        } \
+    } while(false)
+#endif
+
+/*
+ * KeyValueApply must be done via macro because it
+ * expects pointers of key and value types
+ */
+#ifndef _DEBUG
+/*
+ * Applies the given function to each key/value pair in
+ * the given hashmap in no guaranteed order; the
+ * function's first parameter is a pointer of the key
+ * type and its second parameter is a pointer of the
+ * value type
+ */
+#define hashMapKeyValueApply( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    FUNC \
+) \
+    do{ \
+        size_t slotSize = _slotSize( \
+            KEYTYPENAME, \
+            VALUETYPENAME \
+        ); \
+        void *currentSlot \
+            = (HASHMAPPTR)->_ptr; \
+        for( \
+            size_t u = 0u; \
+            u < (HASHMAPPTR)->_capacity; \
+            ++u \
+        ){ \
+            if(_isOccupied(currentSlot)){ \
+                FUNC( \
+                    (KEYTYPENAME*) \
+                    (_getKeyPtr(currentSlot)), \
+                    (VALUETYPENAME*) \
+                    (_getValuePtr( \
+                        currentSlot, \
+                        sizeof(KEYTYPENAME) \
+                    )) \
+                ); \
+            } \
+            currentSlot = voidPtrAdd( \
+                currentSlot, \
+                slotSize \
+            ); \
+        } \
+    } while(false)
+#else
+/*
+ * Applies the given function to each key/value pair in
+ * the given hashmap in no guaranteed order; the
+ * function's first parameter is a pointer of the key
+ * type and its second parameter is a pointer of the
+ * value type
+ */
+#define hashMapKeyValueApply( \
+    KEYTYPENAME, \
+    VALUETYPENAME, \
+    HASHMAPPTR, \
+    FUNC \
+) \
+    do{ \
+        _hashMapPtrTypeCheck( \
+            #KEYTYPENAME, \
+            #VALUETYPENAME, \
+            HASHMAPPTR \
+        ); \
+        size_t slotSize = _slotSize( \
+            KEYTYPENAME, \
+            VALUETYPENAME \
+        ); \
+        void *currentSlot \
+            = (HASHMAPPTR)->_ptr; \
+        for( \
+            size_t u = 0u; \
+            u < (HASHMAPPTR)->_capacity; \
+            ++u \
+        ){ \
+            if(_isOccupied(currentSlot)){ \
+                FUNC( \
+                    (KEYTYPENAME*) \
+                    (_getKeyPtr(currentSlot)), \
+                    (VALUETYPENAME*) \
+                    (_getValuePtr( \
+                        currentSlot, \
+                        sizeof(KEYTYPENAME) \
+                    )) \
                 ); \
             } \
             currentSlot = voidPtrAdd( \

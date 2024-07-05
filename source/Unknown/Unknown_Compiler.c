@@ -19,7 +19,7 @@ typedef enum UNPrecedence{
     un_precFactor,
     un_precUnary,
     un_precCall,
-    un_precPrimary,z
+    un_precPrimary,
 } UNPrecedence;
 
 /* A function which is associated with a parse rule */
@@ -183,7 +183,14 @@ static void _unFuncCompilerInit(
     );
     toInitPtr->localCount = 0;
     toInitPtr->scopeDepth = 0;
-    toInitPtr->funcPtr = unObjectFuncMake();
+    if(toInitPtr->enclosingPtr){
+        toInitPtr->funcPtr = unObjectFuncMake(
+            toInitPtr->enclosingPtr->funcPtr
+        );
+    }
+    else{
+        toInitPtr->funcPtr = unObjectFuncMake(NULL);
+    }
     /* each nested program gets its own string map */
     if(funcType != un_scriptFuncType){
         toInitPtr->funcPtr->namePtr
@@ -191,8 +198,8 @@ static void _unFuncCompilerInit(
                 compilerPtr->prevToken.startPtr,
                 compilerPtr->prevToken.length,
                 NULL,
-                &(toInitPtr->funcPtr->program.literals
-                    .stringMap)
+                toInitPtr->funcPtr->program.literals
+                    .stringMapPtr
             );
     }
 }
@@ -348,7 +355,6 @@ static bool unCompilerMatch(
 
 /*
  * Gets the current program from the specified compiler
- * //todo: update getCurrentProgram later
  */
 static UNProgram *unCompilerGetCurrentProgram(
     UNCompiler *compilerPtr
@@ -768,8 +774,8 @@ static uint8_t unCompilerIdentifierLiteral(
                 tokenPtr->startPtr,
                 tokenPtr->length,
                 NULL,
-                &(unCompilerGetCurrentProgram(
-                    compilerPtr)->literals.stringMap)
+                unCompilerGetCurrentProgram(
+                    compilerPtr)->literals.stringMapPtr
             )
         )
     );
@@ -1112,6 +1118,13 @@ void unCompilerStatement(UNCompiler *compilerPtr){
     else if(unCompilerMatch(compilerPtr, un_tokenFor)){
         unCompilerForStatement(compilerPtr);
     }
+    /* match a return */
+    else if(unCompilerMatch(
+        compilerPtr,
+        un_tokenReturn
+    )){
+        unCompilerReturnStatement(compilerPtr);
+    }
     /* match a block */
     else if(unCompilerMatch(
         compilerPtr,
@@ -1446,6 +1459,57 @@ void unCompilerForStatement(UNCompiler *compilerPtr){
     unCompilerEndScope(compilerPtr);
 }
 
+/*
+ * writes a sequence of instructions representing a
+ * null return; it will return false
+ */
+#define unCompilerWriteNullReturn(COMPILERPTR) \
+    do{ \
+        unCompilerWriteByte(compilerPtr, un_false); \
+        unCompilerWriteByte(compilerPtr, un_return); \
+    } while(false)
+
+/*
+ * Parses the next return statement for the specified
+ * compiler
+ */
+void unCompilerReturnStatement(
+    UNCompiler *compilerPtr
+){
+    /*
+     * error if trying to return in the top level
+     * script
+     */
+    if(compilerPtr->currentFuncCompilerPtr->funcType
+        == un_scriptFuncType
+    ){
+        unCompilerErrorPrev(
+            compilerPtr,
+            "Cannot return from top level script"
+        );
+    }
+    /*
+     * if the next token is a semicolon, this is a
+     * null return
+     */
+    if(unCompilerMatch(
+        compilerPtr,
+        un_tokenSemicolon
+    )){
+        unCompilerWriteNullReturn(compilerPtr);
+    }
+    /* otherwise, parse the expression to return */
+    else{
+        unCompilerExpression(compilerPtr);
+        unCompilerConsume(
+            compilerPtr,
+            un_tokenSemicolon,
+            "Expect ';' after return value"
+        );
+        unCompilerWriteByte(compilerPtr, un_return);
+    }
+}
+
 /* Parses the next block for the specified compiler */
 void unCompilerBlock(UNCompiler *compilerPtr){
     while(!unCompilerCheckType(
@@ -1502,14 +1566,58 @@ void unCompilerGrouping(
 }
 
 /*
- * Parses a function call for the specified compiler
- * //todo
+ * Parses the argument list of a function call for the
+ * specified compiler and returns the number of
+ * arguments passed
  */
+static uint8_t unCompilerArgumentList(
+    UNCompiler *compilerPtr
+){
+    uint8_t numArgs = 0;
+    /*
+     * compile each expression separated by commas
+     * until the closing paren
+     */
+    if(!unCompilerCheckType(
+        compilerPtr,
+        un_tokenRightParen
+    )){
+        do{
+            unCompilerExpression(compilerPtr);
+            if(numArgs == maxParams){
+                unCompilerErrorPrev(
+                    compilerPtr,
+                    "too many arguments"
+                );
+            }
+            ++numArgs;
+        } while(unCompilerMatch(
+            compilerPtr,
+            un_tokenComma
+        ));
+    }
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenRightParen,
+        "Expect ')' after args"
+    );
+    return numArgs;
+}
+
+/* Parses a function call for the specified compiler */
 void unCompilerCall(
     UNCompiler *compilerPtr,
     bool canAssign
 ){
     //todo call body
+    uint8_t numArgs = unCompilerArgumentList(
+        compilerPtr
+    );
+    unCompilerWriteBytes(
+        compilerPtr,
+        un_call,
+        numArgs
+    );
 }
 
 /*
@@ -1640,9 +1748,9 @@ void unCompilerString(
                 compilerPtr->prevToken.startPtr + 1,
                 compilerPtr->prevToken.length - 2,
                 NULL,
-                &(unCompilerGetCurrentProgram(
+                unCompilerGetCurrentProgram(
                     compilerPtr
-                )->literals.stringMap)
+                )->literals.stringMapPtr
             )
         )
     );

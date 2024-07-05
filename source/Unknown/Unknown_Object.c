@@ -226,8 +226,13 @@ UNObjectString *unObjectStringConcat(
     return toRet;
 }
 
-/* Creates and returns a new UNObjectFunc by pointer */
-UNObjectFunc *unObjectFuncMake(){
+/*
+ * Creates and returns a new UNObjectFunc by pointer;
+ * the enclosing function object pointer is nullable
+ */
+UNObjectFunc *unObjectFuncMake(
+    UNObjectFunc *enclosingPtr
+){
     UNObjectFunc *toRet = unObjectAlloc(
         UNObjectFunc,
         un_funcObject,
@@ -235,7 +240,14 @@ UNObjectFunc *unObjectFuncMake(){
     );
     toRet->arity = 0;
     toRet->namePtr = NULL;
-    toRet->program = unProgramMake();
+    if(!enclosingPtr){
+        toRet->program = unProgramMake(NULL);
+    }
+    else{
+        toRet->program = unProgramMake(
+            &(enclosingPtr->program)
+        );
+    }
     return toRet;
 }
 

@@ -150,6 +150,14 @@ void unCompilerWhileStatement(UNCompiler *compilerPtr);
  */
 void unCompilerForStatement(UNCompiler *compilerPtr);
 
+/*
+ * Parses the next return statement for the specified
+ * compiler
+ */
+void unCompilerReturnStatement(
+    UNCompiler *compilerPtr
+);
+
 /* Parses the next block for the specified compiler */
 void unCompilerBlock(UNCompiler *compilerPtr);
 

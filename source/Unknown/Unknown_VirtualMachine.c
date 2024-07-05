@@ -82,28 +82,40 @@ void unVirtualMachineRuntimeError(
     UNVirtualMachine *vmPtr,
     const char *msg
 ){
-    #define bufferSize 32
-    char buffer[bufferSize] = {0};
+    #define bufferSize 256
+    static char buffer[bufferSize] = {0};
     pgWarning("Unknown runtime error");
     pgWarning(msg);
-    UNCallFrame *framePtr = &(vmPtr->callStack[
-        vmPtr->frameCount - 1
-    ]);
-    size_t instructionIndex
-        = framePtr->instructionPtr
-            - (uint8_t*)framePtr->funcPtr->program
-                .code._ptr - 1;
-    uint16_t lineNumber = arrayListGet(uint16_t,
-        &(framePtr->funcPtr->program.lineNumbers),
-        instructionIndex
-    );
-    snprintf(
-        buffer,
-        bufferSize - 1,
-        "line %u",
-        lineNumber
-    );
-    pgError(buffer);
+
+    /* print out stack trace */
+    pgWarning("printing stack trace: ");
+    for(int i = vmPtr->frameCount - 1; i >= 0; --i){
+        UNCallFrame *framePtr = &(vmPtr->callStack[i]);
+        UNObjectFunc *funcPtr = framePtr->funcPtr;
+        size_t instructionIndex
+            = framePtr->instructionPtr
+                - (uint8_t*)funcPtr->program.code._ptr
+                    - 1;
+        uint16_t lineNumber = arrayListGet(uint16_t,
+            &(framePtr->funcPtr->program.lineNumbers),
+            instructionIndex
+        );
+        char *funcNamePtr = "unnamed script";
+        if(funcPtr->namePtr != NULL){
+            funcNamePtr
+                = funcPtr->namePtr->string._ptr;
+        }
+        snprintf(
+            buffer,
+            bufferSize - 1,
+            "line %u in %s",
+            lineNumber,
+            funcNamePtr
+        );
+        pgWarning(buffer);
+    }
+
+    pgError("halting due to Unknown runtime error");
     
     #undef bufferSize
 }
@@ -197,6 +209,97 @@ static void unVirtualMachineConcatenate(
         vmPtr,
         unObjectValue(concatenation)
     );
+}
+
+/*
+ * Calls the specified function; returns true if
+ * successful, false otherwise
+ */
+static bool unVirtualMachineCall(
+    UNVirtualMachine *vmPtr,
+    UNObjectFunc *funcPtr,
+    int numArgs,
+    bool copyStrings
+){
+    /* error if arity mismatch */
+    if(numArgs != funcPtr->arity){
+        #define bufferSize 32
+        static char buffer[bufferSize] = {0};
+        snprintf(
+            buffer,
+            bufferSize - 1,
+            "Expected %d args but got %d",
+            funcPtr->arity,
+            numArgs
+        );
+        unVirtualMachineRuntimeError(
+            vmPtr,
+            buffer
+        );
+        #undef bufferSize
+        return false;
+    }
+    /* error if stack overflow */
+    if(vmPtr->frameCount == UN_CALLSTACK_SIZE){
+        unVirtualMachineRuntimeError(
+            vmPtr,
+            "Stack overflow"
+        );
+        return false;
+    }
+    UNCallFrame *framePtr = &(vmPtr->callStack[
+        vmPtr->frameCount++
+    ]);
+    framePtr->funcPtr = funcPtr;
+    framePtr->instructionPtr
+        = funcPtr->program.code._ptr;
+    framePtr->slots = vmPtr->stackPtr - numArgs - 1;
+
+    /*
+     * copy strings from the function if it actually
+     * owns its string map
+     */
+    if(copyStrings && framePtr->funcPtr->program
+        .literals.ownsStringMap
+    ){
+        /* copy strings from the function */
+        hashMapAddAllFrom(UNObjectString*, UNValue,
+            &(vmPtr->stringMap),
+            funcPtr->program.literals.stringMapPtr
+        );
+    }
+
+    return true;
+}
+
+/*
+ * Calls the specified function passed as a value but
+ * errors if the value is not a function; returns true
+ * on success, false on failure
+ */
+static bool unVirtualMachineCallValue(
+    UNVirtualMachine *vmPtr,
+    UNValue callee,
+    int numArgs
+){
+    if(unIsObject(callee)){
+        switch(unObjectGetType(callee)){
+            case un_funcObject:
+                return unVirtualMachineCall(
+                    vmPtr,
+                    unObjectAsFunc(callee),
+                    numArgs,
+                    true
+                );
+            default: /* non-callable object */
+                break;
+        }
+    }
+    unVirtualMachineRuntimeError(
+        vmPtr,
+        "can only call functions"
+    );
+    return false;
 }
 
 /*
@@ -568,13 +671,54 @@ static UNInterpretResult unVirtualMachineRun(
                 framePtr->instructionPtr -= offset;
                 break;
             }
+            case un_call: {
+                int numArgs = readByte(framePtr);
+                if(!unVirtualMachineCallValue(
+                    vmPtr,
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        numArgs
+                    ),
+                    numArgs
+                )){
+                    return un_runtimeError;
+                }
+                /*
+                 * if call value succeeded, it will
+                 * create and push a new frame
+                 */
+                framePtr = &(vmPtr->callStack[
+                    vmPtr->frameCount - 1
+                ]);
+                break;
+            }
             case un_return: {
-                //todo: return temporarily does nothing
-                printf("(return not implemented)\n");
-                return un_ok;
+                UNValue result
+                    = unVirtualMachineStackPop(vmPtr);
+                --(vmPtr->frameCount);
+                if(vmPtr->frameCount == 0){
+                    unVirtualMachineStackPop(vmPtr);
+                    return un_ok;
+                }
+
+                vmPtr->stackPtr = framePtr->slots;
+                /*
+                 * push the return value back onto the
+                 * stack; even "null" returns actually
+                 * return the value FALSE
+                 */
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    result
+                );
+                framePtr = &(vmPtr->callStack[
+                    vmPtr->frameCount - 1
+                ]);
+                break;
             }
         }
     }
+    return un_ok;
 }
 
 /*
@@ -592,15 +736,6 @@ UNInterpretResult unVirtualMachineInterpret(
         vmPtr,
         unObjectValue(funcObjectProgramPtr)
     );
-    /* initialize first call frame */
-    UNCallFrame *framePtr = &(vmPtr->callStack[
-        vmPtr->frameCount++
-    ]);
-    framePtr->funcPtr = funcObjectProgramPtr;
-    framePtr->instructionPtr = unProgramGetEntryPoint(
-        &(funcObjectProgramPtr->program)
-    );
-    framePtr->slots = vmPtr->stackPtr;
     /*
      * copy compile-time strings from the program
      * literals into the runtime string interning
@@ -610,15 +745,20 @@ UNInterpretResult unVirtualMachineInterpret(
      * strings, and should not be freed from the map
      * itself.
      */
-    //todo: need to copy strings whenever new stack frame?
-    //todo: hashmap needs keyValue apply?
     vmPtr->stringMap = hashMapCopy(
         UNObjectString*,
         UNValue,
-        &(funcObjectProgramPtr
-            ->program.literals.stringMap)
+        funcObjectProgramPtr
+            ->program.literals.stringMapPtr
     );
     vmPtr->stringMapAllocated = true;
+    /* initialize first call frame */
+    unVirtualMachineCall(
+        vmPtr,
+        funcObjectProgramPtr,
+        0,
+        false /* do not copy strings */
+    );
 
     return unVirtualMachineRun(vmPtr);
 }
