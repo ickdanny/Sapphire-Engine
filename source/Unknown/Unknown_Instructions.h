@@ -75,6 +75,8 @@ typedef enum UNInstruction {
     un_call,
     /* returns values from functions */
     un_return,
+    /* ends the execution of a program */
+    un_end,
 } UNInstruction;
 
 #endif

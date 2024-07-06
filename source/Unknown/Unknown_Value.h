@@ -16,7 +16,8 @@ typedef struct UNObjectString UNObjectString;
 typedef enum UNValueType{
     un_invalidValue,
     un_bool,
-    un_number, //todo: double for now
+    un_int,
+    un_float,
     un_object,
 } UNValueType;
 
@@ -25,7 +26,8 @@ typedef struct UNValue{
     UNValueType type;
     union{
         bool boolean;
-        double number;
+        int integer;
+        float floating;
         UNObject *object;
     } as;
 } UNValue;
@@ -34,9 +36,13 @@ typedef struct UNValue{
 #define unBoolValue(BOOL) \
     ((UNValue){un_bool, {.boolean = (BOOL)}})
 
-/* Constructs a UNValue for the specified number */
-#define unNumberValue(NUMBER) \
-    ((UNValue){un_number, {.number = (NUMBER)}})
+/* Constructs a UNValue for the specified int */
+#define unIntValue(INT) \
+    ((UNValue){un_int, {.integer = (INT)}})
+
+/* Constructs a UNValue for the specified float */
+#define unFloatValue(FLOAT) \
+    ((UNValue){un_float, {.floating = (FLOAT)}})
 
 /* Constructs a UNValue for the specified object */
 #define unObjectValue(OBJECT) \
@@ -52,10 +58,16 @@ typedef struct UNValue{
 #define unIsBool(VALUE) ((VALUE).type == un_bool)
 
 /*
- * Returns true if the specified UNValue is a number,
+ * Returns true if the specified UNValue is an int,
  * false otherwise
  */
-#define unIsNumber(VALUE) ((VALUE).type == un_number)
+#define unIsInt(VALUE) ((VALUE).type == un_int)
+
+/*
+ * Returns true if the specified UNValue is a float,
+ * false otherwise
+ */
+#define unIsFloat(VALUE) ((VALUE).type == un_float)
 
 /*
  * Returns true if the specified UNValue is an object,
@@ -78,15 +90,29 @@ static inline bool unAsBool(UNValue value){
 }
 
 /*
- * Unboxes the specified UNValue as a number, error if
+ * Unboxes the specified UNValue as an int, error if
  * invalid tag
  */
-static inline double unAsNumber(UNValue value){
-    if(unIsNumber(value)){
-        return value.as.number;
+static inline int unAsInt(UNValue value){
+    if(unIsInt(value)){
+        return value.as.integer;
     }
     else{
-        pgError("bad access for number");
+        pgError("bad access for integer");
+        return 0;
+    }
+}
+
+/*
+ * Unboxes the specified UNValue as a float, error if
+ * invalid tag
+ */
+static inline float unAsFloat(UNValue value){
+    if(unIsFloat(value)){
+        return value.as.floating;
+    }
+    else{
+        pgError("bad access for float");
         return 0;
     }
 }

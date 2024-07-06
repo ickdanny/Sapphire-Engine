@@ -424,8 +424,16 @@ static void unCompilerEndScope(
 static UNObjectFunc *unCompilerEnd(
     UNCompiler *compilerPtr
 ){
-    //todo: temp emit return
-    unCompilerWriteByte(compilerPtr, un_return);
+    /* emit return for functions but not for scripts */
+    if(compilerPtr->currentFuncCompilerPtr->funcType
+        != un_scriptFuncType
+    ){
+        unCompilerWriteByte(compilerPtr, un_return);
+    }
+    else{
+        /* for scripts, emit an end instruction */
+        unCompilerWriteByte(compilerPtr, un_end);
+    }
     UNObjectFunc *toRet 
         = compilerPtr->currentFuncCompilerPtr->funcPtr;
     
@@ -435,6 +443,10 @@ static UNObjectFunc *unCompilerEnd(
             unObjectPrint(
                 unObjectValue(toRet->namePtr)
             );
+            printf(":\n");
+        }
+        else{
+            printf("unnamed:\n");
         }
         unProgramDisassemble(
             &(toRet->program)
@@ -1609,7 +1621,6 @@ void unCompilerCall(
     UNCompiler *compilerPtr,
     bool canAssign
 ){
-    //todo call body
     uint8_t numArgs = unCompilerArgumentList(
         compilerPtr
     );
@@ -1653,7 +1664,11 @@ static int unCompilerResolveLocal(
                     "initializer"
                 );
             }
-            return i;
+            /*
+             * add 1 since the first slot is always 
+             * the function itself
+             */
+            return i + 1;
         }
     }
     return -1;

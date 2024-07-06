@@ -71,9 +71,38 @@ size_t unLiteralsPushBack(
     return literalsPtr->literals.size - 1;
 }
 
-/* Used to free objects allocated by the compiler */
-static void _unValueFree(UNValue *valuePtr){
-    unValueFree(*valuePtr);
+/* Used to free functions allocated by the compiler */
+static void freeFunction(UNValue *valuePtr){
+    if(unIsFunc(*valuePtr)){
+        unValueFree(*valuePtr);
+        memset(valuePtr, 0, sizeof(*valuePtr));
+    }
+}
+
+/*
+ * Used to free non-string objects allocated by the
+ * compiler
+ */
+static void freeNonString(UNValue *valuePtr){
+    if(unIsObject(*valuePtr)
+        && !unIsString(*valuePtr)
+    ){
+        unValueFree(*valuePtr);
+        memset(valuePtr, 0, sizeof(*valuePtr));
+    }
+}
+
+/*
+ * Used to free string objects allocated by the
+ * compiler
+ */
+static void freeString(
+    UNObjectString **stringPtrPtr
+){
+    UNObjectString *stringPtr = *stringPtrPtr;
+    /* strings are objects, so this cast is safe */
+    UNObject *objectPtr = (UNObject*)stringPtr;
+    unObjectFree(objectPtr);
 }
 
 /*
@@ -87,15 +116,22 @@ void unLiteralsFree(UNLiterals *literalsPtr){
      */
     arrayListApply(UNValue,
         &(literalsPtr->literals),
-        _unValueFree
+        freeFunction
+    );
+    arrayListApply(UNValue,
+        &(literalsPtr->literals),
+        freeNonString
     );
     arrayListFree(UNValue, &(literalsPtr->literals));
     /*
      * free the hashmap if owned (the map itself
-     * doesn't own anything, it just points into the
-     * literals arraylist which was already freed)
+     * owns the strings)
      */
     if(literalsPtr->ownsStringMap){
+        hashMapKeyApply(UNObjectString*, UNValue,
+            literalsPtr->stringMapPtr,
+            freeString
+        );
         hashMapFree(UNObjectString*, UNValue,
             literalsPtr->stringMapPtr
         );

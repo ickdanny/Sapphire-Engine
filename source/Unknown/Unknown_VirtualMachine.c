@@ -585,7 +585,7 @@ static UNInterpretResult unVirtualMachineRun(
                 }
                 /*
                  * otherwise, they could be two numbers
-                 */
+                 */ //todo: implement ints and floats
                 else if(unIsNumber(
                         unVirtualMachineStackPeek(
                             vmPtr,
@@ -780,7 +780,7 @@ static UNInterpretResult unVirtualMachineRun(
                 --(vmPtr->frameCount);
                 if(vmPtr->frameCount == 0){
                     unVirtualMachineStackPop(vmPtr);
-                    return un_ok;
+                    return un_success;
                 }
 
                 vmPtr->stackPtr = framePtr->slots;
@@ -798,9 +798,11 @@ static UNInterpretResult unVirtualMachineRun(
                 ]);
                 break;
             }
+            case un_end: 
+                return un_success;
         }
     }
-    return un_ok;
+    return un_success;
 }
 
 /*

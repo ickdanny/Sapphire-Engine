@@ -16,8 +16,8 @@
  * program
  */
 typedef enum UNInterpretResult{
-    un_ok,
-    un_compileError,
+    un_success,
+    //todo: yield
     un_runtimeError
 } UNInterpretResult;
 

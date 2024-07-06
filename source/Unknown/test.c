@@ -1,7 +1,7 @@
 #include "Unknown.h"
 
 UNValue testNativeFunc(int argc, UNValue *argv){
-    return unNumberValue(3.1415);
+    return unFloatValue(3.1415);
 }
 
 void unTest(){
@@ -29,8 +29,16 @@ void unTest(){
         &vm,
         programPtr
     );
+
+    printf("\nfreeing program\n");
     unObjectFree((UNObject*)programPtr);
+
+    printf("\nfreeing vm\n");
     unVirtualMachineFree(&vm);
+
+    printf("\nfreeing compiler\n");
     unCompilerFree(&compiler);
+
+    printf("\nfreeing native funcs\n");
     unNativeFuncSetFree(&nativeFuncSet);
 }

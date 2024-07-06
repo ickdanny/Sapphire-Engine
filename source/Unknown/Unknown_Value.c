@@ -14,8 +14,10 @@ bool unValueEquals(UNValue a, UNValue b){
     switch(a.type){
         case un_bool:
             return unAsBool(a) == unAsBool(b);
-        case un_number:
-            return unAsNumber(a) == unAsNumber(b);
+        case un_int:
+            return unAsInt(a) == unAsInt(b);
+        case un_float:
+            return unAsFloat(a) == unAsFloat(b);
         case un_object:
             return unObjectEquals(
                 a.as.object,
@@ -30,14 +32,17 @@ bool unValueEquals(UNValue a, UNValue b){
     }
 }
 
-/* todo: prints the specified value */
+/* prints the specified value to stdout */
 void unValuePrint(UNValue value){
     switch(value.type){
         case un_bool:
             printf(unAsBool(value) ? "true" : "false");
             break;
-        case un_number:
-            printf("%g", unAsNumber(value));
+        case un_int:
+            printf("%d", unAsInt(value));
+            break;
+        case un_float:
+            printf("%.4f", unAsFloat(value));
             break;
         case un_object:
             unObjectPrint(value);

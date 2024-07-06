@@ -341,6 +341,11 @@ size_t unProgramDisassembleInstruction(
                 "RET",
                 offset
             );
+        case un_end:
+            return printSimpleInstruction(
+                "END",
+                offset
+            );
         default:
             printf(
                 "unknown bad opcode %d\n",

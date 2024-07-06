@@ -205,7 +205,7 @@ UNObjectFunc *unObjectFuncMake(
  * Creates and returns a new UNObjectNativeFunc by
  * pointer
  */
-UNObjectFunc *unObjectNativeFuncMake(
+UNObjectNativeFunc *unObjectNativeFuncMake(
     UNNativeFunc func
 );
 
