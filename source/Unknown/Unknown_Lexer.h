@@ -13,6 +13,7 @@ typedef enum UNTokenType{
     un_tokenComma,
     un_tokenDot,
     un_tokenMinus,
+    un_tokenPercent,
     un_tokenPlus,
     un_tokenSemicolon,
     un_tokenSlash,
@@ -32,8 +33,9 @@ typedef enum UNTokenType{
 
     /* literals */
     un_tokenIdentifier,
+    un_tokenInt,
+    un_tokenFloat,
     un_tokenString,
-    un_tokenNumber,
 
     /* keywords */
     un_tokenElse,

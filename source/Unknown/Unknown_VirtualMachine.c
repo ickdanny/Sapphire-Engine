@@ -225,31 +225,93 @@ static void unVirtualMachineDefineNative(
  * Performs a binary arithmetic operation in the
  * specified virtual machine
  */
-#define binaryOperation(VMPTR, VALUETYPE, OP) \
+#define binaryNumberOperation(VMPTR, OP, ERRMSG) \
     do{ \
-        if(!unIsNumber( \
-                unVirtualMachineStackPeek((VMPTR), 0) \
-            ) \
-            || !unIsNumber( \
+        if(unIsInt( \
+            unVirtualMachineStackPeek((VMPTR), 0) \
+        )){ \
+            if(unIsInt( \
                 unVirtualMachineStackPeek((VMPTR), 1) \
-            ) \
-        ){ \
+            )){ \
+                int b = unAsInt( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                int a = unAsInt( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                unVirtualMachineStackPush( \
+                    (VMPTR), \
+                    unIntValue(a OP b) \
+                ); \
+            } \
+            else if(unIsFloat( \
+                unVirtualMachineStackPeek((VMPTR), 1) \
+            )){ \
+                float b = unAsInt( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                float a = unAsFloat( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                unVirtualMachineStackPush( \
+                    (VMPTR), \
+                    unFloatValue(a OP b) \
+                ); \
+            } \
+            else{ \
+                unVirtualMachineRuntimeError( \
+                    (VMPTR), \
+                    (ERRMSG) \
+                ); \
+                return un_runtimeError; \
+            } \
+        } \
+        else if(unIsFloat( \
+            unVirtualMachineStackPeek((VMPTR), 0) \
+        )){ \
+            if(unIsInt( \
+                unVirtualMachineStackPeek((VMPTR), 1) \
+            )){ \
+                float b = unAsFloat( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                float a = unAsInt( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                unVirtualMachineStackPush( \
+                    (VMPTR), \
+                    unFloatValue(a OP b) \
+                ); \
+            } \
+            else if(unIsFloat( \
+                unVirtualMachineStackPeek((VMPTR), 1) \
+            )){ \
+                float b = unAsFloat( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                float a = unAsFloat( \
+                    unVirtualMachineStackPop((VMPTR)) \
+                ); \
+                unVirtualMachineStackPush( \
+                    (VMPTR), \
+                    unFloatValue(a OP b) \
+                ); \
+            } \
+            else{ \
+                unVirtualMachineRuntimeError( \
+                    (VMPTR), \
+                    (ERRMSG) \
+                ); \
+                return un_runtimeError; \
+            } \
+        } \
+        else{ \
             unVirtualMachineRuntimeError( \
                 (VMPTR), \
-                "Operands should be numbers" \
+                (ERRMSG) \
             ); \
             return un_runtimeError; \
         } \
-        double b = unAsNumber( \
-            unVirtualMachineStackPop(VMPTR) \
-        ); \
-        double a = unAsNumber( \
-            unVirtualMachineStackPop(VMPTR) \
-        ); \
-        unVirtualMachineStackPush( \
-            VMPTR, \
-            VALUETYPE(a OP b) \
-        ); \
     } while(false)
 
 /*
@@ -585,75 +647,105 @@ static UNInterpretResult unVirtualMachineRun(
                 }
                 /*
                  * otherwise, they could be two numbers
-                 */ //todo: implement ints and floats
-                else if(unIsNumber(
-                        unVirtualMachineStackPeek(
-                            vmPtr,
-                            0
-                        )
-                    ) && unIsNumber(
-                        unVirtualMachineStackPeek(
-                            vmPtr, 1
-                        )
-                    )
-                ){
-                    double b = unAsNumber(
-                        unVirtualMachineStackPop(
-                            vmPtr
-                        )
-                    );
-                    double a = unAsNumber(
-                        unVirtualMachineStackPop(
-                            vmPtr
-                        )
-                    );
-                    unVirtualMachineStackPush(
+                 */
+                else {
+                    binaryNumberOperation(
                         vmPtr,
-                        unNumberValue(a + b)
-                    );
-                }
-                /* otherwise, error */
-                else{
-                    unVirtualMachineRuntimeError(
-                        vmPtr,
+                        +,
                         "Operands of '+' should be "
                         "numbers or strings"
                     );
-                    return un_runtimeError;
                 }
                 break;
             }
             case un_subtract: {
-                binaryOperation(
+                binaryNumberOperation(
                     vmPtr,
-                    unNumberValue,
-                    -
+                    -,
+                    "Operands of '-' should be numbers"
                 );
                 break;
             }
             case un_multiply: {
-                binaryOperation(
+                binaryNumberOperation(
                     vmPtr,
-                    unNumberValue,
-                    *
+                    *,
+                    "Operands of '*' should be numbers"
                 );
                 break;
             }
             case un_divide: {
-                binaryOperation(
+                binaryNumberOperation(
                     vmPtr,
-                    unNumberValue,
-                    /
+                    /,
+                    "Operands of '/' should be numbers"
+                );
+                break;
+            }
+            case un_modulo: {
+                if(!unIsInt(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) || !unIsInt(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            1
+                        )
+                    )
+                ){
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "Operands of '%' should be "
+                        "integers only"
+                    );
+                    return un_runtimeError;
+                }
+                int b = unAsInt(
+                    unVirtualMachineStackPop(vmPtr)
+                );
+                int a = unAsInt(
+                    unVirtualMachineStackPop(vmPtr)
+                );
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    unIntValue(a % b)
                 );
                 break;
             }
             case un_negate: {
-                if(!unIsNumber(
+                if(unIsInt(
                     unVirtualMachineStackPeek(
                         vmPtr,
                         0
                     )
                 )){
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unIntValue(-unAsInt(
+                            unVirtualMachineStackPop(
+                                vmPtr
+                            )
+                        ))
+                    );
+                }
+                else if(unIsFloat(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unFloatValue(-unAsFloat(
+                            unVirtualMachineStackPop(
+                                vmPtr
+                            )
+                        ))
+                    );
+                }
+                else{
                     unVirtualMachineRuntimeError(
                         vmPtr,
                         "Operand of unary '-' should "
@@ -661,12 +753,6 @@ static UNInterpretResult unVirtualMachineRun(
                     );
                     return un_runtimeError;
                 }
-                unVirtualMachineStackPush(
-                    vmPtr,
-                    unNumberValue(-unAsNumber(
-                        unVirtualMachineStackPop(vmPtr)
-                    ))
-                );
                 break;
             }
             case un_equal: {
@@ -683,18 +769,20 @@ static UNInterpretResult unVirtualMachineRun(
                 break;
             }
             case un_greater: {
-                binaryOperation(
+                binaryNumberOperation(
                     vmPtr,
-                    unBoolValue,
-                    >
+                    >,
+                    "Operands of comparison should be "
+                    "numbres"
                 );
                 break;
             }
             case un_less: {
-                binaryOperation(
+                binaryNumberOperation(
                     vmPtr,
-                    unBoolValue,
-                    <
+                    <,
+                    "Operands of comparison should be "
+                    "numbres"
                 );
                 break;
             }

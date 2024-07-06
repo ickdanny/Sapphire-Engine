@@ -44,6 +44,8 @@ typedef enum UNInstruction {
     un_multiply,
     /* binary division */
     un_divide,
+    /* integer modulus */
+    un_modulo,
     /* unary negation */
     un_negate,
     /* binary equality comparison */

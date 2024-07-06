@@ -216,6 +216,8 @@ UNToken unLexerMakeString(UNLexer *lexerPtr){
 
 /* Reads a number from the specified lexer */
 UNToken unLexerMakeNumber(UNLexer *lexerPtr){
+    bool dotPresent = false;
+
     /* read whole part */
     while(isDigit(unLexerPeek(lexerPtr))){
         unLexerAdvance(lexerPtr);
@@ -225,13 +227,17 @@ UNToken unLexerMakeNumber(UNLexer *lexerPtr){
     if(unLexerPeek(lexerPtr) == '.'
         && isDigit(unLexerPeekNext(lexerPtr))
     ){
+        dotPresent = true;
         unLexerAdvance(lexerPtr);
         while(isDigit(unLexerPeek(lexerPtr))){
             unLexerAdvance(lexerPtr);
         }
     }
 
-    return unLexerMakeToken(lexerPtr, un_tokenNumber);
+    return unLexerMakeToken(
+        lexerPtr,
+        dotPresent ? un_tokenFloat : un_tokenInt
+    );
 }
 
 /*
@@ -409,6 +415,10 @@ UNToken unLexerNext(UNLexer *lexerPtr){
         case '-': return unLexerMakeToken(
             lexerPtr,
             un_tokenMinus
+        );
+        case '%': return unLexerMakeToken(
+            lexerPtr,
+            un_tokenPercent
         );
         case '+': return unLexerMakeToken(
             lexerPtr,

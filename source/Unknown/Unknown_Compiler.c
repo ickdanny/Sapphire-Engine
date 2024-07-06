@@ -62,6 +62,8 @@ static const UNParseRule parseRules[] = {
         = {NULL,     dot,    un_precCall},
     [un_tokenMinus]
         = {unary,    binary, un_precTerm},
+    [un_tokenPercent]
+        = {NULL,     binary, un_precFactor},
     [un_tokenPlus]
         = {NULL,     binary, un_precTerm},
     [un_tokenSemicolon]
@@ -90,7 +92,9 @@ static const UNParseRule parseRules[] = {
         = {variable, NULL,   un_precNone},
     [un_tokenString]
         = {string,   NULL,   un_precNone},
-    [un_tokenNumber]
+    [un_tokenInt]
+        = {number,   NULL,   un_precNone},
+    [un_tokenFloat]
         = {number,   NULL,   un_precNone},
     [un_tokenAmpersand]
         = {NULL,     and_,   un_precAnd},
@@ -600,10 +604,28 @@ void unCompilerNumber(
     UNCompiler *compilerPtr,
     bool canAssign
 ){
-    UNValue value = unNumberValue(strtod(
-        compilerPtr->prevToken.startPtr,
-        NULL
-    ));
+    UNValue value = {0};
+    switch(compilerPtr->prevToken.type){
+        case un_tokenInt:
+            value = unIntValue(atoi(
+                compilerPtr->prevToken.startPtr
+            ));
+            break;
+        case un_tokenFloat:
+            value = unFloatValue(
+                strtof(
+                    compilerPtr->prevToken.startPtr,
+                    NULL
+                )
+            );
+            break;
+        default:
+            pgError(
+                "unexpected default; "
+                SRC_LOCATION
+            );
+            break;
+    }
     unCompilerWriteLiteral(compilerPtr, value);
 }
  
@@ -687,6 +709,12 @@ void unCompilerBinary(
             unCompilerWriteByte(
                 compilerPtr,
                 un_divide
+            );
+            break;
+        case un_tokenPercent:
+            unCompilerWriteByte(
+                compilerPtr,
+                un_modulo
             );
             break;
         case un_tokenBangEqual:

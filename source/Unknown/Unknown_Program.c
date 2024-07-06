@@ -279,6 +279,11 @@ size_t unProgramDisassembleInstruction(
                 "DIV",
                 offset
             );
+        case un_modulo:
+            return printSimpleInstruction(
+                "MOD",
+                offset
+            );
         case un_negate:
             return printSimpleInstruction(
                 "NEG",
