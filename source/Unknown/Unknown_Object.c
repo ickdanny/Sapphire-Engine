@@ -252,6 +252,22 @@ UNObjectFunc *unObjectFuncMake(
 }
 
 /*
+ * Creates and returns a new UNObjectNativeFunc by
+ * pointer
+ */
+UNObjectFunc *unObjectNativeFuncMake(
+    UNNativeFunc func
+){
+    UNObjectNativeFunc *toRet = unObjectAlloc(
+        UNObjectNativeFunc,
+        un_nativeFuncObject,
+        NULL /* null for list; called by compiler */
+    );
+    toRet->func = func;
+    return toRet;
+}
+
+/*
  * Returns true if the two specified objects are equal,
  * false otherwise
  */
@@ -300,6 +316,9 @@ void unObjectPrint(UNValue value){
         case un_funcObject:
             printFunction(unObjectAsFunc(value));
             break;
+        case un_nativeFuncObject:
+            printf("<native fn>");
+            break;
         default:
             pgError(
                 "unexpected default; "
@@ -319,6 +338,7 @@ void unObjectFree(UNObject *objectPtr){
         "null passed to unObjectFree; "SRC_LOCATION
     );
 
+    /* free any extra data allocated for the object */
     switch(objectPtr->type){
         case un_stringObject: {
             UNObjectString *stringPtr
@@ -343,8 +363,15 @@ void unObjectFree(UNObject *objectPtr){
             unProgramFree(&(funcPtr->program));
             break;
         }
+        case un_nativeFuncObject: {
+            /* do nothing; free the object below */
+            break;
+        }
         default:
-            /* do nothing */
+            pgError(
+                "unexpected default; "
+                SRC_LOCATION
+            );
             return;
     }
 

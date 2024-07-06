@@ -13,7 +13,8 @@
 typedef enum UNObjectType{
     un_invalidObject,
     un_stringObject,
-    un_funcObject
+    un_funcObject,
+    un_nativeFuncObject
 } UNObjectType;
 
 /* the base struct for all object types */
@@ -37,6 +38,18 @@ typedef struct UNObjectFunc{
     UNProgram program;
     UNObjectString *namePtr;
 } UNObjectFunc;
+
+/* The prototype for a native function */
+typedef UNValue (*UNNativeFunc)(
+    int argc,
+    UNValue* argv
+);
+
+/* An object referring to a native function */
+typedef struct UNObjectNativeFunc{
+    UNObject objectBase;
+    UNNativeFunc func;
+} UNObjectNativeFunc;
 
 /*
  * Returns true if the specified value is an object of
@@ -70,6 +83,13 @@ static inline bool unObjectCheckType(
  */
 #define unIsFunc(VALUE) \
     unObjectCheckType((VALUE), un_funcObject)
+
+/*
+ * Returns true if the specified value is a native func
+ * object, false otherwise
+ */
+#define unIsNativeFunc(VALUE) \
+    unObjectCheckType((VALUE), un_nativeFuncObject)
 
 /*
  * Returns a pointer to the String Object contained in
@@ -112,6 +132,23 @@ static inline UNObjectFunc *unObjectAsFunc(
         );
     }
     return (UNObjectFunc*) unAsObject(value);
+}
+
+/*
+ * Returns a pointer to the native func object
+ * contained in the specified value, error if the
+ * value is not a func object
+ */
+static inline UNObjectNativeFunc *unObjectAsNativeFunc(
+    UNValue value
+){
+    if(!unIsNativeFunc(value)){
+        pgError(
+            "value is not a native func; "
+            SRC_LOCATION
+        );
+    }
+    return (UNObjectNativeFunc*) unAsObject(value);
 }
 
 /*
@@ -162,6 +199,14 @@ UNObjectString *unObjectStringConcat(
  */
 UNObjectFunc *unObjectFuncMake(
     UNObjectFunc *enclosingPtr
+);
+
+/*
+ * Creates and returns a new UNObjectNativeFunc by
+ * pointer
+ */
+UNObjectFunc *unObjectNativeFuncMake(
+    UNNativeFunc func
 );
 
 /*

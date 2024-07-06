@@ -3,6 +3,7 @@
 
 #include "Unknown_Program.h"
 #include "Unknown_Object.h"
+#include "Unknown_NativeFuncSet.h"
 
 /* size of the stack */
 #define UN_STACK_SIZE 256
@@ -50,13 +51,17 @@ typedef struct UNVirtualMachine{
      * variables
      */
     HashMap globalsMap;
+    /* pointer to the set of native functions */
+    UNNativeFuncSet *nativeFuncSetPtr;
 } UNVirtualMachine;
 
 /*
  * Constructs and returns a new UNVirtualMachine by
- * value
+ * value; the native function set pointer is nullable
  */
-UNVirtualMachine unVirtualMachineMake();
+UNVirtualMachine unVirtualMachineMake(
+    UNNativeFuncSet *nativeFuncSetPtr
+);
 
 /*
  * Resets the state of the given UNVirtualMachine

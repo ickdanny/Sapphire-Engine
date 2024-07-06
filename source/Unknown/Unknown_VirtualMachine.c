@@ -8,9 +8,11 @@
 
 /*
  * Constructs and returns a new UNVirtualMachine by
- * value
+ * value; the native function set pointer is nullable
  */
-UNVirtualMachine unVirtualMachineMake(){
+UNVirtualMachine unVirtualMachineMake(
+    UNNativeFuncSet *nativeFuncSetPtr
+){
     UNVirtualMachine toRet = {0};
     /*
      * allocate the globals map; only free when
@@ -23,6 +25,8 @@ UNVirtualMachine unVirtualMachineMake(){
         _unObjectStringPtrHash,
         _unObjectStringPtrEquals
     );
+
+    toRet.nativeFuncSetPtr = nativeFuncSetPtr;
 
     /*
      * do not allocate the string map; defer to when
@@ -118,6 +122,69 @@ void unVirtualMachineRuntimeError(
     pgError("halting due to Unknown runtime error");
     
     #undef bufferSize
+}
+
+/*
+ * Associates the given C string with the given native
+ * function as a global variable for the specified
+ * virtual machine
+ */
+static void unVirtualMachineDefineNative(
+    UNVirtualMachine *vmPtr,
+    _UNNameFuncPair nameFuncPair
+){
+    assertNotNull(
+        vmPtr,
+        "null vm passed to define native; "
+        SRC_LOCATION
+    );
+    assertNotNull(
+        nameFuncPair._name,
+        "null name passed to define native; "
+        SRC_LOCATION
+    );
+    assertTrue(
+        vmPtr->stringMapAllocated,
+        "define native cannot be used before the "
+        "string map is allocated; "
+        SRC_LOCATION
+    );
+    unVirtualMachineStackPush(
+        vmPtr,
+        unObjectValue(unObjectStringCopy(
+            nameFuncPair._name,
+            (int)strlen(nameFuncPair._name),
+            &(vmPtr->objectListHeadPtr),
+            &(vmPtr->stringMap)
+        ))
+    );
+    unVirtualMachineStackPush(
+        vmPtr,
+        unObjectValue(unObjectNativeFuncMake(
+            nameFuncPair._func
+        ))
+    );
+    UNObjectString *namePtr = unObjectAsString(
+        vmPtr->stack[0]
+    );
+    /* error out if duplicate name */
+    if(hashMapHasKeyPtr(UNObjectString*, UNValue,
+        &(vmPtr->globalsMap),
+        &(namePtr)
+    )){
+        pgWarning(nameFuncPair._name);
+        unVirtualMachineRuntimeError(
+            vmPtr,
+            "Duplicate native function name"
+        );
+    }
+    hashMapPutPtr(UNObjectString*, UNValue,
+        &(vmPtr->globalsMap),
+        &(namePtr),
+        &(vmPtr->stack[1])
+    );
+    unVirtualMachineStackPop(vmPtr);
+    unVirtualMachineStackPop(vmPtr);
 }
 
 /*
@@ -291,6 +358,21 @@ static bool unVirtualMachineCallValue(
                     numArgs,
                     true
                 );
+            case un_nativeFuncObject: {
+                UNNativeFunc nativeFunc
+                    = unObjectAsNativeFunc(callee)
+                        ->func;
+                UNValue result = nativeFunc(
+                    numArgs,
+                    vmPtr->stackPtr - numArgs
+                );
+                vmPtr->stackPtr -= numArgs + 1;
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    result
+                );
+                return true;
+            }
             default: /* non-callable object */
                 break;
         }
@@ -722,6 +804,41 @@ static UNInterpretResult unVirtualMachineRun(
 }
 
 /*
+ * Loads all native functions defined in native func
+ * set pointed to by the specified virtual machine
+ */
+static void unVirtualMachineLoadNativeFunctions(
+    UNVirtualMachine *vmPtr
+){
+    assertNotNull(
+        vmPtr,
+        "null passed to load all native funcs; "
+        SRC_LOCATION
+    );
+
+    /* do nothing if vm has no native func set */
+    if(!(vmPtr->nativeFuncSetPtr)){
+        return;
+    }
+
+    /* otherwise load native funcs one by one */
+    for(size_t i = 0;
+        i < vmPtr->nativeFuncSetPtr
+            ->_nameFuncPairs.size;
+        ++i
+    ){
+        unVirtualMachineDefineNative(
+            vmPtr,
+            arrayListGet(_UNNameFuncPair,
+                &(vmPtr->nativeFuncSetPtr
+                    ->_nameFuncPairs),
+                i
+            )
+        );
+    }
+}
+
+/*
  * Makes the specified virtual machine start
  * interpreting the specified program
  */
@@ -731,11 +848,6 @@ UNInterpretResult unVirtualMachineInterpret(
 ){
     unVirtualMachineReset(vmPtr);
 
-    /* store the func on the stack */
-    unVirtualMachineStackPush(
-        vmPtr,
-        unObjectValue(funcObjectProgramPtr)
-    );
     /*
      * copy compile-time strings from the program
      * literals into the runtime string interning
@@ -752,6 +864,16 @@ UNInterpretResult unVirtualMachineInterpret(
             ->program.literals.stringMapPtr
     );
     vmPtr->stringMapAllocated = true;
+
+    /* load native functions */
+    unVirtualMachineLoadNativeFunctions(vmPtr);
+
+    /* store the func on the stack */
+    unVirtualMachineStackPush(
+        vmPtr,
+        unObjectValue(funcObjectProgramPtr)
+    );
+
     /* initialize first call frame */
     unVirtualMachineCall(
         vmPtr,
@@ -807,6 +929,8 @@ void unVirtualMachineReset(UNVirtualMachine *vmPtr){
     vmPtr->frameCount = 0;
     unVirtualMachineFreeObjects(vmPtr);
     unVirtualMachineFreeStringMap(vmPtr);
+
+    /* clear all globals including native funcs */
     hashMapClear(
         UNObjectString*,
         UNValue,
