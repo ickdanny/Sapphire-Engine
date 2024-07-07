@@ -17,17 +17,6 @@ void polarCopyInto(
 }
 
 /* 
- * Updates the internal Cartesian representation of 
- * the given Polar 
- */
-void _polarUpdateVector(Polar *polarPtr){
-    float radians = toRadians(polarPtr->angle);
-    float magnitude = polarPtr->magnitude;
-    polarPtr->asVector.x = magnitude * cosf(radians);
-    polarPtr->asVector.y = -magnitude * sinf(radians);
-}
-
-/* 
  * Constructs a new Polar from a given 
  * Cartesian Vector2D 
  */
@@ -35,7 +24,6 @@ Polar polarFromVector(Vector2D vector){
     Polar toRet = {0};
     toRet.magnitude = vector2DMagnitude(vector);
     toRet.angle = vector2DAngle(vector);
-    toRet.asVector = vector;
     return toRet;
 }
 
@@ -45,13 +33,11 @@ void polarSetMagnitude(
     float magnitude
 ){
     polarPtr->magnitude = magnitude;
-    _polarUpdateVector(polarPtr);
 }
 
 /* Sets the angle of the given Polar in degrees*/
 void polarSetAngle(Polar *polarPtr, float angle){
     polarPtr->angle = angle;
-    _polarUpdateVector(polarPtr);
 }
 
 /* Flips the given Polar halfway around */
@@ -68,7 +54,11 @@ Polar polarNegate(Polar polar){
  * given Polar 
  */
 Vector2D polarToVector(Polar *polarPtr){
-    return polarPtr->asVector;
+    Vector2D toRet = {0};
+    float radians = toRadians(polarPtr->angle);
+    toRet.x = polarPtr->magnitude * cosf(radians);
+    toRet.y = -polarPtr->magnitude * sinf(radians);
+    return toRet;
 }
 
 /* Prints the given Polar to the given C String */

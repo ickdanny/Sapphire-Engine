@@ -6,9 +6,7 @@
 /* A 2D vector stored in polar form */
 typedef struct Polar{
     float magnitude;
-    float angle;
-    
-    Vector2D asVector;
+    float angle; /* stored in degrees */
 } Polar;
 
 /* Makes a value copy of the given Polar */
@@ -19,12 +17,6 @@ void polarCopyInto(
     Polar *destination, 
     const Polar *source
 );
-
-/* 
- * Updates the internal Cartesian representation of 
- * the given Polar 
- */
-void _polarUpdateVector(Polar *polarPtr);
 
 /* 
  * Constructs a new Polar from a given 
