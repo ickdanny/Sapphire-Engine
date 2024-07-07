@@ -225,7 +225,12 @@ static void unVirtualMachineDefineNative(
  * Performs a binary arithmetic operation in the
  * specified virtual machine
  */
-#define binaryNumberOperation(VMPTR, OP, ERRMSG) \
+#define binaryNumberOperation( \
+    VMPTR, \
+    OP, \
+    PUSHBOOL, \
+    ERRMSG \
+) \
     do{ \
         if(unIsInt( \
             unVirtualMachineStackPeek((VMPTR), 0) \
@@ -241,7 +246,9 @@ static void unVirtualMachineDefineNative(
                 ); \
                 unVirtualMachineStackPush( \
                     (VMPTR), \
-                    unIntValue(a OP b) \
+                    (PUSHBOOL) \
+                        ? unBoolValue(a OP b) \
+                        : unIntValue(a OP b) \
                 ); \
             } \
             else if(unIsFloat( \
@@ -255,7 +262,9 @@ static void unVirtualMachineDefineNative(
                 ); \
                 unVirtualMachineStackPush( \
                     (VMPTR), \
-                    unFloatValue(a OP b) \
+                    (PUSHBOOL) \
+                        ? unBoolValue(a OP b) \
+                        : unFloatValue(a OP b) \
                 ); \
             } \
             else{ \
@@ -280,7 +289,9 @@ static void unVirtualMachineDefineNative(
                 ); \
                 unVirtualMachineStackPush( \
                     (VMPTR), \
-                    unFloatValue(a OP b) \
+                    (PUSHBOOL) \
+                        ? unBoolValue(a OP b) \
+                        : unFloatValue(a OP b) \
                 ); \
             } \
             else if(unIsFloat( \
@@ -294,7 +305,9 @@ static void unVirtualMachineDefineNative(
                 ); \
                 unVirtualMachineStackPush( \
                     (VMPTR), \
-                    unFloatValue(a OP b) \
+                    (PUSHBOOL) \
+                        ? unBoolValue(a OP b) \
+                        : unFloatValue(a OP b) \
                 ); \
             } \
             else{ \
@@ -455,9 +468,10 @@ static UNInterpretResult unVirtualMachineRun(
     UNCallFrame *framePtr = &(
         vmPtr->callStack[vmPtr->frameCount - 1]
     );
+    /* initialize instruction to 0 just to be safe */
     uint8_t instruction = 0;
-    while(true){
 
+    while(true){
         /* debug printing */
         #ifdef _DEBUG
         printf("Stack:");
@@ -652,6 +666,7 @@ static UNInterpretResult unVirtualMachineRun(
                     binaryNumberOperation(
                         vmPtr,
                         +,
+                        false,
                         "Operands of '+' should be "
                         "numbers or strings"
                     );
@@ -662,6 +677,7 @@ static UNInterpretResult unVirtualMachineRun(
                 binaryNumberOperation(
                     vmPtr,
                     -,
+                    false,
                     "Operands of '-' should be numbers"
                 );
                 break;
@@ -670,6 +686,7 @@ static UNInterpretResult unVirtualMachineRun(
                 binaryNumberOperation(
                     vmPtr,
                     *,
+                    false,
                     "Operands of '*' should be numbers"
                 );
                 break;
@@ -678,6 +695,7 @@ static UNInterpretResult unVirtualMachineRun(
                 binaryNumberOperation(
                     vmPtr,
                     /,
+                    false,
                     "Operands of '/' should be numbers"
                 );
                 break;
@@ -772,8 +790,9 @@ static UNInterpretResult unVirtualMachineRun(
                 binaryNumberOperation(
                     vmPtr,
                     >,
+                    true,
                     "Operands of comparison should be "
-                    "numbres"
+                    "numbers"
                 );
                 break;
             }
@@ -781,8 +800,9 @@ static UNInterpretResult unVirtualMachineRun(
                 binaryNumberOperation(
                     vmPtr,
                     <,
+                    true,
                     "Operands of comparison should be "
-                    "numbres"
+                    "numbers"
                 );
                 break;
             }
@@ -886,6 +906,8 @@ static UNInterpretResult unVirtualMachineRun(
                 ]);
                 break;
             }
+            case un_yield:
+                return un_yielded;
             case un_end: 
                 return un_success;
         }
@@ -972,6 +994,17 @@ UNInterpretResult unVirtualMachineInterpret(
         false /* do not copy strings */
     );
 
+    return unVirtualMachineRun(vmPtr);
+}
+
+/*
+ * Has the specified virtual machine continue running
+ * its program; should only be used if the virtual
+ * machine has previously yielded
+ */
+UNInterpretResult unVirtualMachineResume(
+    UNVirtualMachine *vmPtr
+){
     return unVirtualMachineRun(vmPtr);
 }
 

@@ -17,7 +17,7 @@
  */
 typedef enum UNInterpretResult{
     un_success,
-    //todo: yield
+    un_yielded,
     un_runtimeError
 } UNInterpretResult;
 
@@ -64,11 +64,6 @@ UNVirtualMachine unVirtualMachineMake(
 );
 
 /*
- * Resets the state of the given UNVirtualMachine
- */
-void unVirtualMachineReset(UNVirtualMachine *vmPtr);
-
-/*
  * Makes the specified virtual machine start
  * interpreting the specified program
  */
@@ -76,6 +71,20 @@ UNInterpretResult unVirtualMachineInterpret(
     UNVirtualMachine *vmPtr,
     UNObjectFunc *funcObjectProgramPtr
 );
+
+/*
+ * Has the specified virtual machine continue running
+ * its program; should only be used if the virtual
+ * machine has previously yielded
+ */
+UNInterpretResult unVirtualMachineResume(
+    UNVirtualMachine *vmPtr
+);
+
+/*
+ * Resets the state of the given UNVirtualMachine
+ */
+void unVirtualMachineReset(UNVirtualMachine *vmPtr);
 
 /*
  * Frees the memory associated with the given

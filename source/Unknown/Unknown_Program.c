@@ -346,6 +346,11 @@ size_t unProgramDisassembleInstruction(
                 "RET",
                 offset
             );
+        case un_yield:
+            return printSimpleInstruction(
+                "YIELD",
+                offset
+            );
         case un_end:
             return printSimpleInstruction(
                 "END",

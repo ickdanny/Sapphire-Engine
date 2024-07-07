@@ -47,6 +47,7 @@ typedef enum UNTokenType{
     un_tokenReturn,
     un_tokenTrue,
     un_tokenWhile,
+    un_tokenYield,
 
     un_tokenPrint, //todo: temp print token for debugging
 

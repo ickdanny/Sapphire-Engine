@@ -120,6 +120,8 @@ static const UNParseRule parseRules[] = {
         = {NULL,     NULL,   un_precNone},
     [un_tokenWhile]
         = {NULL,     NULL,   un_precNone},
+    [un_tokenYield]
+        = {NULL,     NULL,   un_precNone},
     [un_tokenError]
         = {NULL,     NULL,   un_precNone},
     [un_tokenEOF]
@@ -491,6 +493,7 @@ static void unCompilerSynchronize(
             case un_tokenFor:
             case un_tokenIf:
             case un_tokenWhile:
+            case un_tokenYield:
             case un_tokenPrint:
             case un_tokenReturn:
                 return;
@@ -1165,6 +1168,13 @@ void unCompilerStatement(UNCompiler *compilerPtr){
     )){
         unCompilerReturnStatement(compilerPtr);
     }
+    /* match a yield */
+    else if(unCompilerMatch(
+        compilerPtr,
+        un_tokenYield
+    )){
+        unCompilerYieldStatement(compilerPtr);
+    }
     /* match a block */
     else if(unCompilerMatch(
         compilerPtr,
@@ -1497,6 +1507,21 @@ void unCompilerForStatement(UNCompiler *compilerPtr){
     }
 
     unCompilerEndScope(compilerPtr);
+}
+
+/*
+ * Parses the next yield statement for the specified
+ * compiler
+ */
+void unCompilerYieldStatement(UNCompiler *compilerPtr){
+    /* eat the semicolon */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenSemicolon,
+        "expect ';' after yield statement"
+    );
+    /* write a yield instruction */
+    unCompilerWriteByte(compilerPtr, un_yield);
 }
 
 /*

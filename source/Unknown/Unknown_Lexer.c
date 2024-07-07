@@ -348,6 +348,12 @@ UNTokenType unLexerDeduceIdentifierType(
             4,
             "hile"
         ) ? un_tokenWhile : un_tokenIdentifier;
+        case 'y': return unLexerStringMatch(
+            lexerPtr,
+            1,
+            4,
+            "ield"
+        ) ? un_tokenYield : un_tokenIdentifier;
     }
     /* otherwise, token is just a normal identifier */
     return un_tokenIdentifier;

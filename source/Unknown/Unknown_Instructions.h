@@ -77,6 +77,11 @@ typedef enum UNInstruction {
     un_call,
     /* returns values from functions */
     un_return,
+    /*
+     * halts the execution of the virtual machine but
+     * preserves its state
+     */
+    un_yield,
     /* ends the execution of a program */
     un_end,
 } UNInstruction;
