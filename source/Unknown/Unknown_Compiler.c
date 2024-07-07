@@ -122,6 +122,8 @@ static const UNParseRule parseRules[] = {
         = {NULL,     NULL,   un_precNone},
     [un_tokenYield]
         = {NULL,     NULL,   un_precNone},
+    [un_tokenWait]
+        = {NULL,     NULL,   un_precNone},
     [un_tokenError]
         = {NULL,     NULL,   un_precNone},
     [un_tokenEOF]
@@ -494,6 +496,7 @@ static void unCompilerSynchronize(
             case un_tokenIf:
             case un_tokenWhile:
             case un_tokenYield:
+            case un_tokenWait:
             case un_tokenPrint:
             case un_tokenReturn:
                 return;
@@ -1175,6 +1178,13 @@ void unCompilerStatement(UNCompiler *compilerPtr){
     )){
         unCompilerYieldStatement(compilerPtr);
     }
+    /* match a wait loop */
+    else if(unCompilerMatch(
+        compilerPtr,
+        un_tokenWait
+    )){
+        unCompilerWaitStatement(compilerPtr);
+    }
     /* match a block */
     else if(unCompilerMatch(
         compilerPtr,
@@ -1522,6 +1532,40 @@ void unCompilerYieldStatement(UNCompiler *compilerPtr){
     );
     /* write a yield instruction */
     unCompilerWriteByte(compilerPtr, un_yield);
+}
+
+/*
+ * Parses the next wait statement for the specified
+ * compiler
+ */
+void unCompilerWaitStatement(UNCompiler *compilerPtr){
+    //todo wait statement
+    /* save index before the condition check */
+    int loopStartIndex
+        = unCompilerGetCurrentProgram(compilerPtr)
+            ->code.size;
+
+    unCompilerExpression(compilerPtr);
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenSemicolon,
+        "Expect ';' after wait statement"
+    );
+
+    /* jump to end if true */
+    unCompilerWriteByte(compilerPtr, un_not);
+    int exitJumpInstructionIndex = unCompilerWriteJump(
+        compilerPtr,
+        un_jumpIfFalse
+    );
+    unCompilerWriteByte(compilerPtr, un_pop);
+    unCompilerWriteByte(compilerPtr, un_yield);
+    unCompilerWriteLoop(compilerPtr, loopStartIndex);
+
+    unCompilerPatchJump(
+        compilerPtr,
+        exitJumpInstructionIndex
+    );
 }
 
 /*

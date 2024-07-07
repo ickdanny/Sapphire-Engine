@@ -342,12 +342,32 @@ UNTokenType unLexerDeduceIdentifierType(
             3,
             "rue"
         ) ? un_tokenTrue : un_tokenIdentifier;
-        case 'w': return unLexerStringMatch(
-            lexerPtr,
-            1,
-            4,
-            "hile"
-        ) ? un_tokenWhile : un_tokenIdentifier;
+        case 'w':
+            if(lexerPtr->currentPtr
+                - lexerPtr->startPtr > 1
+            ){
+                switch((lexerPtr->startPtr)[1]){
+                    case 'a':
+                        return unLexerStringMatch(
+                            lexerPtr,
+                            2,
+                            2,
+                            "it"
+                        )
+                            ? un_tokenWait
+                            : un_tokenIdentifier;
+                    case 'h':
+                        return unLexerStringMatch(
+                            lexerPtr,
+                            2,
+                            3,
+                            "ile"
+                        )
+                            ? un_tokenWhile
+                            : un_tokenIdentifier;
+                } /* end 'w' branch */
+            }
+            break;
         case 'y': return unLexerStringMatch(
             lexerPtr,
             1,

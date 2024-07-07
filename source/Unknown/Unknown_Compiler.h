@@ -157,6 +157,12 @@ void unCompilerForStatement(UNCompiler *compilerPtr);
 void unCompilerYieldStatement(UNCompiler *compilerPtr);
 
 /*
+ * Parses the next wait statement for the specified
+ * compiler
+ */
+void unCompilerWaitStatement(UNCompiler *compilerPtr);
+
+/*
  * Parses the next return statement for the specified
  * compiler
  */

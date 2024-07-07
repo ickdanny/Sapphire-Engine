@@ -14,7 +14,7 @@ Polar polarCopy(Polar toCopy);
 
 /* Copies the Polar source into destination */
 void polarCopyInto(
-    Polar *destination, 
+    Polar *destination,
     const Polar *source
 );
 

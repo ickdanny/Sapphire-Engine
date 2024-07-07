@@ -46,6 +46,7 @@ typedef enum UNTokenType{
     un_tokenLet,
     un_tokenReturn,
     un_tokenTrue,
+    un_tokenWait,
     un_tokenWhile,
     un_tokenYield,
 
