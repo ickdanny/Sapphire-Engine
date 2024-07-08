@@ -211,7 +211,7 @@ static void _unFuncCompilerInit(
     else{
         toInitPtr->funcPtr = unObjectFuncMake(NULL);
     }
-    /* each nested program gets its own string map */
+    /* single string map for all functions in a file */
     if(funcType != un_scriptFuncType){
         toInitPtr->funcPtr->namePtr
             = unObjectStringCopy(
@@ -1014,22 +1014,14 @@ static void unCompilerDefineVariable(
     );
 }
 
-/* Helps the specified compiler parse a function */
-static void unCompilerFunction(
-    UNCompiler *compilerPtr,
-    UNFuncType funcType
+/*
+ * Helps the specified compiler parse the header
+ * of a function (consuming from the '(' of the
+ * parameter list to the '{' prior to the body)
+ */
+static void unCompilerFunctionHeader(
+    UNCompiler *compilerPtr
 ){
-    /* create new func compiler for the new function */
-    _UNFuncCompiler newFuncCompiler = {0};
-    _unFuncCompilerInit(
-        &newFuncCompiler,
-        funcType,
-        compilerPtr
-    );
-    /* no corresponding end scope; unneeded */
-    unCompilerBeginScope(compilerPtr);
-
-    /* consume syntax of function declaration */
     unCompilerConsume(
         compilerPtr,
         un_tokenLeftParen,
@@ -1075,6 +1067,25 @@ static void unCompilerFunction(
         un_tokenLeftBrace,
         "Expect '{' before function body"
     );
+}
+
+/* Helps the specified compiler parse a function */
+static void unCompilerFunction(
+    UNCompiler *compilerPtr,
+    UNFuncType funcType
+){
+    /* create new func compiler for the new function */
+    _UNFuncCompiler newFuncCompiler = {0};
+    _unFuncCompilerInit(
+        &newFuncCompiler,
+        funcType,
+        compilerPtr
+    );
+    /* no corresponding end scope; unneeded */
+    unCompilerBeginScope(compilerPtr);
+
+    /* consume syntax of function declaration */
+    unCompilerFunctionHeader(compilerPtr);
 
     /* compile function body */
     unCompilerBlock(compilerPtr);
@@ -2187,11 +2198,11 @@ void unCompilerFree(UNCompiler *compilerPtr){
  * returns the program as a pointer to a newly
  * allocated UNObjectFunc; error on compiler error
  */
-UNObjectFunc *unCompilerCompile(
+UNObjectFunc *unCompilerCompileScript(
     UNCompiler *compilerPtr,
     const char *fileName
 ){
-    /* nulls the funcPtr also */
+    /* reset the compiler; nulls the funcPtr also */
     unCompilerReset(compilerPtr);
     compilerPtr->lexer = unLexerMake(fileName);
 
@@ -2211,6 +2222,67 @@ UNObjectFunc *unCompilerCompile(
     )){
         unCompilerDeclaration(compilerPtr);
     }
+
+    UNObjectFunc *toRet = unCompilerEnd(compilerPtr);
+
+    bool hadError = compilerPtr->hadError;
+
+    /*
+     * doesn't free the program, just the resources
+     * needed during compilation
+     */
+    unCompilerFree(compilerPtr);
+    
+    if(hadError){
+        unObjectFree((UNObject*)toRet);
+        toRet = NULL;
+        pgError(
+            "halting due to Unknown compiler error(s)"
+        );
+    }
+
+    unCompilerReset(compilerPtr);
+    
+    return toRet;
+}
+
+/*
+ * compiles the specified Unknown function file and
+ * returns the program as a pointer to a newly
+ * allocated UNObjectFunc; error on compiler error
+ */
+UNObjectFunc *unCompilerCompileFuncFile(
+    UNCompiler *compilerPtr,
+    const char *fileName
+){
+    /* reset the compiler; nulls the funcPtr also */
+    unCompilerReset(compilerPtr);
+    compilerPtr->lexer = unLexerMake(fileName);
+
+    /* create the outermost func compiler */
+    _UNFuncCompiler scriptFuncCompiler = {0};
+    _unFuncCompilerInit(
+        &scriptFuncCompiler,
+        un_scriptFuncType, //todo: func type?
+        compilerPtr
+    );
+    /*
+     * change the type from script to file; can't just
+     * call _unFunccompilerInit because it makes
+     * assumptions
+     */
+    scriptFuncCompiler.funcType = un_functionFuncType;
+
+    unCompilerAdvance(compilerPtr);
+
+    /* no corresponding end scope; unneeded */
+    unCompilerBeginScope(compilerPtr);
+
+    /* consume syntax of function declaration */
+    unCompilerFunctionHeader(compilerPtr);
+
+    /* compile function body */
+    unCompilerBlock(compilerPtr);
 
     UNObjectFunc *toRet = unCompilerEnd(compilerPtr);
 

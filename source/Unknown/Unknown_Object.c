@@ -344,7 +344,7 @@ void unObjectFree(UNObject *objectPtr){
             UNObjectString *stringPtr
                 = (UNObjectString*)objectPtr;
             printf(
-                "free: %s\n",
+                "free: \"%s\"\n",
                 stringPtr->string._ptr
             );
             stringFree(&(stringPtr->string));
@@ -357,7 +357,7 @@ void unObjectFree(UNObject *objectPtr){
                 "free func: %s\n",
                 funcPtr->namePtr != NULL
                     ? funcPtr->namePtr->string._ptr
-                    : "<unnamed script>"
+                    : "*unnamed func*"
             );
             /* functions own their own code; free it */
             unProgramFree(&(funcPtr->program));

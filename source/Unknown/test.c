@@ -14,15 +14,33 @@ void unTest(){
         testNativeFunc
     );
 
-    UNVirtualMachine vm = unVirtualMachineMake(
-        &nativeFuncSet
-    );
+    UNUserFuncSet userFuncSet
+        = unUserFuncSetMake();
+
     UNCompiler compiler = unCompilerMake();
 
-    printf("compiling\n");
-    UNObjectFunc *programPtr = unCompilerCompile(
+    printf("compiling script\n");
+    UNObjectFunc *programPtr = unCompilerCompileScript(
         &compiler,
         "test_script.un"
+    );
+
+    printf("compiling and adding func\n");
+    unUserFuncSetAdd(
+        &userFuncSet,
+        "test_func",
+        unCompilerCompileFuncFile(
+            &compiler,
+            "test_func.unf"
+        )
+    );
+
+    printf("\nfreeing compiler\n");
+    unCompilerFree(&compiler);
+
+    UNVirtualMachine vm = unVirtualMachineMake(
+        &nativeFuncSet,
+        &userFuncSet
     );
 
     printf("running vm\n");
@@ -45,9 +63,9 @@ void unTest(){
     printf("\nfreeing vm\n");
     unVirtualMachineFree(&vm);
 
-    printf("\nfreeing compiler\n");
-    unCompilerFree(&compiler);
-
     printf("\nfreeing native funcs\n");
     unNativeFuncSetFree(&nativeFuncSet);
+
+    printf("\nfreeing user funcs\n");
+    unUserFuncSetFree(&userFuncSet);
 }

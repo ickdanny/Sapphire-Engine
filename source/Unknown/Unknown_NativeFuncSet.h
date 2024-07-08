@@ -7,27 +7,27 @@
  * A struct holding a native function and the name it
  * is to be associated with
  */
-typedef struct _UNNameFuncPair{
+typedef struct _UNNameNativeFuncPair{
     /* owns its name (heap copied) */
     char *_name;
     UNNativeFunc _func;
-} _UNNameFuncPair;
+} _UNNameNativeFuncPair;
 
 /*
- * Creates and returns a new _UNNameFuncPair by value;
- * makes a heap copy of the name
+ * Creates and returns a new _UNNameNativeFuncPair by
+ * value; makes a heap copy of the name
  */
-_UNNameFuncPair _unNameFuncPairMake(
+_UNNameNativeFuncPair _unNameNativeFuncPairMake(
     const char *name,
     UNNativeFunc func
 );
 
 /*
  * Frees the memory associated with the specified
- * _UNNameFuncPair
+ * _UNNameNativeFuncPair
  */
-void _unNameFuncPairFree(
-    _UNNameFuncPair *nameFuncPairPtr
+void _unNameNativeFuncPairFree(
+    _UNNameNativeFuncPair *nameNativeFuncPairPtr
 );
 
 /*
@@ -35,8 +35,8 @@ void _unNameFuncPairFree(
  * UNNativeFuncs
  */
 typedef struct UNNativeFuncSet{
-    /* arraylist of type _UNNameFuncPair */
-    ArrayList _nameFuncPairs;
+    /* arraylist of type _UNNameNativeFuncPair */
+    ArrayList _nameNativeFuncPairs;
 } UNNativeFuncSet;
 
 /*

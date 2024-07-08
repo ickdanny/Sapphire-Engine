@@ -270,7 +270,17 @@ void unCompilerFree(UNCompiler *compilerPtr);
  * returns the program as a pointer to a newly
  * allocated UNObjectFunc; error on compiler error
  */
-UNObjectFunc *unCompilerCompile(
+UNObjectFunc *unCompilerCompileScript(
+    UNCompiler *compilerPtr,
+    const char *fileName
+);
+
+/*
+ * compiles the specified Unknown function file and
+ * returns the program as a pointer to a newly
+ * allocated UNObjectFunc; error on compiler error
+ */
+UNObjectFunc *unCompilerCompileFuncFile(
     UNCompiler *compilerPtr,
     const char *fileName
 );

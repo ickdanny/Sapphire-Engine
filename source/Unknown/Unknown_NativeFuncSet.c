@@ -1,23 +1,23 @@
 #include "Unknown_NativeFuncSet.h"
 
-#define nameFuncSetInitCapacity 20
+#define nameNativeFuncSetInitCapacity 20
 
 /*
- * Creates and returns a new _UNNameFuncPair by value;
- * makes a heap copy of the name
+ * Creates and returns a new _UNNameNativeFuncPair by
+ * value; makes a heap copy of the name
  */
-_UNNameFuncPair _unNameFuncPairMake(
+_UNNameNativeFuncPair _unNameNativeFuncPairMake(
     const char *name,
     UNNativeFunc func
 ){
     assertNotNull(
         name,
-        "null passed to name func pair ctor; "
+        "null passed to name native func pair ctor; "
         SRC_LOCATION
     );
     int length = strlen(name);
 
-    _UNNameFuncPair toRet = {0};
+    _UNNameNativeFuncPair toRet = {0};
 
     toRet._func = func;
     toRet._name = pgAlloc(length + 1, sizeof(char));
@@ -28,19 +28,19 @@ _UNNameFuncPair _unNameFuncPairMake(
 
 /*
  * Frees the memory associated with the specified
- * _UNNameFuncPair
+ * _UNNameNativeFuncPair
  */
-void _unNameFuncPairFree(
-    _UNNameFuncPair *nameFuncPairPtr
+void _unNameNativeFuncPairFree(
+    _UNNameNativeFuncPair *nameNativeFuncPairPtr
 ){
     assertNotNull(
-        nameFuncPairPtr,
+        nameNativeFuncPairPtr,
         "null passed to name func pair free; "
         SRC_LOCATION
     );
-    pgFree(nameFuncPairPtr->_name);
-    nameFuncPairPtr->_name = NULL;
-    nameFuncPairPtr->_func = NULL;
+    pgFree(nameNativeFuncPairPtr->_name);
+    nameNativeFuncPairPtr->_name = NULL;
+    nameNativeFuncPairPtr->_func = NULL;
 }
 
 /*
@@ -49,9 +49,9 @@ void _unNameFuncPairFree(
  */
 UNNativeFuncSet unNativeFuncSetMake(){
     UNNativeFuncSet toRet = {0};
-    toRet._nameFuncPairs = arrayListMake(
-        _UNNameFuncPair,
-        nameFuncSetInitCapacity
+    toRet._nameNativeFuncPairs = arrayListMake(
+        _UNNameNativeFuncPair,
+        nameNativeFuncSetInitCapacity
     );
     return toRet;
 }
@@ -76,9 +76,9 @@ void unNativeFuncSetAdd(
         SRC_LOCATION
     );
     arrayListPushBack(
-        _UNNameFuncPair,
-        &(nativeFuncSetPtr->_nameFuncPairs),
-        _unNameFuncPairMake(
+        _UNNameNativeFuncPair,
+        &(nativeFuncSetPtr->_nameNativeFuncPairs),
+        _unNameNativeFuncPairMake(
             name,
             func
         )
@@ -97,8 +97,14 @@ void unNativeFuncSetFree(
         "null passed to nativeFuncSet free; "
         SRC_LOCATION
     );
-    arrayListFree(_UNNameFuncPair,
-        &(nativeFuncSetPtr->_nameFuncPairs)
+    /* free each individual func pair */
+    arrayListApply(_UNNameNativeFuncPair,
+        &(nativeFuncSetPtr->_nameNativeFuncPairs),
+        _unNameNativeFuncPairFree
+    );
+    /* then free the array list */
+    arrayListFree(_UNNameNativeFuncPair,
+        &(nativeFuncSetPtr->_nameNativeFuncPairs)
     );
     memset(
         nativeFuncSetPtr,

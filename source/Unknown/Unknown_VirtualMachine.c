@@ -8,10 +8,12 @@
 
 /*
  * Constructs and returns a new UNVirtualMachine by
- * value; the native function set pointer is nullable
+ * value; the native function set pointer is nullable,
+ * as is the user function set pointer
  */
 UNVirtualMachine unVirtualMachineMake(
-    UNNativeFuncSet *nativeFuncSetPtr
+    UNNativeFuncSet *nativeFuncSetPtr,
+    UNUserFuncSet *userFuncSetPtr
 ){
     UNVirtualMachine toRet = {0};
     /*
@@ -27,6 +29,7 @@ UNVirtualMachine unVirtualMachineMake(
     );
 
     toRet.nativeFuncSetPtr = nativeFuncSetPtr;
+    toRet.userFuncSetPtr = userFuncSetPtr;
 
     /*
      * do not allocate the string map; defer to when
@@ -129,9 +132,9 @@ void unVirtualMachineRuntimeError(
  * function as a global variable for the specified
  * virtual machine
  */
-static void unVirtualMachineDefineNative(
+static void unVirtualMachineDefineNativeFunc(
     UNVirtualMachine *vmPtr,
-    _UNNameFuncPair nameFuncPair
+    _UNNameNativeFuncPair nameNativeFuncPair
 ){
     assertNotNull(
         vmPtr,
@@ -139,7 +142,7 @@ static void unVirtualMachineDefineNative(
         SRC_LOCATION
     );
     assertNotNull(
-        nameFuncPair._name,
+        nameNativeFuncPair._name,
         "null name passed to define native; "
         SRC_LOCATION
     );
@@ -152,8 +155,8 @@ static void unVirtualMachineDefineNative(
     unVirtualMachineStackPush(
         vmPtr,
         unObjectValue(unObjectStringCopy(
-            nameFuncPair._name,
-            (int)strlen(nameFuncPair._name),
+            nameNativeFuncPair._name,
+            (int)strlen(nameNativeFuncPair._name),
             &(vmPtr->objectListHeadPtr),
             &(vmPtr->stringMap)
         ))
@@ -161,7 +164,7 @@ static void unVirtualMachineDefineNative(
     unVirtualMachineStackPush(
         vmPtr,
         unObjectValue(unObjectNativeFuncMake(
-            nameFuncPair._func
+            nameNativeFuncPair._func
         ))
     );
     UNObjectString *namePtr = unObjectAsString(
@@ -172,10 +175,71 @@ static void unVirtualMachineDefineNative(
         &(vmPtr->globalsMap),
         &(namePtr)
     )){
-        pgWarning(nameFuncPair._name);
+        pgWarning(nameNativeFuncPair._name);
         unVirtualMachineRuntimeError(
             vmPtr,
             "Duplicate native function name"
+        );
+    }
+    hashMapPutPtr(UNObjectString*, UNValue,
+        &(vmPtr->globalsMap),
+        &(namePtr),
+        &(vmPtr->stack[1])
+    );
+    unVirtualMachineStackPop(vmPtr);
+    unVirtualMachineStackPop(vmPtr);
+}
+
+/*
+ * Associates the given C string with the given user
+ * function as a global variable for the specified
+ * virtual machine
+ */
+static void unVirtualMachineDefineUserFunc(
+    UNVirtualMachine *vmPtr,
+    _UNNameUserFuncPair nameUserFuncPair
+){
+    assertNotNull(
+        vmPtr,
+        "null vm passed to define user; "
+        SRC_LOCATION
+    );
+    assertNotNull(
+        nameUserFuncPair._name,
+        "null name passed to define user; "
+        SRC_LOCATION
+    );
+    assertTrue(
+        vmPtr->stringMapAllocated,
+        "define user cannot be used before the "
+        "string map is allocated; "
+        SRC_LOCATION
+    );
+    unVirtualMachineStackPush(
+        vmPtr,
+        unObjectValue(unObjectStringCopy(
+            nameUserFuncPair._name,
+            (int)strlen(nameUserFuncPair._name),
+            &(vmPtr->objectListHeadPtr),
+            &(vmPtr->stringMap)
+        ))
+    );
+    unVirtualMachineStackPush(
+        vmPtr,
+        unObjectValue(nameUserFuncPair._funcPtr)
+    );
+    UNObjectString *namePtr = unObjectAsString(
+        vmPtr->stack[0]
+    );
+    /* error out if duplicate name */
+    if(hashMapHasKeyPtr(UNObjectString*, UNValue,
+        &(vmPtr->globalsMap),
+        &(namePtr)
+    )){
+        pgWarning(nameUserFuncPair._name);
+        unVirtualMachineRuntimeError(
+            vmPtr,
+            "Duplicate user function name"
         );
     }
     hashMapPutPtr(UNObjectString*, UNValue,
@@ -1584,14 +1648,49 @@ static void unVirtualMachineLoadNativeFunctions(
     /* otherwise load native funcs one by one */
     for(size_t i = 0;
         i < vmPtr->nativeFuncSetPtr
-            ->_nameFuncPairs.size;
+            ->_nameNativeFuncPairs.size;
         ++i
     ){
-        unVirtualMachineDefineNative(
+        unVirtualMachineDefineNativeFunc(
             vmPtr,
-            arrayListGet(_UNNameFuncPair,
+            arrayListGet(_UNNameNativeFuncPair,
                 &(vmPtr->nativeFuncSetPtr
-                    ->_nameFuncPairs),
+                    ->_nameNativeFuncPairs),
+                i
+            )
+        );
+    }
+}
+
+/*
+ * Loads all user functions defined in user func
+ * set pointed to by the specified virtual machine
+ */
+static void unVirtualMachineLoadUserFunctions(
+    UNVirtualMachine *vmPtr
+){
+    assertNotNull(
+        vmPtr,
+        "null passed to load all user funcs; "
+        SRC_LOCATION
+    );
+
+    /* do nothing if vm has no user func set */
+    if(!(vmPtr->userFuncSetPtr)){
+        return;
+    }
+
+    /* otherwise load native funcs one by one */
+    for(size_t i = 0;
+        i < vmPtr->userFuncSetPtr
+            ->_nameUserFuncPairs.size;
+        ++i
+    ){
+        unVirtualMachineDefineUserFunc(
+            vmPtr,
+            arrayListGet(_UNNameUserFuncPair,
+                &(vmPtr->userFuncSetPtr
+                    ->_nameUserFuncPairs),
                 i
             )
         );
@@ -1627,6 +1726,9 @@ UNInterpretResult unVirtualMachineInterpret(
 
     /* load native functions */
     unVirtualMachineLoadNativeFunctions(vmPtr);
+
+    /* load user functions */
+    unVirtualMachineLoadUserFunctions(vmPtr);
 
     /* store the func on the stack */
     unVirtualMachineStackPush(

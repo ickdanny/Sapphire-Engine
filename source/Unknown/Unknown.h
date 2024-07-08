@@ -8,6 +8,7 @@
 #include "Unknown_NativeFuncSet.h"
 #include "Unknown_Object.h"
 #include "Unknown_Program.h"
+#include "Unknown_UserFuncSet.h"
 #include "Unknown_Value.h"
 #include "Unknown_VirtualMachine.h"
 
