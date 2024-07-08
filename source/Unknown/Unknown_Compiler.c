@@ -47,6 +47,8 @@ typedef struct UNParseRule{
 #define and_ unCompilerAnd
 #define or_ unCompilerOr
 #define bool_ unCompilerBool
+#define vector unCompilerVector
+#define point unCompilerPoint
 static const UNParseRule parseRules[] = {
     [un_tokenLeftParen]
         = {grouping, call,   un_precCall},
@@ -55,6 +57,10 @@ static const UNParseRule parseRules[] = {
     [un_tokenLeftBrace]
         = {NULL,     NULL,   un_precNone},
     [un_tokenRightBrace]
+        = {NULL,     NULL,   un_precNone},
+    [un_tokenLeftBracket]
+        = {point,     NULL,  un_precNone},
+    [un_tokenRightBracket]
         = {NULL,     NULL,   un_precNone},
     [un_tokenComma]
         = {NULL,     NULL,   un_precNone},
@@ -82,10 +88,14 @@ static const UNParseRule parseRules[] = {
         = {NULL,     binary, un_precEquality},
     [un_tokenGreater]
         = {NULL,     binary, un_precCompare},
+    [un_tokenDoubleGreater]
+        = {NULL,     NULL,   un_precNone},
     [un_tokenGreaterEqual]
         = {NULL,     binary, un_precCompare},
     [un_tokenLess]
         = {NULL,     binary, un_precCompare},
+    [un_tokenDoubleLess]
+        = {vector,   NULL,   un_precNone},
     [un_tokenLessEqual]
         = {NULL,     binary, un_precCompare},
     [un_tokenIdentifier]
@@ -140,6 +150,8 @@ static const UNParseRule parseRules[] = {
 #undef and_
 #undef or_
 #undef bool_
+#undef vector
+#undef point
 
 /*
  * Returns a pointer to the parse rule for the
@@ -1539,7 +1551,6 @@ void unCompilerYieldStatement(UNCompiler *compilerPtr){
  * compiler
  */
 void unCompilerWaitStatement(UNCompiler *compilerPtr){
-    //todo wait statement
     /* save index before the condition check */
     int loopStartIndex
         = unCompilerGetCurrentProgram(compilerPtr)
@@ -1793,8 +1804,10 @@ static void unCompilerNamedVariable(
         &varName
     );
 
+    bool isLocal = (arg != -1);
+
     /* if variable was resolved to a local */
-    if(arg != -1){
+    if(isLocal){
         getOp = un_getLocal;
         setOp = un_setLocal;
     }
@@ -1807,8 +1820,88 @@ static void unCompilerNamedVariable(
         setOp = un_setGlobal;
     }
 
+    /*
+     * if following token is dot, either get/set on
+     * vector or point
+     */
+    if(unCompilerMatch(compilerPtr, un_tokenDot)){
+        /* expect current token to be an identifier */
+        unCompilerConsume(
+            compilerPtr,
+            un_tokenIdentifier,
+            "Expect 'r', 't', 'x', or 'y' following "
+            "a '.'"
+        )
+        if(compilerPtr->prevToken.length != 1){
+            unCompilerErrorPrev(
+                compilerPtr,
+                "Expect only 'r', 't', 'x', or 'y'"
+            );
+        }
+        /*
+         * VN needs 2 instructions to get the value
+         * of a member; one to load the whole composite
+         * type, another to get specifically the member
+         */
+        UNInstruction memberGetOp = 0;
+        switch(*(compilerPtr->prevToken.startPtr)){
+            case 'r':
+                memberGetOp = un_getR;
+                setOp = isLocal 
+                    ? un_setRLocal : un_setRGlobal;
+                break;
+            case 't':
+                memberGetOp = un_getTheta;
+                setOp = isLocal
+                    ? un_setThetaLocal
+                    : un_setThetaGlobal;
+                break;
+            case 'x':
+                memberGetOp = un_getX;
+                setOp = isLocal 
+                    ? un_setXLocal : un_setXGlobal;
+                break;
+            case 'y':
+                memberGetOp = un_getY;
+                setOp = isLocal 
+                    ? un_setYLocal : un_setYGlobal;
+                break;
+            default:
+                unCompilerErrorPrev(
+                    compilerPtr,
+                    "Expect only 'r', 't', 'x', or 'y'"
+                );
+                break;
+        }
+        /*
+         * if following token is equal, member
+         * assignment
+         */
+        if(canAssign
+            && unCompilerMatch(compilerPtr, un_tokenEqual)
+        ){
+            unCompilerExpression(compilerPtr);
+            unCompilerWriteBytes(
+                compilerPtr,
+                setOp,
+                (uint8_t)arg
+            );
+        }
+        /* otherwise member get */
+        else{
+            unCompilerWriteBytes(
+                compilerPtr,
+                getOp,
+                (uint8_t)arg
+            );
+            unCompilerWriteByte(
+                compilerPtr,
+                memberGetOp
+            );
+        }
+    }
     /* if following token is equal, assignment */
-    if(canAssign
+    else if(canAssign
         && unCompilerMatch(compilerPtr, un_tokenEqual)
     ){
         unCompilerExpression(compilerPtr);
@@ -1818,6 +1911,7 @@ static void unCompilerNamedVariable(
             (uint8_t)arg
         );
     }
+    /* otherwise just a get */
     else{
         unCompilerWriteBytes(
             compilerPtr,
@@ -1960,6 +2054,64 @@ void unCompilerBool(
     }
 }
 
+/* Parses a vector for the specified compiler */
+void unCompilerVector(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
+    /* parse the R expression */
+    unCompilerExpression(compilerPtr);
+
+    /* eat the comma */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenComma,
+        "Expect ',' after R initializer"
+    );
+
+    /* parse the theta expression */
+    unCompilerExpression(compilerPtr);
+
+    /* eat the closing '>>' */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenDoubleGreater,
+        "Expect \">>\" after theta initializer"
+    );
+
+    /* emit the instruction for creating a vector */
+    unCompilerWriteByte(compilerPtr, un_makeVector);
+}
+
+/* Parses a point for the specified compiler */
+void unCompilerPoint(
+    UNCompiler *compilerPtr,
+    bool canAssign
+){
+    /* parse the X expression */
+    unCompilerExpression(compilerPtr);
+
+    /* eat the comma */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenComma,
+        "Expect ',' after X initializer"
+    );
+
+    /* parse the Y expression */
+    unCompilerExpression(compilerPtr);
+
+    /* eat the closing ']' */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenRightBracket,
+        "Expect ']' after Y initializer"
+    );
+
+    /* emit the instruction for creating a vector */
+    unCompilerWriteByte(compilerPtr, un_makePoint);
+}
+
 /*
  * Parses a dot for the specified compiler
  */
@@ -1967,7 +2119,46 @@ void unCompilerDot(
     UNCompiler *compilerPtr,
     bool canAssign
 ){
-    //todo dot body
+    /*
+     * should not be reached when the operand is a
+     * variable name; special case for variables to
+     * handle that
+     */
+    /* expect current token to be an identifier */
+    unCompilerConsume(
+        compilerPtr,
+        un_tokenIdentifier,
+        "Expect 'r', 't', 'x', or 'y' following a '.'"
+    )
+    if(compilerPtr->prevToken.length != 1){
+        unCompilerErrorPrev(
+            compilerPtr,
+            "Expect only 'r', 't', 'x', or 'y'"
+        );
+    }
+    /* only get for non-variable names */
+    UNInstruction instruction = 0;
+    switch(*(compilerPtr->prevToken.startPtr)){
+        case 'r':
+            instruction = un_getR;
+            break;
+        case 't':
+            instruction = un_getTheta;
+            break;
+        case 'x':
+            instruction = un_getX;
+            break;
+        case 'y':
+            instruction = un_getY;
+            break;
+        default:
+            unCompilerErrorPrev(
+                compilerPtr,
+                "Expect only 'r', 't', 'x', or 'y'"
+            );
+            break;
+    }
+    unCompilerWriteByte(compilerPtr, instruction);
 }
 
 /* Resets the state of the specified compiler */

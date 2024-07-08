@@ -426,6 +426,14 @@ UNToken unLexerNext(UNLexer *lexerPtr){
             lexerPtr,
             un_tokenRightBrace
         );
+        case '[': return unLexerMakeToken(
+            lexerPtr,
+            un_tokenLeftBracket
+        );
+        case ']': return unLexerMakeToken(
+            lexerPtr,
+            un_tokenRightBracket
+        );
         case ';': return unLexerMakeToken(
             lexerPtr,
             un_tokenSemicolon
@@ -478,18 +486,26 @@ UNToken unLexerNext(UNLexer *lexerPtr){
                 ? un_tokenDoubleEqual
                 : un_tokenEqual
         );
-        case '<': return unLexerMakeToken(
-            lexerPtr,
-            unLexerMatch(lexerPtr, '=')
-                ? un_tokenLessEqual
-                : un_tokenLess
-        );
-        case '>': return unLexerMakeToken(
-            lexerPtr,
-            unLexerMatch(lexerPtr, '=')
-                ? un_tokenGreaterEqual
-                : un_tokenGreater
-        );
+        case '<': {
+            UNTokenType type = un_tokenLess;
+            if(unLexerMatch(lexerPtr, '=')){
+                type = un_tokenLessEqual;
+            }
+            else if(unLexerMatch(lexerPtr, '<')){
+                type = un_tokenDoubleLess;
+            }
+            return unLexerMakeToken(lexerPtr, type);
+        }
+        case '>': {
+            UNTokenType type = un_tokenGreater;
+            if(unLexerMatch(lexerPtr, '=')){
+                type = un_tokenGreaterEqual;
+            }
+            else if(unLexerMatch(lexerPtr, '>')){
+                type = un_tokenDoubleGreater;
+            }
+            return unLexerMakeToken(lexerPtr, type);
+        }
         case '"': return unLexerMakeString(lexerPtr);
     }
 

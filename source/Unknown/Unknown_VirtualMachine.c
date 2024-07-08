@@ -328,6 +328,152 @@ static void unVirtualMachineDefineNative(
     } while(false)
 
 /*
+ * Performs a member get operation in the specified
+ * virtual machine
+ */
+#define memberGetOperation( \
+    VMPTR, \
+    TYPENAME, \
+    UNISFUNC, \
+    UNASFUNC, \
+    MEMBERNAME, \
+    ERRMSG \
+) \
+    do{ \
+        if(!UNISFUNC( \
+            unVirtualMachineStackPeek((VMPTR), 0) \
+        )){ \
+            unVirtualMachineRuntimeError( \
+                (VMPTR), \
+                (ERRMSG) \
+            ); \
+            return un_runtimeError; \
+        } \
+        TYPENAME composite = UNASFUNC( \
+            unVirtualMachineStackPop((VMPTR)) \
+        ); \
+        unVirtualMachineStackPush( \
+            (VMPTR), \
+            unFloatValue(composite.MEMBERNAME) \
+        ); \
+    } while(false)
+
+/*
+ * Performs a global member set operation in the
+ * specified virtual machine
+ */
+#define globalMemberSetOperation( \
+    VMPTR, \
+    FRAMEPTR, \
+    UNISFUNC, \
+    VALUEASNAME, \
+    MEMBERNAME, \
+    ERRMSG \
+) \
+    do{ \
+        UNObjectString *name \
+            = readString((FRAMEPTR)); \
+        if(!hashMapHasKey( \
+            UNObjectString*, \
+            UNValue, \
+            &((VMPTR)->globalsMap), \
+            name \
+        )){ \
+            pgWarning(name->string._ptr); \
+            pgWarning((ERRMSG)); \
+            unVirtualMachineRuntimeError( \
+                (VMPTR), \
+                "undefined variable"  \
+            ); \
+            return un_runtimeError; \
+        } \
+        UNValue value \
+            = unVirtualMachineStackPeek( \
+                (VMPTR), \
+                0 \
+            ); \
+        float valueAsFloat = 0; \
+        if(unIsInt(value)){ \
+            valueAsFloat = unAsInt(value); \
+        } \
+        else if(unIsFloat(value)){ \
+            valueAsFloat = unAsFloat(value); \
+        } \
+        else{ \
+            pgWarning((ERRMSG)); \
+            unVirtualMachineRuntimeError( \
+                (VMPTR), \
+                "members can only be set to numbers" \
+            ); \
+            return un_runtimeError; \
+        } \
+        UNValue *globalPtr = hashMapGetPtr( \
+            UNObjectString*, \
+            UNValue, \
+            &((VMPTR)->globalsMap), \
+            &name \
+        ); \
+        if(!UNISFUNC(*globalPtr)){ \
+            pgWarning((ERRMSG)); \
+            unVirtualMachineRuntimeError( \
+                (VMPTR), \
+                "invalid type for member assignment" \
+            ); \
+            return un_runtimeError; \
+        } \
+        globalPtr->as.VALUEASNAME.MEMBERNAME \
+            = valueAsFloat; \
+    } while(false)
+
+/*
+ * Performs a local member set operation in the
+ * specified virtual machine
+ */
+#define localMemberSetOperation( \
+    VMPTR, \
+    FRAMEPTR, \
+    UNISFUNC, \
+    VALUEASNAME, \
+    MEMBERNAME, \
+    ERRMSG \
+) \
+    do{ \
+        uint8_t slot = readByte((FRAMEPTR)); \
+        UNValue value \
+            = unVirtualMachineStackPeek( \
+                (VMPTR), \
+                0 \
+            ); \
+        float valueAsFloat = 0; \
+        if(unIsInt(value)){ \
+            valueAsFloat = unAsInt(value); \
+        } \
+        else if(unIsFloat(value)){ \
+            valueAsFloat = unAsFloat(value); \
+        } \
+        else{ \
+            pgWarning((ERRMSG)); \
+            unVirtualMachineRuntimeError( \
+                (VMPTR), \
+                "members can only be set to numbers" \
+            ); \
+            return un_runtimeError; \
+        } \
+        UNValue *localPtr \
+            = &((FRAMEPTR)->slots[slot]); \
+        if(!UNISFUNC(*localPtr)){ \
+            pgWarning((ERRMSG)); \
+            unVirtualMachineRuntimeError( \
+                (VMPTR), \
+                "invalid type for member assignment" \
+            ); \
+            return un_runtimeError; \
+        } \
+        localPtr->as.VALUEASNAME.MEMBERNAME \
+            = valueAsFloat; \
+    } while(false)
+
+/*
  * Concatenates two strings for the specified virtual
  * machine and pushes the result to the stack
  */
@@ -653,11 +799,68 @@ static UNInterpretResult unVirtualMachineRun(
                         )
                     ) && unIsString(
                         unVirtualMachineStackPeek(
-                            vmPtr, 1
+                            vmPtr,
+                            1
                         )
                     )
                 ){
                     unVirtualMachineConcatenate(vmPtr);
+                }
+                /*
+                 * otherwise if both operands are
+                 * vectors, add them
+                 */
+                else if(
+                    unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) && unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            1
+                        )
+                    )
+                ){
+                    Polar b = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Polar a = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Polar sum = polarAdd(a, b);
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unVectorValue(sum)
+                    );
+                }
+                /* otherwise, check point + vector */
+                else if(
+                    unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) && unIsPoint(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            1
+                        )
+                    )
+                ){
+                    Polar b = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Point2D a = unAsPoint(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Point2D sum
+                        = point2DAddPolar(a, b);
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unPointValue(sum)
+                    );
                 }
                 /*
                  * otherwise, they could be two numbers
@@ -667,37 +870,186 @@ static UNInterpretResult unVirtualMachineRun(
                         vmPtr,
                         +,
                         false,
-                        "Operands of '+' should be "
-                        "numbers or strings"
+                        "Invalid operands for '+'"
                     );
                 }
                 break;
             }
             case un_subtract: {
-                binaryNumberOperation(
-                    vmPtr,
-                    -,
-                    false,
-                    "Operands of '-' should be numbers"
-                );
+                /*
+                 * if both operands are vectors,
+                 * subtract them
+                 */
+                if(
+                    unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) && unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            1
+                        )
+                    )
+                ){
+                    Polar b = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Polar a = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Polar diff = polarSubtract(a, b);
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unVectorValue(diff)
+                    );
+                }
+                /* otherwise, check point - vector */
+                else if(
+                    unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) && unIsPoint(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            1
+                        )
+                    )
+                ){
+                    Polar b = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Point2D a = unAsPoint(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    Point2D diff
+                        = point2DSubtractPolar(a, b);
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unPointValue(diff)
+                    );
+                }
+                else{
+                    binaryNumberOperation(
+                        vmPtr,
+                        -,
+                        false,
+                        "Invalid operands for '-'"
+                    );
+                }
                 break;
             }
             case un_multiply: {
-                binaryNumberOperation(
-                    vmPtr,
-                    *,
-                    false,
-                    "Operands of '*' should be numbers"
-                );
+                /*
+                 * check for scalar multiplication of
+                 * vector
+                 */
+                if(
+                    unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            1
+                        )
+                    ) && (unIsInt(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) || unIsFloat(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ))
+                ){
+                    UNValue aValue
+                        = unVirtualMachineStackPop(
+                            vmPtr
+                        );
+                    Polar polar = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    float scalar = 
+                        aValue.type == un_int
+                            ? unAsInt(aValue)
+                            : unAsFloat(aValue);
+                    Polar multiple = polarMultiply(
+                        polar,
+                        scalar
+                    );
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unVectorValue(multiple)
+                    );
+                }
+                else{
+                    binaryNumberOperation(
+                        vmPtr,
+                        *,
+                        false,
+                        "Invalid operands for '*' "
+                        "(in case of vector multiply, "
+                        "it must be vector * scalar)"
+                    );
+                }
                 break;
             }
             case un_divide: {
-                binaryNumberOperation(
-                    vmPtr,
-                    /,
-                    false,
-                    "Operands of '/' should be numbers"
-                );
+                /*
+                 * check for scalar division of
+                 * vector
+                 */
+                if(
+                    unIsVector(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            1
+                        )
+                    ) && (unIsInt(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ) || unIsFloat(
+                        unVirtualMachineStackPeek(
+                            vmPtr,
+                            0
+                        )
+                    ))
+                ){
+                    UNValue aValue
+                        = unVirtualMachineStackPop(
+                            vmPtr
+                        );
+                    Polar polar = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    float scalar = 
+                        aValue.type == un_int
+                            ? unAsInt(aValue)
+                            : unAsFloat(aValue);
+                    Polar quotient = polarDivide(
+                        polar,
+                        scalar
+                    );
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unVectorValue(quotient)
+                    );
+                }
+                else{
+                    binaryNumberOperation(
+                        vmPtr,
+                        /,
+                        false,
+                        "Invalid operands for '/' "
+                        "(in case of vector divide, "
+                        "it must be vector / scalar)"
+                    );
+                }
                 break;
             }
             case un_modulo: {
@@ -763,11 +1115,27 @@ static UNInterpretResult unVirtualMachineRun(
                         ))
                     );
                 }
+                else if(unIsVector(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    Polar vector = unAsVector(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                    unVirtualMachineStackPush(
+                        vmPtr,
+                        unVectorValue(
+                            polarNegate(vector)
+                        )
+                    );
+                }
                 else{
                     unVirtualMachineRuntimeError(
                         vmPtr,
                         "Operand of unary '-' should "
-                        "be number"
+                        "be number or vector"
                     );
                     return un_runtimeError;
                 }
@@ -825,6 +1193,286 @@ static UNInterpretResult unVirtualMachineRun(
                     unBoolValue(!unAsBool(
                         unVirtualMachineStackPop(vmPtr)
                     ))
+                );
+                break;
+            }
+            case un_makeVector: {
+                float r = 0;
+                float theta = 0;
+
+                /* top of the stack should be theta */
+                if(unIsInt(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    theta = unAsInt(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else if(unIsFloat(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    theta = unAsFloat(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else{
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "Theta operand of '<>' should "
+                        "be a number"
+                    );
+                    return un_runtimeError;
+                }
+                /*
+                 * after getting theta, top of stack
+                 * should be R
+                 */
+                if(unIsInt(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    r = unAsInt(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else if(unIsFloat(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    r = unAsFloat(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else{
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "R operand of '<>' should "
+                        "be a number"
+                    );
+                    return un_runtimeError;
+                }
+                Polar vector = {r, theta};
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    unVectorValue(vector)
+                );
+                break;
+            }
+            case un_makePoint: {
+                float x = 0;
+                float y = 0;
+
+                /* top of the stack should be y */
+                if(unIsInt(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    y = unAsInt(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else if(unIsFloat(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    y = unAsFloat(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else{
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "Y operand of '[]' should "
+                        "be a number"
+                    );
+                    return un_runtimeError;
+                }
+                /*
+                 * after getting y, top of stack
+                 * should be x
+                 */
+                if(unIsInt(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    x = unAsInt(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else if(unIsFloat(
+                    unVirtualMachineStackPeek(
+                        vmPtr,
+                        0
+                    )
+                )){
+                    x = unAsFloat(
+                        unVirtualMachineStackPop(vmPtr)
+                    );
+                }
+                else{
+                    unVirtualMachineRuntimeError(
+                        vmPtr,
+                        "X operand of '[]' should "
+                        "be a number"
+                    );
+                    return un_runtimeError;
+                }
+                Point2D point = {x, y};
+                unVirtualMachineStackPush(
+                    vmPtr,
+                    unPointValue(point)
+                );
+                break;
+            }
+            case un_getR: {
+                memberGetOperation(
+                    vmPtr,
+                    Polar,
+                    unIsVector,
+                    unAsVector,
+                    magnitude,
+                    "Expect operand of \".r\" to be "
+                    "a vector"
+                );
+                break;
+            }
+            case un_getTheta: {
+                memberGetOperation(
+                    vmPtr,
+                    Polar,
+                    unIsVector,
+                    unAsVector,
+                    angle,
+                    "Expect operand of \".t\" to be "
+                    "a vector"
+                );
+                break;
+            }
+            case un_getX: {
+                memberGetOperation(
+                    vmPtr,
+                    Point2D,
+                    unIsPoint,
+                    unAsPoint,
+                    x,
+                    "Expect operand of \".x\" to be "
+                    "a point"
+                );
+                break;
+            }
+            case un_getY: {
+                memberGetOperation(
+                    vmPtr,
+                    Point2D,
+                    unIsPoint,
+                    unAsPoint,
+                    y,
+                    "Expect operand of \".y\" to be "
+                    "a point"
+                );
+                break;
+            }
+            case un_setRGlobal: {
+                globalMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsVector,
+                    vector,
+                    magnitude,
+                    "Error for setRGlobal"
+                );
+                break;
+            }
+            case un_setThetaGlobal: {
+                globalMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsVector,
+                    vector,
+                    angle,
+                    "Error for setThetaGlobal"
+                );
+                break;
+            }
+            case un_setXGlobal: {
+                globalMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsPoint,
+                    point,
+                    x,
+                    "Error for setXGlobal"
+                );
+                break;
+            }
+            case un_setYGlobal: {
+                globalMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsPoint,
+                    point,
+                    y,
+                    "Error for setYGlobal"
+                );
+                break;
+            }
+            case un_setRLocal: {
+                localMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsVector,
+                    vector,
+                    magnitude,
+                    "Error for setRLocal"
+                );
+                break;
+            }
+            case un_setThetaLocal: {
+                localMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsVector,
+                    vector,
+                    angle,
+                    "Error for setThetaLocal"
+                );
+                break;
+            }
+            case un_setXLocal: {
+                localMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsPoint,
+                    point,
+                    x,
+                    "Error for setXLocal"
+                );
+                break;
+            }
+            case un_setYLocal: {
+                localMemberSetOperation(
+                    vmPtr,
+                    framePtr,
+                    unIsPoint,
+                    point,
+                    y,
+                    "Error for setYLocal"
                 );
                 break;
             }

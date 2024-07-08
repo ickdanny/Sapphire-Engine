@@ -309,6 +309,76 @@ size_t unProgramDisassembleInstruction(
                 "NOT",
                 offset
             );
+        case un_makeVector:
+            return printSimpleInstruction(
+                "VECTOR",
+                offset
+            );
+        case un_makePoint:
+            return printSimpleInstruction(
+                "POINT",
+                offset
+            );
+        case un_getR:
+            return printSimpleInstruction(
+                "GETR",
+                offset
+            );
+        case un_getTheta:
+            return printSimpleInstruction(
+                "GETT",
+                offset
+            );
+        case un_getX:
+            return printSimpleInstruction(
+                "GETX",
+                offset
+            );
+        case un_getY:
+            return printSimpleInstruction(
+                "GETY",
+                offset
+            );
+        case un_setRGlobal:
+            return printSimpleInstruction(
+                "SETRG",
+                offset
+            );
+        case un_setThetaGlobal:
+            return printSimpleInstruction(
+                "SETTG",
+                offset
+            );
+        case un_setXGlobal:
+            return printSimpleInstruction(
+                "SETXG",
+                offset
+            );
+        case un_setYGlobal:
+            return printSimpleInstruction(
+                "SETYG",
+                offset
+            );
+        case un_setRLocal:
+            return printSimpleInstruction(
+                "SETRL",
+                offset
+            );
+        case un_setThetaLocal:
+            return printSimpleInstruction(
+                "SETTL",
+                offset
+            );
+        case un_setXLocal:
+            return printSimpleInstruction(
+                "SETXL",
+                offset
+            );
+        case un_setYLocal:
+            return printSimpleInstruction(
+                "SETYL",
+                offset
+            );
         case un_print:
             return printSimpleInstruction(
                 "PRINT",

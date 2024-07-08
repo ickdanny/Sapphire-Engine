@@ -31,15 +31,15 @@ float point2DAngle(Point2D a, Point2D b){
 
 /* Prints the given Point2D to the given C String */
 void printPoint2D(
-    Point2D point, 
-    char *str, 
+    Point2D point,
+    char *str,
     int arraySize
 ){
     snprintf(
-        str, 
-        arraySize, 
-        "P(%.3f, %.3f)", 
-        point.x, 
+        str,
+        arraySize,
+        "[%.3f, %.3f]",
+        point.x,
         point.y
     );
 }

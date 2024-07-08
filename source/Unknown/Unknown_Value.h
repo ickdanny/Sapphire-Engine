@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "PGUtil.h"
+#include "ZMath.h"
 
 /* forward declares */
 typedef struct UNObject UNObject;
@@ -18,6 +19,8 @@ typedef enum UNValueType{
     un_bool,
     un_int,
     un_float,
+    un_vector,
+    un_point,
     un_object,
 } UNValueType;
 
@@ -28,6 +31,8 @@ typedef struct UNValue{
         bool boolean;
         int integer;
         float floating;
+        Polar vector;
+        Point2D point;
         UNObject *object;
     } as;
 } UNValue;
@@ -43,6 +48,16 @@ typedef struct UNValue{
 /* Constructs a UNValue for the specified float */
 #define unFloatValue(FLOAT) \
     ((UNValue){un_float, {.floating = (FLOAT)}})
+
+/*
+ * Constructs a UNValue for the specified polar vector
+ */
+#define unVectorValue(VECTOR) \
+    ((UNValue){un_vector, {.vector = (VECTOR)}})
+
+/* Constructs a UNValue for the specified point */
+#define unPointValue(POINT) \
+    ((UNValue){un_point, {.point = (POINT)}})
 
 /* Constructs a UNValue for the specified object */
 #define unObjectValue(OBJECT) \
@@ -68,6 +83,18 @@ typedef struct UNValue{
  * false otherwise
  */
 #define unIsFloat(VALUE) ((VALUE).type == un_float)
+
+/*
+ * Returns true if the specified UNValue is a vector,
+ * false otherwise
+ */
+#define unIsVector(VALUE) ((VALUE).type == un_vector)
+
+/*
+ * Returns true if the specified UNValue is a point,
+ * false otherwise
+ */
+#define unIsPoint(VALUE) ((VALUE).type == un_point)
 
 /*
  * Returns true if the specified UNValue is an object,
@@ -114,6 +141,34 @@ static inline float unAsFloat(UNValue value){
     else{
         pgError("bad access for float");
         return 0;
+    }
+}
+
+/*
+ * Unboxes the specified UNValue as a vector, error if
+ * invalid tag
+ */
+static inline Polar unAsVector(UNValue value){
+    if(unIsVector(value)){
+        return value.as.vector;
+    }
+    else{
+        pgError("bad access for vector");
+        return (Polar){0};
+    }
+}
+
+/*
+ * Unboxes the specified UNValue as a point, error if
+ * invalid tag
+ */
+static inline Point2D unAsPoint(UNValue value){
+    if(unIsPoint(value)){
+        return value.as.point;
+    }
+    else{
+        pgError("bad access for point");
+        return (Point2D){0};
     }
 }
 

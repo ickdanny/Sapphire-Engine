@@ -56,6 +56,34 @@ typedef enum UNInstruction {
     un_less,
     /* unary boolean not */
     un_not,
+    /* creates a new (polar) vector */
+    un_makeVector,
+    /* creates a new point */
+    un_makePoint,
+    /* gets the magnitude of a vector */
+    un_getR,
+    /* gets the angle of a vector in degrees */
+    un_getTheta,
+    /* gets the x coordinate of a point */
+    un_getX,
+    /* gets the y coordinate of a point */
+    un_getY,
+    /* sets the magnitude of a global vector */
+    un_setRGlobal,
+    /* sets the angle of a global vector in degrees */
+    un_setThetaGlobal,
+    /* sets the x coordinate of a global point */
+    un_setXGlobal,
+    /* sets the y coordinate of a global point */
+    un_setYGlobal,
+    /* sets the magnitude of a local vector */
+    un_setRLocal,
+    /* sets the angle of a local vector in degrees */
+    un_setThetaLocal,
+    /* sets the x coordinate of a local point */
+    un_setXLocal,
+    /* sets the y coordinate of a local point */
+    un_setYLocal,
     /* prints out a string */
     un_print,
     /*

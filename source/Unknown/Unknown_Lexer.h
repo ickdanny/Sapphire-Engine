@@ -10,6 +10,8 @@ typedef enum UNTokenType{
     un_tokenRightParen,
     un_tokenLeftBrace,
     un_tokenRightBrace,
+    un_tokenLeftBracket,
+    un_tokenRightBracket,
     un_tokenComma,
     un_tokenDot,
     un_tokenMinus,
@@ -27,8 +29,10 @@ typedef enum UNTokenType{
     un_tokenEqual,
     un_tokenDoubleEqual,
     un_tokenGreater,
+    un_tokenDoubleGreater,
     un_tokenGreaterEqual,
     un_tokenLess,
+    un_tokenDoubleLess,
     un_tokenLessEqual,
 
     /* literals */

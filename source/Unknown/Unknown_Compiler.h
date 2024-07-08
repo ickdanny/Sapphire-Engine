@@ -239,6 +239,18 @@ void unCompilerBool(
     bool canAssign
 );
 
+/* Parses a vector for the specified compiler */
+void unCompilerVector(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
+
+/* Parses a point for the specified compiler */
+void unCompilerPoint(
+    UNCompiler *compilerPtr,
+    bool canAssign
+);
+
 /*
  * Parses a dot for the specified compiler
  */
