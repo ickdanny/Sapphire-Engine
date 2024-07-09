@@ -125,11 +125,22 @@ int scenesCurrentCount(Scenes *scenesPtr);
 
 /*
  * Returns a pointer to the scene at the ith position
- * on the scene stack in the specified Scenes pointer
+ * on the scene stack in the specified Scenes object
  * (where higher is closer to the top, zero indexed);
  * error if invalid index
  */
 Scene *scenesGetScene(Scenes *scenesPtr, int i);
+
+/*
+ * Returns a pointer to the scene currently at the top
+ * of the scene stack in the specified Scenes object;
+ * error if the stack is empty
+ */
+#define scenesGetTop(SCENESPTR) \
+    scenesGetScene( \
+        (SCENESPTR), \
+        scenesCurrentCount((SCENESPTR)) \
+    )
 
 /*
  * Frees the memory associated with the given Scenes

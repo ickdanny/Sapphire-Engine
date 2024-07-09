@@ -214,6 +214,11 @@ void tfWindowPumpMessages(TFWindow *windowPtr){
     glfwPollEvents();
 }
 
+/* Clears the depth buffer of the specified TFWindow */
+void tfWindowClearDepth(TFWindow *windowPtr){
+    glClear(GL_DEPTH_BUFFER_BIT);
+}
+
 /* Frees the given TFWindow */
 void tfWindowFree(TFWindow *windowPtr){
     if(windowPtr){

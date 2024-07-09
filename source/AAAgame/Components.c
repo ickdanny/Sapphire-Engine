@@ -6,6 +6,22 @@
  * used in the game engine
  */
 WindComponents *componentsMake(){
-    //todo make components
-    return NULL;
+    WindComponents *toRet = pgAlloc(1, sizeof(*toRet));
+    *toRet = windComponentsMake(numComponents);
+
+    #define insertComponent(TYPENAME, DESTRUCTOR) \
+        windComponentsInsert( \
+            toRet, \
+            windComponentMetadataMake( \
+                TYPENAME, \
+                DESTRUCTOR \
+            ), \
+            TYPENAME##ID \
+        );
+
+    insertComponent(Position, NULL);
+
+    return toRet;
+
+    #undef insertComponent
 }

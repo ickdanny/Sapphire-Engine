@@ -2,6 +2,7 @@
 #define COMPONENTS_H
 
 #include "WindECS.h"
+#include "ZMath.h"
 
 /*
  * Allocates and returns a new WindComponents object
@@ -10,7 +11,15 @@
  */
 WindComponents *componentsMake();
 
-//todo: think components needs some macros
-//each component needs TYPENAME##ID defined
+typedef struct Position{
+    Point2D currentPos;
+    Point2D pastPos;
+} Position;
+
+/* each component needs TYPENAME##ID defined */
+typedef enum ComponentID{
+    PositionID,
+    numComponents,
+} ComponentID;
 
 #endif

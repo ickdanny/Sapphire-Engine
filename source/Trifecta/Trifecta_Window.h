@@ -75,6 +75,11 @@ void tfWindowRender(TFWindow *windowPtr);
  */
 void tfWindowPumpMessages(TFWindow *windowPtr);
 
+/* Clears the depth buffer of the specified TFWindow */
+void tfWindowClearDepth(TFWindow *windowPtr);
+
+//todo: implemented by the graphics object
+
 /* Draws a sprite onto the specified TFWindow */
 void tfWindowDrawSprite(
     TFWindow *windowPtr,

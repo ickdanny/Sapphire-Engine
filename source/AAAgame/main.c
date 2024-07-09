@@ -19,6 +19,7 @@
 
 #include <unistd.h>
 
+//todo: what is all this junk at the top of main?
 void printInt(int *toPrint){
     printf("%d\n", *toPrint);
 }
@@ -78,15 +79,6 @@ void renderCallback(void *voidPtr){
     Engine *enginePtr = (Engine*)voidPtr;
     gameRender(&(enginePtr->game));
     tfWindowRender(&(enginePtr->window));
-}
-
-/*
- * Makes the specified Engine passed as a void ptr
- * toggle fullscreen
- */
-void fullscreenCallback(void *voidPtr){
-    Engine *enginePtr = (Engine*)voidPtr;
-    tfWindowToggleFullscreen(&(enginePtr->window));
 }
 
 /* The entry point for the game */
@@ -156,12 +148,6 @@ int main(){
         &(engine.game),
         stopGameLoopCallback
     );
-    gameSetFullscreenCallback(
-        &(engine.game),
-        fullscreenCallback
-    );
-    //todo: set game write settings callback
-
 
     /* make visible and start running */
     tfWindowMakeVisible(&(engine.window));

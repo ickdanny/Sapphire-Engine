@@ -8,13 +8,96 @@
 #include "Scenes.h"
 #include "Settings.h"
 
+/* Stores messages for interscene communication */
+typedef struct GameMessages{    
+    /* 
+     * Queue of SceneID to be pushed onto the stack;
+     * handled by game in update scene list
+     */
+    ArrayList sceneEntryList;
+    /*
+     * SceneID to be popped to, -1 if no message;
+     * handled by game in update scene list
+     */
+    SceneID sceneExitToID;
+    /*
+     * Flag to indicate exiting the game; handled by
+     * game in update
+     */
+    bool exitFlag;
+
+    /*
+     * String name of music track to begin playback,
+     * empty if no message; handled by game in update
+     * music
+     */
+    String startMusicString;
+    /*
+     * Flag to indicate stopping music playback;
+     * handled by game in update music
+     */
+    bool stopMusicFlag;
+
+    /*
+     * Flag to indicate writing settings to file;
+     * handled by game in update settings
+     */
+    bool writeSettingsFlag;
+    /*
+     * Flag to indicate toggling sound on or off;
+     * handled by game in update settings
+     */
+    bool toggleSoundFlag;
+    /*
+     * Flag to indicate toggling fullscreen on or off;
+     * handled by game in update settings
+     */
+    bool toggleFullscreenFlag;
+
+    /*
+     * String name of dialogue to display, empty if
+     * no message; set by script system, cleared by
+     * dialogue system
+     */
+    String startDialogueString;
+
+    /*
+     * Flag to indicate the ending of dialogue; set by
+     * dialogue system, cleared by script system
+     */
+    bool endDialogueFlag;
+
+    /*
+        //todo: remaining game messages
+		//set by GameBuilderSystem; persistent
+		static const Topic<systems::GameState> gameState;
+
+		//set and cleared by ContinueSystem and ScriptSystem (for moving stages)
+		//cleared by InitSystem if moving stages
+		static const Topic<components::PlayerData> playerData;
+     */
+} GameMessages;
+
+/*
+ * Constructs and returns a new GameMessages by
+ * value
+ */
+GameMessages gameMessagesMake();
+
+/*
+ * Frees the memory associated with the specified
+ * GameMessages
+ */
+void gameMessagesFree(GameMessages *messagesPtr);
+
 /* Represents the internal state of the game */
 typedef struct Game{
     /* Holds RTTI for components, owned by the game */
     WindComponents *componentsPtr;
     /* Scenes of the game, owned by the game */
     Scenes scenes;
-    //todo: game messages
+    /* messages are owned by the game */
+    GameMessages messages;
 
     /* a weak ptr to the game settings */
     Settings *settingsPtr;
@@ -32,10 +115,6 @@ typedef struct Game{
     void *userPtr;
     /* callback for when the game exits */
     void (*exitCallback)(void*);
-    /* callback for when the game toggles fullscreen */
-    void (*fullscreenCallback)(void*);
-    /* callback for when the game saves settings */
-    void (*writeSettingsCallback)(void*);
 } Game;
 
 /* Constructs and returns a new Game by value */
@@ -48,10 +127,7 @@ Game gameMake(
     void *userPtr
 );
 
-/* 
- * Updates the internal state of the specified 
- * game once
- */
+/*  Updates the internal state of the specified game */
 void gameUpdate(Game *gamePtr);
 
 /* Renders the specified game to the screen */
@@ -64,24 +140,6 @@ void gameRender(Game *gamePtr);
 void gameSetExitCallback(
     Game *gamePtr,
     void(*exitCallback)(void*)
-);
-
-/*
- * Sets the fullscreen callback which will be passed
- * the user ptr of the specified game
- */
-void gameSetFullscreenCallback(
-    Game *gamePtr,
-    void(*fullscreenCallback)(void*)
-);
-
-/*
- * Sets the write settings callback which will be
- * passed the user ptr of the specified game
- */
-void gameSetWriteSettingsCallback(
-    Game *gamePtr,
-    void(*writeSettingsCallback)(void*)
 );
 
 /* 
