@@ -80,10 +80,17 @@ void renderCallback(void *voidPtr){
     tfWindowRender(&(enginePtr->window));
 }
 
+/*
+ * Makes the specified Engine passed as a void ptr
+ * toggle fullscreen
+ */
+void fullscreenCallback(void *voidPtr){
+    Engine *enginePtr = (Engine*)voidPtr;
+    tfWindowToggleFullscreen(&(enginePtr->window));
+}
+
 /* The entry point for the game */
 int main(){
-    unTest();
-    exit(0);
     Engine engine = {0};
 
     /* read settings */
@@ -124,13 +131,12 @@ int main(){
 
     engine.game = gameMake(
         &(engine.settings),
+        &(engine.resources),
         &(engine.window),
         &(engine.keyTable),
-        &(engine.midiHub)
+        &(engine.midiHub),
+        &engine /* pass the engine as user ptr */
     );
-
-    //todo: set game fullscreen callback
-    //todo: set game write settings callback
 
     engine.gameLoop = gameLoopMake(
         config_updatesPerSecond,
@@ -146,7 +152,16 @@ int main(){
         &(engine.window),
         stopGameLoopCallback
     );
-    // todo: game set exit callback
+    gameSetExitCallback(
+        &(engine.game),
+        stopGameLoopCallback
+    );
+    gameSetFullscreenCallback(
+        &(engine.game),
+        fullscreenCallback
+    );
+    //todo: set game write settings callback
+
 
     /* make visible and start running */
     tfWindowMakeVisible(&(engine.window));

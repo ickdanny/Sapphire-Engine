@@ -21,6 +21,31 @@ static void exitCallbackFunc(
     (windowPtr->exitCallback)(windowPtr->userPtr);
 }
 
+/* returns the width of the primary monitor */
+static int getPrimaryMonitorWidth(){
+    const GLFWvidmode *modePtr = glfwGetVideoMode(
+        glfwGetPrimaryMonitor()
+    );
+    return modePtr->width;
+}
+
+/* returns the height of the primary monitor */
+static int getPrimaryMonitorHeight(){
+    const GLFWvidmode *modePtr = glfwGetVideoMode(
+        glfwGetPrimaryMonitor()
+    );
+    return modePtr->height;
+}
+
+/* updates the stored window position of a TFWindow */
+void tfWindowStorePos(TFWindow *windowPtr){
+    glfwGetWindowPos(
+        windowPtr->_windowPtr,
+        &(windowPtr->_windowX),
+        &(windowPtr->_windowY)
+    );
+}
+
 /* Constructs and returns a TFWindow by value */
 TFWindow tfWindowMake(
     bool fullscreen,
@@ -61,16 +86,29 @@ TFWindow tfWindowMake(
         GLFW_OPENGL_CORE_PROFILE
     );
 
-    toRet._windowPtr = glfwCreateWindow(
-        windowWidth,
-        windowHeight,
-        windowName,
-        fullscreen ? glfwGetPrimaryMonitor() : NULL,
-        NULL
-    );
+    if(fullscreen){
+        toRet._windowPtr = glfwCreateWindow(
+            getPrimaryMonitorWidth(),
+            getPrimaryMonitorHeight(),
+            windowName,
+            glfwGetPrimaryMonitor(),
+            NULL
+        );
+    }
+    else{
+        toRet._windowPtr = glfwCreateWindow(
+            windowWidth,
+            windowHeight,
+            windowName,
+            NULL,
+            NULL
+        );
+        tfWindowStorePos(&toRet);
+    }
     assertNotNull(
         toRet._windowPtr,
-        "glfwCreateWindow() error"
+        "glfwCreateWindow() error; "
+        SRC_LOCATION
     );
 
     glfwMakeContextCurrent(toRet._windowPtr);
@@ -84,12 +122,52 @@ TFWindow tfWindowMake(
     /* set the specified user ptr */
     toRet.userPtr = userPtr;
 
+    toRet._fullscreen = fullscreen;
+    toRet._windowWidth = windowWidth;
+    toRet._windowHeight = windowHeight;
+
     return toRet;
 }
 
 /* Makes the given TFWindow visible */
 void tfWindowMakeVisible(TFWindow *windowPtr){
     glfwShowWindow(windowPtr->_windowPtr);
+}
+
+/*
+ * Makes the given TFWindow fullscreen if it is
+ * currently windowed, or windowed if it is currently
+ * fullscreen; returns true if the window is now
+ * fullscreen, false otherwise
+ */
+bool tfWindowToggleFullscreen(TFWindow *windowPtr){
+    /* if window is fullscreen, make it windowed */
+    if(windowPtr->_fullscreen){
+        glfwSetWindowMonitor(
+            windowPtr->_windowPtr,
+            NULL,
+            windowPtr->_windowX,
+            windowPtr->_windowY,
+            windowPtr->_windowWidth,
+            windowPtr->_windowHeight,
+            GLFW_DONT_CARE
+        );
+    }
+    /* if window is windowed, make it fullscreen */
+    else{
+        tfWindowStorePos(windowPtr);
+        glfwSetWindowMonitor(
+            windowPtr->_windowPtr,
+            glfwGetPrimaryMonitor(),
+            0,
+            0,
+            getPrimaryMonitorWidth(),
+            getPrimaryMonitorHeight(),
+            GLFW_DONT_CARE
+        );
+    }
+    windowPtr->_fullscreen = !windowPtr->_fullscreen;
+    return windowPtr->_fullscreen;
 }
 
 /* 

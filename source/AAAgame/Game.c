@@ -1,18 +1,24 @@
 #include "Game.h"
+#include "Components.h"
 
 /* Constructs and returns a new Game by value */
 Game gameMake(
     Settings *settingsPtr,
+    Resources *resourcesPtr,
     TFWindow *windowPtr,
     TFKeyTable *keyTablePtr,
-    MidiHub *midiHubPtr
+    MidiHub *midiHubPtr,
+    void *userPtr
 ){
-    Game toRet = {
-        settingsPtr,
-        windowPtr,
-        keyTablePtr,
-        midiHubPtr
-    };
+    Game toRet = {0};
+    toRet.componentsPtr = componentsMake();
+    toRet.scenes = scenesMake(toRet.componentsPtr),
+    toRet.settingsPtr = settingsPtr;
+    toRet.resourcesPtr = resourcesPtr;
+    toRet.windowPtr = windowPtr;
+    toRet.keyTablePtr = keyTablePtr;
+    toRet.midiHubPtr = midiHubPtr;
+    toRet.userPtr = userPtr;
     return toRet;
 }
 
@@ -41,6 +47,12 @@ void gameUpdate(Game *gamePtr){
     updateInput(gamePtr);
     updateMusic(gamePtr);
     updateSettings(gamePtr);
+
+    static int i;
+    ++i;
+    if(i % 120 == 0){
+        gamePtr->fullscreenCallback(gamePtr->userPtr);
+    }
 }
 
 /* Renders the game to the screen */
@@ -48,10 +60,48 @@ void gameRender(Game *gamePtr){
     //todo: game render
 }
 
+/*
+ * Sets the exit callback which will be passed the
+ * user ptr of the specified game
+ */
+void gameSetExitCallback(
+    Game *gamePtr,
+    void(*exitCallback)(void*)
+){
+    gamePtr->exitCallback = exitCallback;
+}
+
+/*
+ * Sets the fullscreen callback which will be passed
+ * the user ptr of the specified game
+ */
+void gameSetFullscreenCallback(
+    Game *gamePtr,
+    void(*fullscreenCallback)(void*)
+){
+    gamePtr->fullscreenCallback = fullscreenCallback;
+}
+
+/*
+ * Sets the write settings callback which will be
+ * passed the user ptr of the specified game
+ */
+void gameSetWriteSettingsCallback(
+    Game *gamePtr,
+    void(*writeSettingsCallback)(void*)
+){
+    gamePtr->writeSettingsCallback
+        = writeSettingsCallback;
+}
+
 /* 
  * Frees the memory associated with the 
  * specified game
  */
 void gameFree(Game *gamePtr){
-    //todo: game free
+    //todo: free game stuff
+    windComponentsFree(gamePtr->componentsPtr);
+    pgFree(gamePtr->componentsPtr);
+    scenesFree(&(gamePtr->scenes));
+    memset(gamePtr, 0, sizeof(*gamePtr));
 }

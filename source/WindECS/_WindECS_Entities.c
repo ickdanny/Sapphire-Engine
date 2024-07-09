@@ -61,6 +61,26 @@ _WindEntities _windEntitiesMake(
     return toRet;
 }
 
+/* Clears all entity data from the given Entities */
+void _windEntitiesClear(
+    _WindEntities *entitiesPtr
+){
+    /* clear all entity IDs from the bitset */
+    bitsetClear(&(entitiesPtr->_currentEntityIDs));
+    /* reset all entity metadata */
+    arrayApply(_WindEntityMetadata,
+        &(entitiesPtr->_entityMetadata),
+        _windEntityMetadataReset
+    );
+    /* set entity count to 0 */
+    entitiesPtr->_numEntities = 0;
+    /*
+     * not strictly necessary, but set next entity id
+     * to 0
+     */
+    entitiesPtr->_nextCreatedEntityID = 0;
+}
+
 /* Creates a new entity and returns its handle */
 WindEntity _windEntitiesCreate(
     _WindEntities *entitiesPtr

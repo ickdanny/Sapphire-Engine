@@ -95,8 +95,6 @@ UNObjectString *unObjectStringCopy(
         stringMapPtr,
         toRet
     )){
-        //todo debug msg
-        printf("found interned key (copy)\n");
         /*
          * remove the temp string from the object list
          */
@@ -190,8 +188,6 @@ UNObjectString *unObjectStringConcat(
         stringMapPtr,
         toRet
     )){
-        //todo debug msg
-        printf("found interned key (concat)\n");
         /*
          * remove the temp string from the object list
          */

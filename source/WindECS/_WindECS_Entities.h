@@ -68,6 +68,11 @@ _WindEntities _windEntitiesMake(
     size_t numComponents
 );
 
+/* Clears all entity data from the given Entities */
+void _windEntitiesClear(
+    _WindEntities *entitiesPtr
+);
+
 /* Creates a new entity and returns its handle */
 WindEntity _windEntitiesCreate(
     _WindEntities *entitiesPtr

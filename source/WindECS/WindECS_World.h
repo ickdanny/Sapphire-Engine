@@ -32,8 +32,8 @@ typedef struct WindWorld{
 
     /* entity metadata */
     _WindEntities _entities;
-    /* user-defined component metadata */
-    WindComponents _components;
+    /* weak ptr to user-defined component metadata */
+    WindComponents *_componentsPtr;
 
     /* stores queued add component orders */
     ArrayList _addComponentQueue;
@@ -49,14 +49,15 @@ typedef struct WindWorld{
 
 /*
  * Constructs and returns a new ECS world by value;
- * takes ownership of the given WindComponents
+ * does not take ownership of the given WindComponents
  */
 WindWorld windWorldMake(
     size_t entityCapacity,
     WindComponents *componentsPtr
 );
 
-//todo: world recreate?
+/* Clears all state of the specified ECS world */
+void windWorldClear(WindWorld *worldPtr);
 
 /*
  * Returns a new query iterator; error if the accept

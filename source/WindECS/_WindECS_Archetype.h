@@ -39,6 +39,9 @@ _WindArchetype _windArchetypeMake(
     WindComponents *componentsPtr
 );
 
+/* Clears all entities from the specified archetype */
+void _windArchetypeClear(_WindArchetype *archetypePtr);
+
 /*
  * Errors if the componentID is invalid for the
  * specified archetype

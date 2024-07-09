@@ -127,7 +127,7 @@ typedef struct RemoveEntityOrder{
 
 /*
  * Constructs and returns a new ECS world by value;
- * takes ownership of the given WindComponents
+ * does not take ownership of the given WindComponents
  */
 WindWorld windWorldMake(
     size_t entityCapacity,
@@ -161,9 +161,8 @@ WindWorld windWorldMake(
         windComponentsNumComponents(componentsPtr)
     );
 
-    /* take ownership of given wind components */
-    toRet._components = *componentsPtr;
-    memset(componentsPtr, 0, sizeof(*componentsPtr));
+    /* do not take ownership of given components */
+    toRet._componentsPtr = componentsPtr;
     
     toRet._addComponentQueue = arrayListMake(
         AddComponentOrder,
@@ -187,6 +186,24 @@ WindWorld windWorldMake(
     );
 
     return toRet;
+}
+
+/* Clears all state of the specified ECS world */
+void windWorldClear(WindWorld *worldPtr){
+    /*
+     * handle orders so we don't have to deal with
+     * manually clearing out the order queues
+     */
+    windWorldHandleOrders(worldPtr);
+
+    /* clear archetypes of entity data */
+    arrayListApply(_WindArchetype,
+        &(worldPtr->_archetypeList),
+        _windArchetypeClear
+    );
+
+    /* clear entity metadata */
+    _windEntitiesClear(&(worldPtr->_entities));
 }
 
 /*
@@ -491,7 +508,7 @@ static _WindArchetype *windWorldInsertArchetype(
     _WindArchetype newArchetype = _windArchetypeMake(
         bitsetPtr,
         worldPtr->_entities._numEntities,
-        &(worldPtr->_components)
+        worldPtr->_componentsPtr
     );
     arrayListPushBack(_WindArchetype,
         &(worldPtr->_archetypeList),
@@ -619,7 +636,7 @@ void *_windWorldHandleGetPtr(
     /* return NULL if component is marker */
     WindComponentMetadata componentMetadata
         = windComponentsGet(
-            &(worldPtr->_components),
+            worldPtr->_componentsPtr,
             componentID
         );
     if(componentMetadata._componentSize == 0){
@@ -673,7 +690,7 @@ void *_windWorldIDGetPtr(
     /* return NULL if component is marker */
     WindComponentMetadata componentMetadata
         = windComponentsGet(
-            &(worldPtr->_components),
+            worldPtr->_componentsPtr,
             componentID
         );
     if(componentMetadata._componentSize == 0){
@@ -803,7 +820,7 @@ bool _windWorldHandleQueueAddComponent(
     }
     WindComponentMetadata componentMetadata
         = windComponentsGet(
-               &(worldPtr->_components),
+               worldPtr->_componentsPtr,
                componentID
         );
     void *heapCopy = NULL;
@@ -889,7 +906,7 @@ bool _windWorldIDSetComponent(
     )){
         WindComponentMetadata componentMetadata
             = windComponentsGet(
-                &(worldPtr->_components),
+                worldPtr->_componentsPtr,
                 componentID
             );
         /* do nothing if component is marker */
@@ -968,7 +985,7 @@ bool _windWorldHandleQueueSetComponent(
     }
     WindComponentMetadata componentMetadata
         = windComponentsGet(
-               &(worldPtr->_components),
+               worldPtr->_componentsPtr,
                componentID
         );
     void *heapCopy = NULL;
@@ -1053,7 +1070,7 @@ bool _windWorldIDRemoveComponent(
     /* run destructor if needed */
     WindComponentMetadata componentMetadata
         = windComponentsGet(
-            &(worldPtr->_components),
+            worldPtr->_componentsPtr,
             componentID
         );
     if(componentMetadata._componentSize != 0
@@ -1181,7 +1198,7 @@ WindEntity windWorldAddEntity(
             i
         ).componentID;
         componentMetadata = windComponentsGet(
-            &(worldPtr->_components),
+            worldPtr->_componentsPtr,
             componentID
         );
         /* skip markers */
@@ -1252,7 +1269,7 @@ void windWorldQueueAddEntity(
             i
         );
         componentMetadata = windComponentsGet(
-            &(worldPtr->_components),
+            worldPtr->_componentsPtr,
             dataPair.componentID
         );
         entireComponentDataSize
@@ -1285,7 +1302,7 @@ void windWorldQueueAddEntity(
             i
         );
         componentMetadata = windComponentsGet(
-            &(worldPtr->_components),
+            worldPtr->_componentsPtr,
             dataPair.componentID
         );
         /* if marker, use NULL as the component */
@@ -1585,6 +1602,8 @@ void _bitsetPairFree(void *voidPtr){
  * world
  */
 void windWorldFree(WindWorld *worldPtr){
+    /* does not free the component metadata */
+
     /*
      * handle orders so we don't have to deal with
      * manually clearing out the order queues
@@ -1622,7 +1641,6 @@ void windWorldFree(WindWorld *worldPtr){
     );
 
     _windEntitiesFree(&(worldPtr->_entities));
-    windComponentsFree(&(worldPtr->_components));
 
     /*
      * since orders were ran earlier, simply free

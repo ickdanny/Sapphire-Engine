@@ -54,7 +54,7 @@ typedef enum UNTokenType{
     un_tokenWhile,
     un_tokenYield,
 
-    un_tokenPrint, //todo: temp print token for debugging
+    un_tokenPrint,
 
     /* meta */
     un_tokenError,

@@ -501,7 +501,6 @@ static void unCompilerSynchronize(
             return;
         }
         switch(compilerPtr->currentToken.type){
-            //todo: possible other types of declares
             case un_tokenFunc:
             case un_tokenLet:
             case un_tokenFor:
@@ -2263,7 +2262,7 @@ UNObjectFunc *unCompilerCompileFuncFile(
     _UNFuncCompiler scriptFuncCompiler = {0};
     _unFuncCompilerInit(
         &scriptFuncCompiler,
-        un_scriptFuncType, //todo: func type?
+        un_scriptFuncType,
         compilerPtr
     );
     /*

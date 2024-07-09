@@ -26,6 +26,11 @@ typedef struct TFWindow{
     _TFGraphics _graphics;
     void *userPtr;
     void (*exitCallback)(void*);
+    bool _fullscreen;
+    int _windowWidth;
+    int _windowHeight;
+    int _windowX;
+    int _windowY;
 } TFWindow;
 
 /* Constructs and returns a TFWindow by value */
@@ -41,6 +46,14 @@ TFWindow tfWindowMake(
 
 /* Makes the given TFWindow visible */
 void tfWindowMakeVisible(TFWindow *windowPtr);
+
+/*
+ * Makes the given TFWindow fullscreen if it is
+ * currently windowed, or windowed if it is currently
+ * fullscreen; returns true if the window is now
+ * fullscreen, false otherwise
+ */
+bool tfWindowToggleFullscreen(TFWindow *windowPtr);
 
 /* 
  * Sets the exit callback for the given TFWindow;
