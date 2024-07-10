@@ -1,5 +1,11 @@
 #include "InitSystem.h"
 
+/* point at the center of the screen */
+static const Point2D screenCenter = {
+    config_windowWidth / 2.0f,
+    config_windowHeight / 2.0f
+};
+
 /* Adds the requested background to the given scene */
 static void addBackground(
     Game *gamePtr,
@@ -8,29 +14,20 @@ static void addBackground(
     int relativeDepth,
     Point2D position
 ){
-    ArrayList componentList = arrayListMake(
-        WindComponentDataPair,
-        10
-    );
+    declareList(componentList, 10);
     addVisible(&componentList);
     addPosition(&componentList, position);
-    addComponent(
+    addSpriteInstructionSimple(
         &componentList,
-        SpriteInstruction,
-        tfSpriteInstructionMakeSimple(
-
-        )
-    )
-    windWorldAddEntity(
-        &(scenePtr->ecsWorld),
-        &componentList
+        gamePtr,
+        name,
+        config_backgroundDepth + relativeDepth,
+        ((Vector2D){0})
     );
-    
-    //todo add background
-
-
-    arrayListFree(WindComponentDataPair,
-        &componentList
+    addEntityAndFreeList(
+        &componentList,
+        scenePtr,
+        NULL
     );
 }
 
@@ -42,6 +39,13 @@ static void initMainMenu(
     //todo init main menu
 
     //todo: add background
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_main",
+        0,
+        screenCenter
+    );
     //todo: add buttons
     //todo: set back menu to nav down
     //todo: start playback of track 01

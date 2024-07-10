@@ -480,43 +480,6 @@ bool _windWorldIDContainsComponent(
 }
 
 /*
- * Returns a pointer to the archetype of the entity
- * specified by the given handle; error if the entity
- * is dead
- */
-static _WindArchetype *windWorldHandleGetArchetype(
-    WindWorld *worldPtr,
-    WindEntity handle
-){
-    assertTrue(
-        windWorldIsHandleAlive(
-            worldPtr,
-            handle
-        ),
-        "error: try to get archetype of dead entity; "
-        SRC_LOCATION
-    );
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesGetMetadata(
-            &(worldPtr->_entities),
-            handle
-        );
-    size_t index = *hashMapGetPtr(Bitset, size_t,
-        &(worldPtr->_archetypeIndexMap),
-        &(entityMetadataPtr->_componentSet)
-    );
-    assertTrue(
-        index < worldPtr->_archetypeIndexMap.size,
-        "error: archetype index out of bounds; "
-        SRC_LOCATION
-    );
-    return arrayListGetPtr(_WindArchetype,
-        &(worldPtr->_archetypeList),
-        index
-    );
-}
-
-/*
  * Initializes a new archetype and inserts it into the
  * given ECS world; error if a mapping for the given
  * Bitset already exists; does not take ownership of
@@ -538,7 +501,7 @@ static _WindArchetype *windWorldInsertArchetype(
     /* archetype ctor makes a copy of the bitset */
     _WindArchetype newArchetype = _windArchetypeMake(
         bitsetPtr,
-        worldPtr->_entities._numEntities,
+        worldPtr->_entities._entityMetadata.size,
         worldPtr->_componentsPtr
     );
     arrayListPushBack(_WindArchetype,
@@ -579,6 +542,58 @@ static _WindArchetype *windWorldInsertArchetype(
     
     return arrayListBackPtr(_WindArchetype,
         &(worldPtr->_archetypeList)
+    );
+}
+
+/*
+ * Returns a pointer to the archetype of the entity
+ * specified by the given handle; error if the entity
+ * is dead
+ */
+static _WindArchetype *windWorldHandleGetArchetype(
+    WindWorld *worldPtr,
+    WindEntity handle
+){
+    assertTrue(
+        windWorldIsHandleAlive(
+            worldPtr,
+            handle
+        ),
+        "error: try to get archetype of dead entity; "
+        SRC_LOCATION
+    );
+    _WindEntityMetadata *entityMetadataPtr
+        = _windEntitiesGetMetadata(
+            &(worldPtr->_entities),
+            handle
+        );
+    size_t *indexPtr = hashMapGetPtr(Bitset, size_t,
+        &(worldPtr->_archetypeIndexMap),
+        &(entityMetadataPtr->_componentSet)
+    );
+    size_t index = 0;
+    /*
+     * if failed to retrieve index ptr, make a new
+     * archetype for the entity
+     */
+    if(!indexPtr){
+        index = worldPtr->_archetypeIndexMap.size;
+        windWorldInsertArchetype(
+            worldPtr,
+            &(entityMetadataPtr->_componentSet)
+        );
+    }
+    else{
+        index = *indexPtr;
+    }
+    assertTrue(
+        index < worldPtr->_archetypeIndexMap.size,
+        "error: archetype index out of bounds; "
+        SRC_LOCATION
+    );
+    return arrayListGetPtr(_WindArchetype,
+        &(worldPtr->_archetypeList),
+        index
     );
 }
 

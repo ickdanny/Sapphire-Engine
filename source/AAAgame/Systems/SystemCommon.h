@@ -5,5 +5,6 @@
 #include "Components.h"
 #include "EntityBuilder.h"
 #include "SystemDestructors.h"
+#include "Config.h"
 
 #endif

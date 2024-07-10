@@ -3,6 +3,7 @@
 #include "PGUtil.h"
 
 #include "_Trifecta_Shaders.h"
+#include "Config.h"
 
 /* Debug function to check for OpenGL errors */
 static void checkGLError(){
@@ -224,12 +225,11 @@ static Matrix4x4 makeTransformMatrix(
     );
 
     //todo: scale depth?
-    /*
-    static constexpr float depthRange{
-			SpriteDrawInstruction::maxDepth - SpriteDrawInstruction::minDepth + 1
-		};
-		float depthShift{ static_cast<float>(spriteDrawInstruction.getDepth()) / depthRange };
-        */
+    
+    static const float depthRange
+        = config_maxDepth - config_minDepth;
+	float depthShift
+        = spriteInstrPtr->depth / depthRange;
 
     /* reverse aspect correction */
     Matrix4x4 scalingMatrix = matrix4x4MakeScaling(
@@ -253,7 +253,7 @@ static Matrix4x4 makeTransformMatrix(
         = matrix4x4MakeTranslation(
             normalizedOffsetCenter.x,
             normalizedOffsetCenter.y,
-            spriteInstrPtr->depth
+            depthShift
         );
     
     /* 

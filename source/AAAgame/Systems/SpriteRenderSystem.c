@@ -76,5 +76,6 @@ void spriteRenderSystem(
             positionPtr->currentPos,
             spriteInstrPtr
         );
+        windQueryItrAdvance(&normalItr);
     }
 }

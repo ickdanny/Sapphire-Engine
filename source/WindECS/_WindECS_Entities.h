@@ -57,6 +57,8 @@ typedef struct _WindEntities{
     Array _entityMetadata;
 
     WindEntityIDType _nextCreatedEntityID;
+
+    /* The current number of entities */
     WindEntityIDType _numEntities;
 } _WindEntities;
 

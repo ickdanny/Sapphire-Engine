@@ -204,16 +204,18 @@ void *_sparseSetGetPtr(
 
     size_t denseIndex 
         = setPtr->_sparsePtr[sparseIndex];
+    if(denseIndex == invalidSparseIndex){
+        return NULL;
+    }
     assertTrue(denseIndex < setPtr->_denseCapacity,
-        "index gotten is larger than dense capacity; "
+        "index gotten is larger than dense capacity "
+        "but is also not the invalid index; "
         SRC_LOCATION
     );
-    return denseIndex == invalidSparseIndex
-        ? NULL
-        : voidPtrAdd(
-            setPtr->_densePtr,
-            elementSize * denseIndex
-        );
+    return voidPtrAdd(
+        setPtr->_densePtr,
+        elementSize * denseIndex
+    );
 }
 
 /* 
