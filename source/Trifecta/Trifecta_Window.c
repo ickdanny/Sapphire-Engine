@@ -219,6 +219,69 @@ void tfWindowClearDepth(TFWindow *windowPtr){
     glClear(GL_DEPTH_BUFFER_BIT);
 }
 
+/* Draws a sprite onto the specified TFWindow */
+void tfWindowDrawSprite(
+    TFWindow *windowPtr,
+    Point2D preOffsetCenter,
+    const TFSpriteInstruction *spriteInstrPtr
+){
+    _tfGraphicsDrawSprite(
+        &(windowPtr->_graphics),
+        preOffsetCenter,
+        spriteInstrPtr
+    );
+}
+
+/*
+ * Draws a portion of a sprite onto the 
+ * specified TFWindow
+ */
+void tfWindowDrawSubSprite(
+    TFWindow *windowPtr,
+    Point2D preOffsetCenter,
+    const TFSpriteInstruction *spriteInstrPtr,
+    const Rectangle *srcRectPtr
+){
+    _tfGraphicsDrawSubSprite(
+        &(windowPtr->_graphics),
+        preOffsetCenter,
+        spriteInstrPtr,
+        srcRectPtr
+    );
+}
+
+/* Draws a tiled sprite onto the specified TFWindow */
+void tfWindowDrawTileSprite(
+    TFWindow *windowPtr,
+    const Rectangle *drawRectPtr,
+    const TFSpriteInstruction *spriteInstrPtr,
+    Point2D pixelOffset
+){
+    _tfGraphicsDrawTileSprite(
+        &(windowPtr->_graphics),
+        drawRectPtr,
+        spriteInstrPtr,
+        pixelOffset
+    );
+}
+
+/* Draws text onto the specified TFWindow */
+void tfWindowDrawText(
+    TFWindow *windowPtr,
+    Point2D pos,
+    const WideString *textPtr,
+    int rightBound,
+    TFGlyphMap *glyphMapPtr
+){
+    _tfGraphicsDrawText(
+        &(windowPtr->_graphics),
+        pos,
+        textPtr,
+        rightBound,
+        glyphMapPtr
+    );
+}
+
 /* Frees the given TFWindow */
 void tfWindowFree(TFWindow *windowPtr){
     if(windowPtr){

@@ -17,6 +17,8 @@
 #include "Resources.h"
 #include "Settings.h"
 
+#include "SystemDestructors.h"
+
 #include <unistd.h>
 
 //todo: what is all this junk at the top of main?
@@ -155,6 +157,7 @@ int main(){
 
     /* clean up after game ends */
     engineFree(&engine);
+    freeSystems(); /* jank but whatever */
 
     #ifdef _DEBUG
     printf("main completed\n");

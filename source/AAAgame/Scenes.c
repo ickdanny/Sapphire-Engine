@@ -6,14 +6,16 @@
  */
 SceneMessages sceneMessagesMake(){
     //todo scene messages make
-    SceneMessages toRet /* = {0} */;
+    SceneMessages toRet = {0};
+    toRet.initFlag = false;
     return toRet;
 }
 
 /* Clears the given SceneMessages */
 void sceneMessagesClear(
-    SceneMessages *sceneMessagePtr
+    SceneMessages *sceneMessagesPtr
 ){
+    sceneMessagesPtr->initFlag = false;
     //todo scene messages clear
 }
 

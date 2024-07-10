@@ -39,6 +39,11 @@ void gameMessagesFree(GameMessages *messagesPtr){
     memset(messagesPtr, 0, sizeof(*messagesPtr));
 }
 
+/* Initializes the scenes of the specified Game */
+static void gameInitScenes(Game *gamePtr){
+    scenesPush(&(gamePtr->scenes), scene_main);
+}
+
 /* Constructs and returns a new Game by value */
 Game gameMake(
     Settings *settingsPtr,
@@ -50,7 +55,8 @@ Game gameMake(
 ){
     Game toRet = {0};
     toRet.componentsPtr = componentsMake();
-    toRet.scenes = scenesMake(toRet.componentsPtr),
+    toRet.scenes = scenesMake(toRet.componentsPtr);
+    toRet.messages = gameMessagesMake();
     toRet.settingsPtr = settingsPtr;
     toRet.resourcesPtr = resourcesPtr;
     toRet.windowPtr = windowPtr;
@@ -58,6 +64,8 @@ Game gameMake(
     toRet.midiHubPtr = midiHubPtr;
     toRet.userPtr = userPtr;
 
+    gameInitScenes(&toRet);
+    
     return toRet;
 }
 
@@ -216,6 +224,10 @@ void gameRender(Game *gamePtr){
     Scenes *scenesPtr = &(gamePtr->scenes);
     int indexOfHighestSceneToDraw
         = scenesCurrentCount(scenesPtr) - 1;
+    assertTrue(
+        indexOfHighestSceneToDraw >=0,
+        "Error: no scenes to draw; " SRC_LOCATION
+    );
 
     /* find bottom scene */
     int indexOfLowestSceneToDraw

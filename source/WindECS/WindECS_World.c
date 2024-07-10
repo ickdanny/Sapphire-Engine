@@ -5,17 +5,55 @@
 
 /* A pair of bitsets used for query mapping */
 typedef struct BitsetPair{
-    Bitset a;
-    Bitset b;
+    Bitset *aPtr;
+    Bitset *bPtr;
+    bool ownsBitsets;
 } BitsetPair;
 
 /*
+ * Has the specified BitsetPair take ownership of its
+ * bitsets by making heap copies of the ones it is
+ * currently pointing to
+ */
+static void bitsetPairTakeOwnership(
+    BitsetPair *bitsetPairPtr
+){
+    if(!bitsetPairPtr->ownsBitsets){
+        bitsetPairPtr->ownsBitsets = true;
+        Bitset *oldAPtr = bitsetPairPtr->aPtr;
+        Bitset *oldBPtr = bitsetPairPtr->bPtr;
+        if(oldAPtr){
+            bitsetPairPtr->aPtr
+                = pgAlloc(1, sizeof(*oldAPtr));
+            *(bitsetPairPtr->aPtr) = bitsetCopy(
+                oldAPtr
+            );
+        }
+        if(oldBPtr){
+            bitsetPairPtr->bPtr
+                = pgAlloc(1, sizeof(*oldBPtr));
+            *(bitsetPairPtr->bPtr) = bitsetCopy(
+                oldBPtr
+            );
+        }
+    }
+}
+
+/*
  * Frees the memory associated with the given
- * BitsetPair
+ * BitsetPair; assumes 
  */
 static void bitsetPairFree(BitsetPair *bitsetPairPtr){
-    bitsetFree(&(bitsetPairPtr->a));
-    bitsetFree(&(bitsetPairPtr->b));
+    if(bitsetPairPtr->ownsBitsets){
+        if(bitsetPairPtr->aPtr){
+            bitsetFree(bitsetPairPtr->aPtr);
+        }
+        if(bitsetPairPtr->bPtr){
+            bitsetFree(bitsetPairPtr->bPtr);
+        }
+        pgFree(bitsetPairPtr->aPtr);
+        pgFree(bitsetPairPtr->bPtr);
+    }
 }
 
 /* Hash function for bitset pair */
@@ -23,9 +61,9 @@ static size_t bitsetPairHash(
     const void *bitsetPairPtr)
 {
     BitsetPair *castPtr = (BitsetPair*)bitsetPairPtr;
-    size_t hash = bitsetHash(&(castPtr->a));
+    size_t hash = bitsetHash(castPtr->aPtr);
     hash *= 7;
-    hash += bitsetHash(&(castPtr->b));
+    hash += bitsetHash(castPtr->bPtr);
     return hash;
 }
 
@@ -37,11 +75,11 @@ static bool bitsetPairEquals(
     BitsetPair *castPtr1 = (BitsetPair*)bitsetPairPtr1;
     BitsetPair *castPtr2 = (BitsetPair*)bitsetPairPtr2;
     return bitsetEquals(
-        &(castPtr1->a),
-        &(castPtr2->a)
+        castPtr1->aPtr,
+        castPtr2->aPtr
     ) && bitsetEquals(
-        &(castPtr1->b),
-        &(castPtr2->b)
+        castPtr1->bPtr,
+        castPtr2->bPtr
     );
 }
 
@@ -230,7 +268,7 @@ static WindQuery *windWorldInsertQuery(
      * NULL instead
      */
     Bitset *rejectComponentSetPtrToPass
-        = &(bitsetPairPtr->b);
+        = bitsetPairPtr->bPtr;
     if(rejectComponentSetPtrToPass 
         && bitsetNone(rejectComponentSetPtrToPass)
     ){
@@ -241,7 +279,7 @@ static WindQuery *windWorldInsertQuery(
      * archetypes
      */
     WindQuery newQuery = windQueryMake(
-        &(bitsetPairPtr->a),
+        bitsetPairPtr->aPtr,
         rejectComponentSetPtrToPass,
         &(worldPtr->_archetypeList)
     );
@@ -260,6 +298,7 @@ static WindQuery *windWorldInsertQuery(
      */
     size_t lastQueryListIndex
         = worldPtr->_queryList.size - 1;
+    bitsetPairTakeOwnership(bitsetPairPtr);
     hashMapPutPtr(BitsetPair, size_t,
         &(worldPtr->_queryIndexMap),
         bitsetPairPtr,
@@ -291,16 +330,8 @@ WindQueryItr windWorldRequestQueryItr(
         SRC_LOCATION
     );
     BitsetPair bitsetPair = {0};
-    bitsetPair.a = bitsetCopy(acceptComponentSetPtr);
-    if(rejectComponentSetPtr){
-        bitsetPair.b = bitsetCopy(
-            rejectComponentSetPtr
-        );
-    }
-    /* if reject bitset empty, use empty bitset */
-    else{
-        bitsetPair.b = bitsetMake(1);
-    }
+    bitsetPair.aPtr = acceptComponentSetPtr;
+    bitsetPair.bPtr = rejectComponentSetPtr;
     WindQuery *queryPtr = 0;
     /*
      * if hash map has key, get it and then free the

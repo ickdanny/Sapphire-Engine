@@ -30,6 +30,12 @@ Bitset bitsetMake(size_t initBitCapacity){
     toRet._blockArray = arrayListMake(BlockType,
         initBlockCapacity
     );
+    for(int i = 0; i < initBlockCapacity; ++i){
+        arrayListPushBack(BlockType,
+            &(toRet._blockArray),
+            0
+        );
+    }
     return toRet;
 }
 

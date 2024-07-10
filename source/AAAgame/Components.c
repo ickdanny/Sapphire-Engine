@@ -17,11 +17,26 @@ WindComponents *componentsMake(){
                 DESTRUCTOR \
             ), \
             TYPENAME##ID \
-        );
+        )
+    
+    #define insertMarker(NAME) \
+        windComponentsInsert( \
+            toRet, \
+            _windComponentMetadataMake( \
+                0, /* size 0 for markers */ \
+                NULL, /* no destructor for markers */ \
+                #NAME /* type name */ \
+            ), \
+            NAME##ID \
+        )
 
     insertComponent(Position, NULL);
+    insertComponent(Velocity, NULL);
+    insertMarker(VisibleMarker);
+    insertComponent(SpriteInstruction, NULL);
 
     return toRet;
 
     #undef insertComponent
+    #undef insertMarker
 }

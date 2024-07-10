@@ -159,7 +159,9 @@ bool windQueryTryAcceptArchetype(
 void windQueryFree(WindQuery *queryPtr){
     /* free bitsets */
     bitsetFree(&(queryPtr->_acceptComponentSet));
-    bitsetFree(&(queryPtr->_rejectComponentSet));
+    if(queryPtr->_hasRejectComponentSet){
+        bitsetFree(&(queryPtr->_rejectComponentSet));
+    }
 
     /* let go of the archetype list weak ptr */
     queryPtr->_archetypeListPtr = NULL;

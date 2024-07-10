@@ -601,7 +601,7 @@ typedef struct WindComponentDataPair{
 
     /*
      * ptr to the component which will be copied into
-     * the ECS world
+     * the ECS world, or null if its a marker
      */
     void *componentPtr;
 } WindComponentDataPair;

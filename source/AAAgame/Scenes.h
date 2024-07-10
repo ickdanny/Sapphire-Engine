@@ -21,6 +21,11 @@ typedef enum SceneID{
 
 /* Stores messages for intersystem communication */
 typedef struct SceneMessages{
+    /*
+     * Flag to indicate that the scene has been
+     * initialized, set by init system
+     */
+    bool initFlag;
     //todo scene messages struct
 } SceneMessages;
 
@@ -32,7 +37,7 @@ SceneMessages sceneMessagesMake();
 
 /* Clears the given SceneMessages */
 void sceneMessagesClear(
-    SceneMessages *sceneMessagePtr
+    SceneMessages *sceneMessagesPtr
 );
 
 /*
