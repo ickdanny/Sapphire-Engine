@@ -129,6 +129,42 @@
     )
 
 /*
+ * Adds the given menu commands object to the
+ * specified component list
+ */
+#define addMenuCommands(LISTPTR, COMMANDS) \
+    addComponent( \
+        LISTPTR, \
+        MenuCommands, \
+        COMMANDS \
+    )
+
+/*
+ * Adds the given neighbor elements object to the
+ * specified component list
+ */
+#define addNeighborElements(LISTPTR, ELEMENTS) \
+    addComponent( \
+        LISTPTR, \
+        NeighborElements, \
+        ELEMENTS \
+    )
+
+/*
+ * Adds the given button data object to the specified
+ * component list
+ */
+#define addButtonData(LISTPTR, BUTTONDATA) \
+    addComponent( \
+        LISTPTR, \
+        ButtonData, \
+        BUTTONDATA \
+    )
+
+
+//todo: add other components
+
+/*
  * Adds an entity to the specified scene and frees
  * the component list, storing the returned WindEntity
  * in the specified pointer (unless NULL is provided)
@@ -158,6 +194,5 @@
     } while(false)
 
 //todo: utility func to queue entity instead of add
-
 
 #endif

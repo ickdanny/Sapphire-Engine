@@ -223,8 +223,6 @@ static Matrix4x4 makeTransformMatrix(
         graphicsWidth,
         graphicsHeight
     );
-
-    //todo: scale depth?
     
     static const float depthRange
         = config_maxDepth - config_minDepth;

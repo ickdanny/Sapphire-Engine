@@ -34,7 +34,10 @@ WindComponents *componentsMake(){
     insertComponent(Velocity, NULL);
     insertMarker(VisibleMarker);
     insertComponent(SpriteInstruction, NULL);
-
+    insertComponent(MenuCommands, NULL);
+    insertComponent(NeighborElements, NULL);
+    insertComponent(ButtonData, NULL);
+    
     return toRet;
 
     #undef insertComponent

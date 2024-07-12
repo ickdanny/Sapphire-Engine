@@ -216,6 +216,4 @@ constexpr int deathBombPeriod{ 15 };
 #define config_maxDepth \
     config_foregroundDepth + config_depthOffset
 
-
-
 #endif
