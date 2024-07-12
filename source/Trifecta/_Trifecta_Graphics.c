@@ -99,7 +99,7 @@ _TFGraphics _tfGraphicsMake(
 
     /* enable depth buffer */
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LEQUAL);
 
     /* get transform ID */
     toRet._transformID = glGetUniformLocation(
@@ -227,7 +227,9 @@ static Matrix4x4 makeTransformMatrix(
     static const float depthRange
         = config_maxDepth - config_minDepth;
 	float depthShift
-        = spriteInstrPtr->depth / depthRange;
+        = (spriteInstrPtr->depth - config_minDepth)
+            / depthRange;
+    depthShift = 1.0f - depthShift;
 
     /* reverse aspect correction */
     Matrix4x4 scalingMatrix = matrix4x4MakeScaling(

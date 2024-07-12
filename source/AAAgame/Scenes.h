@@ -3,6 +3,9 @@
 
 #include "WindECS.h"
 
+#include "MenuCommand.h"
+#include "GameBuilderCommand.h"
+
 /* used to identify the different kinds of scenes */
 typedef enum SceneID{
     scene_main,
@@ -26,6 +29,38 @@ typedef struct SceneMessages{
      * initialized, set by init system
      */
     bool initFlag;
+
+    /*
+     * Menu command to be executed when the back button
+     * is pressed, set by init system
+     */
+    MenuCommand backMenuCommand;
+
+    /*
+     * Handle to currently selected element, set by
+     * init system and used by menu navigation system
+     */
+    WindEntity currentElement;
+
+
+    /*
+     * Flag to signal clearing the screen of bullets,
+     * handled by clear system
+     */
+    bool clearFlag;
+
+    /*
+     * Flag to signal pausing the game, set by
+     * continue and pause system
+     */
+    bool pauseFlag;
+
+    /*
+     * Flag to signal the player successfully
+     * completing a stage, handled by the stage script
+     */
+    bool winFlag;
+
     //todo scene messages struct
 } SceneMessages;
 
@@ -56,7 +91,7 @@ typedef struct Scene{
     bool renderTransparent;
 
     WindWorld ecsWorld;
-    SceneMessages sceneMessages;
+    SceneMessages messages;
 } Scene;
 
 /* Constructs and returns a new Scene by value */

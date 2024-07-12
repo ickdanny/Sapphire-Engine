@@ -5,6 +5,8 @@
 #include "WindECS.h"
 #include "ZMath.h"
 
+#include "MenuCommand.h"
+#include "GameBuilderCommand.h"
 #include "Scenes.h"
 
 /*
@@ -43,57 +45,6 @@ typedef TFSpriteInstruction SpriteInstruction;
 /* TODO: Component 10: AnimationList */ 
 
 /* Component 11: MenuCommands */
-typedef enum GameBuilderCommand{
-    gb_none,
-    gb_start,
-    gb_practice,
-
-    gb_normal,
-    gb_hard,
-    gb_lunatic,
-
-    gb_stage1,
-    gb_stage2,
-    gb_stage3,
-    gb_stage4,
-
-    gb_reset,
-
-    gb_invalid,
-} GameBuilderCommand;
-typedef enum MenuCommand{
-    menu_none,
-
-    menu_navUp,
-    menu_navDown,
-    menu_navLeft,
-    menu_navRight,
-
-    menu_navFarUp,
-    menu_navFarDown,
-    menu_navFarLeft,
-    menu_navFarRight,
-
-    menu_enter,
-    menu_enterStopMusic,
-
-    menu_backTo,
-    menu_backWriteSettings,
-    menu_backSetMenuTrack,
-
-    menu_startTrack,
-
-    menu_toggleSound,
-    menu_toggleFullscreen,
-
-    menu_restartGame,
-
-    menu_gameOver,
-
-    menu_exit,
-
-    menu_invalid,
-} MenuCommand;
 typedef union MenuCommandData{
     /* data pertaining to entering a new scene */
     struct{

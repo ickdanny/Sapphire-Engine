@@ -159,7 +159,7 @@ static void linkElements(
         );
     /* run once for every link between elements */
     for(size_t i = 0;
-        i < elementHandleListPtr->size - 1;
+        i < elementHandleListPtr->size - 2;
         ++i
     ){
         /* link elements based on direction */
@@ -216,13 +216,22 @@ static void linkElements(
     }
 }
 
+/*
+ * Sets the initial selected element for the given
+ * scene to the specified entity
+ */
+static void setInitSelectedElement(
+    Scene *scenePtr,
+    WindEntity handle
+){
+    scenePtr->messages.currentElement = handle;
+}
+
 /* initializes the entities for the main menu */
 static void initMainMenu(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    //todo init main menu
-
     /* add the background for the main menu */
     addBackground(
         gamePtr,
@@ -234,10 +243,10 @@ static void initMainMenu(
 
     /* add the buttons for the main menu */
     Point2D initPos = {
-        config_graphicsWidth / 2.0f,
-        159.0f
+        280.0f,
+        109.0f
     };
-    Vector2D lineOffset = {-8.0f, 16.0f};
+    Vector2D lineOffset = {-12.0f, -22.0f};
     Vector2D selOffset = {1.0f, 0.0f};
 
     ArrayList buttonHandles = arrayListMake(WindEntity,
@@ -346,11 +355,16 @@ static void initMainMenu(
         )
     );
     linkElements(scenePtr, &buttonHandles, topDown);
-    //todo: set init selected element
+    setInitSelectedElement(
+        scenePtr,
+        arrayListFront(WindEntity, &buttonHandles)
+    );
 
     arrayListFree(WindEntity, &buttonHandles);
-    //todo: add buttons
-    //todo: set back menu to nav down
+
+    scenePtr->messages.backMenuCommand
+        = menu_navFarDown;
+
     //todo: start playback of track 01
 }
 
@@ -360,10 +374,10 @@ void initSystem(
     Scene *scenePtr
 ){
     //todo init system
-    if(scenePtr->sceneMessages.initFlag){
+    if(scenePtr->messages.initFlag){
         return;
     }
-    scenePtr->sceneMessages.initFlag = true;
+    scenePtr->messages.initFlag = true;
 
     switch(scenePtr->id){
         case scene_main:

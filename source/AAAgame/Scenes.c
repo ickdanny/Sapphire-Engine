@@ -53,7 +53,7 @@ Scene sceneMake(
         entityCapacity,
         componentsPtr
     );
-    toRet.sceneMessages = sceneMessagesMake();
+    toRet.messages = sceneMessagesMake();
     return toRet;
 }
 
@@ -67,14 +67,14 @@ void sceneRefresh(Scene *scenePtr){
         windWorldClear(&(scenePtr->ecsWorld));
 
         /* clear messages */
-        sceneMessagesClear(&(scenePtr->sceneMessages));
+        sceneMessagesClear(&(scenePtr->messages));
     }
 }
 
 /* Frees the memory associated with the given Scene */
 void sceneFree(Scene *scenePtr){
     windWorldFree(&(scenePtr->ecsWorld));
-    sceneMessagesFree(&(scenePtr->sceneMessages));
+    sceneMessagesFree(&(scenePtr->messages));
     memset(scenePtr, 0, sizeof(*scenePtr));
 }
 
