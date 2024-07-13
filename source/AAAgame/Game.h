@@ -7,6 +7,7 @@
 #include "Resources.h"
 #include "Scenes.h"
 #include "Settings.h"
+#include "GameState.h"
 
 /* Stores messages for interscene communication */
 typedef struct GameMessages{    
@@ -68,10 +69,14 @@ typedef struct GameMessages{
     bool endDialogueFlag;
 
     /*
-        //todo: remaining game messages
-		//set by GameBuilderSystem; persistent
-		static const Topic<systems::GameState> gameState;
+     * Stores metadata about the current game, set by
+     * game builder system
+     */
+    GameState gameState;
 
+    /*
+        //todo: remaining game messages
+        
 		//set and cleared by ContinueSystem and ScriptSystem (for moving stages)
 		//cleared by InitSystem if moving stages
 		static const Topic<components::PlayerData> playerData;

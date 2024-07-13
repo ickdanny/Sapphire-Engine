@@ -159,7 +159,7 @@ static void linkElements(
         );
     /* run once for every link between elements */
     for(size_t i = 0;
-        i < elementHandleListPtr->size - 2;
+        i < elementHandleListPtr->size - 1;
         ++i
     ){
         /* link elements based on direction */

@@ -59,7 +59,7 @@ void handleNavigateCommand(
                 SRC_LOCATION
             );
     }
-    setCurrentElement(
+    setElement(
         scenePtr,
         currentElement,
         nextElement
@@ -129,6 +129,12 @@ void handleNavigateFarCommand(
                 nextElement
                     = neighborElementsPtr->right;
                 break;
+            default:
+                pgError(
+                    "unexpected default nav cmd; "
+                    SRC_LOCATION
+                );
+                break;
         }
         neighborElementsPtr
             = windWorldHandleGetPtr(NeighborElements,
@@ -141,7 +147,7 @@ void handleNavigateFarCommand(
         nextElement)
     );
 endLoop:
-    setCurrentElement(
+    setElement(
         scenePtr,
         currentElement,
         nextElement
@@ -177,6 +183,28 @@ void handleEnterCommand(
         = gameBuilderCommand;
 }
 
+/* Pops the scene stack out of the game */
+void popOutOfGame(Game *gamePtr){
+    GameState *gameStatePtr
+        = &(gamePtr->messages.gameState);
+    SceneID backTo = 0;
+    switch(gameStatePtr->gameMode){
+        case game_story:
+            backTo = scene_main;
+            break;
+        case game_practice:
+            backTo = scene_stage;
+            break;
+        default:
+            pgError(
+                "unexpected game mode default case; "
+                SRC_LOCATION
+            );
+            break;
+    }
+    gamePtr->messages.sceneExitToID = backTo;
+}
+
 /*
  * Handles restarting the game by popping and pushing
  * scenes
@@ -185,7 +213,30 @@ void handleRestartGameCommand(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    //todo restart game command
+    gamePtr->messages.stopMusicFlag = true;
+
+    popOutOfGame(gamePtr);
+
+    /* have game builder system reset the game state */
+    scenePtr->messages.gameBuilderCommand = gb_reset;
+
+    /* pop new game and loading screen */
+    arrayListPushBack(SceneID,
+        &(gamePtr->messages.sceneEntryList),
+        scene_game
+    );
+    arrayListPushBack(SceneID,
+        &(gamePtr->messages.sceneEntryList),
+        scene_loading
+    );
+}
+
+/* Handles game over by popping scenes */
+void handleGameOverCommand(Game *gamePtr){
+    gamePtr->messages.stopMusicFlag = true;
+    //todo: start track 1
+
+    popOutOfGame(gamePtr);
 }
 
 /*
@@ -223,6 +274,7 @@ bool parseMenuCommand(
 
         case menu_enterStopMusic:
             gamePtr->messages.stopMusicFlag = true;
+            /* fall through */
         case menu_enter:
             handleEnterCommand(
                 gamePtr,
@@ -233,6 +285,7 @@ bool parseMenuCommand(
 
         case menu_backSetMenuTrack:
             //todo start track 1
+            /* fall through */
         case menu_backTo:
             gamePtr->messages.sceneExitToID
                 = commandData.sceneData.sceneID;
@@ -255,10 +308,13 @@ bool parseMenuCommand(
             return false;
         
         case menu_restartGame:
-            //todo restart game
+            handleRestartGameCommand(
+                gamePtr,
+                scenePtr
+            );
             return true; /* restarting is critical */
         case menu_gameOver:
-            //todo game over
+            handleGameOverCommand(gamePtr);
             return true; /* game over is critical */
         case menu_exit:
             gamePtr->messages.exitFlag = true;
@@ -340,7 +396,7 @@ bool parseNavigationCommand(
         gamePtr,
         scenePtr,
         menuCommand,
-        menuCommandData,
+        commandData,
         currentElement
     );
 }
