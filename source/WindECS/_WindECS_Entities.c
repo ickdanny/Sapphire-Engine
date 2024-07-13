@@ -9,7 +9,7 @@ _WindEntityMetadata _windEntityMetadataMake(
 ){
     _WindEntityMetadata toRet = {0};
     toRet._componentSet = bitsetMake(numComponents);
-    toRet._generation = 0;
+    toRet._generation = 1;
     return toRet;
 }
 
@@ -21,7 +21,8 @@ void _windEntityMetadataReset(
     _WindEntityMetadata *metadataPtr
 ){
     bitsetClear(&(metadataPtr->_componentSet));
-    ++(metadataPtr->_generation);
+    /* to avoid generation being 0, add 2 */
+    metadataPtr->_generation += 2;
 }
 
 /*

@@ -31,6 +31,12 @@ typedef struct SceneMessages{
     bool initFlag;
 
     /*
+     * List of MenuNavigationCommand handled by input
+     * parser system
+     */
+    ArrayList menuNavigationCommands;
+
+    /*
      * Menu command to be executed when the back button
      * is pressed, set by init system
      */
@@ -42,6 +48,28 @@ typedef struct SceneMessages{
      */
     WindEntity currentElement;
 
+    /*
+     * Info about changing the selected element handled
+     * by menu navigation system
+     */
+    struct{
+        bool newElementSelected;
+        WindEntity prevElement;
+    } elementChanges;
+
+    /*
+     * Indicates the next game builder command to be
+     * handled; gb_none means nothing new; set by
+     * menu navigation system, cleared by game builder
+     * system
+     */
+    GameBuilderCommand gameBuilderCommand;
+
+    /*
+     * Flag to signal a dialogue read handled by input
+     * parser system
+     */
+    bool readDialogueFlag;
 
     /*
      * Flag to signal clearing the screen of bullets,
@@ -72,7 +100,7 @@ SceneMessages sceneMessagesMake();
 
 /* Clears the given SceneMessages */
 void sceneMessagesClear(
-    SceneMessages *sceneMessagesPtr
+    SceneMessages *messagesPtr
 );
 
 /*
@@ -80,7 +108,7 @@ void sceneMessagesClear(
  * SceneMessgaes
  */
 void sceneMessagesFree(
-    SceneMessages *sceneMessagesPtr
+    SceneMessages *messagesPtr
 );
 
 /* A scene encapsulates an ECS world */

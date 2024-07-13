@@ -1,5 +1,7 @@
 #include "Scenes.h"
 
+#include "MenuNavigationCommand.h"
+
 /*
  * Constructs and returns a new SceneMessages by
  * value
@@ -7,15 +9,32 @@
 SceneMessages sceneMessagesMake(){
     //todo scene messages make
     SceneMessages toRet = {0};
-    toRet.initFlag = false;
+    toRet.menuNavigationCommands = arrayListMake(
+        MenuNavigationCommand,
+        10
+    );
     return toRet;
 }
 
 /* Clears the given SceneMessages */
 void sceneMessagesClear(
-    SceneMessages *sceneMessagesPtr
+    SceneMessages *messagesPtr
 ){
-    sceneMessagesPtr->initFlag = false;
+    messagesPtr->initFlag = false;
+    arrayListClear(MenuNavigationCommand,
+        &(messagesPtr->menuNavigationCommands)
+    );
+    messagesPtr->backMenuCommand = menu_none;
+    messagesPtr->currentElement = (WindEntity){0};
+    messagesPtr->elementChanges.newElementSelected
+        = false;
+    messagesPtr->elementChanges.prevElement
+        = (WindEntity){0};
+    messagesPtr->gameBuilderCommand = gb_none;
+    messagesPtr->readDialogueFlag = false;
+    messagesPtr->clearFlag = false;
+    messagesPtr->pauseFlag = false;
+    messagesPtr->winFlag = false;
     //todo scene messages clear
 }
 
@@ -24,13 +43,16 @@ void sceneMessagesClear(
  * SceneMessgaes
  */
 void sceneMessagesFree(
-    SceneMessages *sceneMessagesPtr
+    SceneMessages *messagesPtr
 ){
     //todo scene message free
+    arrayListFree(MenuNavigationCommand,
+        &(messagesPtr->menuNavigationCommands)
+    );
     memset(
-        sceneMessagesPtr,
+        messagesPtr,
         0,
-        sizeof(*sceneMessagesPtr)
+        sizeof(*messagesPtr)
     );
 }
 

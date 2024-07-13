@@ -4,9 +4,6 @@
 #include "SystemCommon.h"
 
 /* initializes each scene */
-void initSystem(
-    Game *gamePtr,
-    Scene *scenePtr
-);
+void initSystem(Game *gamePtr, Scene *scenePtr);
 
 #endif

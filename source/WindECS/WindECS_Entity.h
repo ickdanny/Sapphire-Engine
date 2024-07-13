@@ -13,7 +13,16 @@ typedef uint32_t WindEntityIDType;
  */
 typedef struct WindEntity{
     WindEntityIDType entityID;
+    /* a generation cannot be 0 */
     WindEntityGenerationType _generation;
 } WindEntity;
+
+/*
+ * Returns true if the two specified entities are
+ * equal, false otherwise
+ */
+#define windEntityEquals(LEFT, RIGHT) \
+    (((LEFT).entityID == (RIGHT).entityID) \
+        && ((LEFT)._generation == (RIGHT)._generation))
 
 #endif

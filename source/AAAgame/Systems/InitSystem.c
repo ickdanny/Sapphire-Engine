@@ -261,7 +261,7 @@ static void initMainMenu(
             "button_startUnsel",
             "button_startSel",
             menu_enter,
-            (MenuCommandData){.sceneEntry = {
+            (MenuCommandData){.sceneData = {
                 scene_difficulty,
                 gb_start
             }},
@@ -282,7 +282,7 @@ static void initMainMenu(
             "button_practiceUnsel",
             "button_practiceSel",
             menu_enter,
-            (MenuCommandData){.sceneEntry = {
+            (MenuCommandData){.sceneData = {
                 scene_difficulty,
                 gb_practice
             }},
@@ -303,7 +303,7 @@ static void initMainMenu(
             "button_musicUnsel",
             "button_musicSel",
             menu_enterStopMusic,
-            (MenuCommandData){.sceneEntry = {
+            (MenuCommandData){.sceneData = {
                 scene_music,
                 gb_none
             }},
@@ -324,7 +324,7 @@ static void initMainMenu(
             "button_optionsUnsel",
             "button_optionsSel",
             menu_enter,
-            (MenuCommandData){.sceneEntry = {
+            (MenuCommandData){.sceneData = {
                 scene_options,
                 gb_none
             }},
@@ -369,11 +369,7 @@ static void initMainMenu(
 }
 
 /* initializes each scene */
-void initSystem(
-    Game *gamePtr,
-    Scene *scenePtr
-){
-    //todo init system
+void initSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.initFlag){
         return;
     }
@@ -383,6 +379,7 @@ void initSystem(
         case scene_main:
             initMainMenu(gamePtr, scenePtr);
             break;
+        //todo: init other scenes
         default:
             pgError(
                 "unrecognized scene in init system; "

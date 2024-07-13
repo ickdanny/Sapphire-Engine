@@ -50,7 +50,7 @@ typedef union MenuCommandData{
     struct{
         SceneID sceneID;
         GameBuilderCommand gameBuilderCommand;
-    } sceneEntry;
+    } sceneData;
     /*
      * the name of the track to start playback, not
      * owned by the object (should be a string literal)
