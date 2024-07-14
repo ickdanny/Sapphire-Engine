@@ -355,6 +355,8 @@ bool parseNavigationCommand(
         case menuNav_back:
             menuCommand
                 = scenePtr->messages.backMenuCommand;
+            commandData.sceneData.sceneID
+                = scenePtr->messages.backSceneID;
             break;
         case menuNav_select:
             menuCommand

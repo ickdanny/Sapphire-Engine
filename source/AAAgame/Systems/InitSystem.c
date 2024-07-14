@@ -368,6 +368,107 @@ static void initMainMenu(
     //todo: start playback of track 01
 }
 
+/* initializes the entities for the difficulty menu */
+static void initDiffMenu(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    /* add the background for the difficulty menu */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_diff",
+        0,
+        screenCenter
+    );
+
+    /* add the buttons for the main menu */
+    Point2D initPos = {
+        config_graphicsWidth / 2,
+        155.0f
+    };
+    Vector2D lineOffset = {0.0f, -50.0f};
+    Vector2D selOffset = {0.0f, 1.0f};
+
+    ArrayList buttonHandles = arrayListMake(WindEntity,
+        10
+    );
+    /* the normal button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_normalUnsel",
+            "button_normalSel",
+            menu_enter,
+            (MenuCommandData){.sceneData = {
+                scene_game,
+                gb_normal
+            }},
+            0,
+            initPos,
+            lineOffset,
+            0,
+            selOffset,
+            true
+        )
+    );
+    /* the hard button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_hardUnsel",
+            "button_hardSel",
+            menu_enter,
+            (MenuCommandData){.sceneData = {
+                scene_game,
+                gb_hard
+            }},
+            0,
+            initPos,
+            lineOffset,
+            1,
+            selOffset,
+            false
+        )
+    );
+    /* the lunatic button button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_lunaticUnsel",
+            "button_lunaticSel",
+            menu_enterStopMusic,
+            (MenuCommandData){.sceneData = {
+                scene_game,
+                gb_lunatic
+            }},
+            0,
+            initPos,
+            lineOffset,
+            2,
+            selOffset,
+            false
+        )
+    );
+    linkElements(scenePtr, &buttonHandles, topDown);
+    setInitSelectedElement(
+        scenePtr,
+        arrayListFront(WindEntity, &buttonHandles)
+    );
+
+    arrayListFree(WindEntity, &buttonHandles);
+
+    scenePtr->messages.backMenuCommand
+        = menu_backTo;
+    scenePtr->messages.backSceneID = scene_main;
+}
+
 /* initializes each scene */
 void initSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.initFlag){
@@ -378,6 +479,9 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
     switch(scenePtr->id){
         case scene_main:
             initMainMenu(gamePtr, scenePtr);
+            break;
+        case scene_difficulty:
+            initDiffMenu(gamePtr, scenePtr);
             break;
         //todo: init other scenes
         default:

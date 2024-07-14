@@ -43,6 +43,12 @@ typedef struct SceneMessages{
     MenuCommand backMenuCommand;
 
     /*
+     * Scene ID associated with the back menu command,
+     * may not always be present; set by init system
+     */
+    SceneID backSceneID;
+
+    /*
      * Handle to currently selected element, set by
      * init system and used by menu navigation system
      */
@@ -207,7 +213,7 @@ Scene *scenesGetScene(Scenes *scenesPtr, int i);
 #define scenesGetTop(SCENESPTR) \
     scenesGetScene( \
         (SCENESPTR), \
-        scenesCurrentCount((SCENESPTR)) \
+        scenesCurrentCount((SCENESPTR)) - 1 \
     )
 
 /*
