@@ -269,8 +269,8 @@ void gameSetExitCallback(
  */
 void gameFree(Game *gamePtr){
     gameMessagesFree(&(gamePtr->messages));
+    scenesFree(&(gamePtr->scenes));
     windComponentsFree(gamePtr->componentsPtr);
     pgFree(gamePtr->componentsPtr);
-    scenesFree(&(gamePtr->scenes));
     memset(gamePtr, 0, sizeof(*gamePtr));
 }

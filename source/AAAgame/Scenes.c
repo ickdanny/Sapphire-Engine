@@ -164,7 +164,7 @@ Scenes scenesMake(WindComponents *componentsPtr){
         20,     false,  notTransparent
     );
     defineScene(scene_difficulty,
-        20,     false,  notTransparent
+        20,     true,   notTransparent /* refresh */
     );
     defineScene(scene_stage,
         20,     false,  notTransparent
@@ -211,6 +211,13 @@ void scenesPush(Scenes *scenesPtr, SceneID sceneID){
         &(scenesPtr->_sceneStack),
         sceneID
     );
+    Scene *scenePtr = arrayGetPtr(Scene,
+        &(scenesPtr->_sceneStorage),
+        sceneID
+    );
+    if(scenePtr->_refresh){
+        sceneRefresh(scenePtr);
+    }
 }
 
 /*

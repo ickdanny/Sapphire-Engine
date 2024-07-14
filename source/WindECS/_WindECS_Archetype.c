@@ -57,6 +57,42 @@ _WindArchetype _windArchetypeMake(
 }
 
 /*
+ * Frees all entity data in the specified component
+ * storage using the provided RTTI but does not free
+ * the storage itself
+ */
+static void __componentStorageClear(
+    SparseSet *componentStoragePtr,
+    WindComponentMetadata componentMetadata
+){
+    /* run destructor on all elements in storage */
+    if(componentMetadata._destructor){
+        SparseSetItr itr = _sparseSetItr(
+            componentStoragePtr
+            #ifdef _DEBUG
+            , componentMetadata._typeName
+            #endif
+        );
+        while(_sparseSetItrHasNext(
+            &itr
+            #ifdef _DEBUG
+            , componentMetadata._typeName
+            #endif
+        )){
+            componentMetadata._destructor(
+                _sparseSetItrNextPtr(
+                    &itr,
+                    componentMetadata._componentSize
+                    #ifdef _DEBUG
+                    , componentMetadata._typeName
+                    #endif
+                )
+            );
+        }
+    }
+}
+
+/*
  * Frees all the memory associated with the specified
  * component storage using the provided RTTI
  */
@@ -65,28 +101,10 @@ static void __componentStorageFree(
     WindComponentMetadata componentMetadata
 ){
     /* run destructor on all elements in storage */
-    SparseSetItr itr = _sparseSetItr(
-        componentStoragePtr
-        #ifdef _DEBUG
-        , componentMetadata._typeName
-        #endif
+    __componentStorageClear(
+        componentStoragePtr,
+        componentMetadata
     );
-    while(_sparseSetItrHasNext(
-        &itr
-        #ifdef _DEBUG
-        , componentMetadata._typeName
-        #endif
-    )){
-        componentMetadata._destructor(
-            _sparseSetItrNextPtr(
-                &itr,
-                componentMetadata._componentSize
-                #ifdef _DEBUG
-                , componentMetadata._typeName
-                #endif
-            )
-        );
-    }
 
     /* free the storage */
     _sparseSetFree(
@@ -103,6 +121,12 @@ void _windArchetypeClear(_WindArchetype *archetypePtr){
         = windComponentsNumComponents(
             archetypePtr->_componentsPtr
         );
+
+    //todo: temp
+    printf("clearing archetype %p\n", archetypePtr);
+    static char buffer[100] = {0};
+    printBitset(&archetypePtr->_componentSet, buffer, 100);
+    printf("set: %s\n", buffer);
 
     /* free each sparse set using RTTI */
     for(WindComponentIDType i = 0;
@@ -125,10 +149,10 @@ void _windArchetypeClear(_WindArchetype *archetypePtr){
                 continue;
             }
             /*
-             * free the component storage for that
+             * clear the component storage for that
              * component ID
              */
-            __componentStorageFree(
+            __componentStorageClear(
                 arrayGetPtr(SparseSet,
                     &(archetypePtr
                         ->_componentStorageArray),
@@ -501,12 +525,60 @@ bool _windArchetypeRemoveEntity(
 }
 
 /*
+ * Frees all component storages owned by the given
+ * Archetype
+ */
+void __windArchetypeFreeComponentStorages(
+    _WindArchetype *archetypePtr
+){
+    WindComponentIDType numComponents
+        = windComponentsNumComponents(
+            archetypePtr->_componentsPtr
+        );
+
+    /* free each sparse set using RTTI */
+    for(WindComponentIDType i = 0;
+        i < numComponents;
+        ++i
+    ){
+        /* if the component is in this archetype */
+        if(bitsetGet(
+            &(archetypePtr->_componentSet),
+            i
+        )){
+            /* retrieve RTTI for the component */
+            WindComponentMetadata componentMetadata
+                = windComponentsGet(
+                    archetypePtr->_componentsPtr,
+                    i
+                );
+            /* skip markers */
+            if(componentMetadata._componentSize == 0){
+                continue;
+            }
+            /*
+             * free the component storage for that
+             * component ID
+             */
+            __componentStorageFree(
+                arrayGetPtr(SparseSet,
+                    &(archetypePtr
+                        ->_componentStorageArray),
+                    i
+                ),
+                componentMetadata
+            );
+        }
+    }
+}
+
+/*
  * Frees the memory associated with the given
  * Archetype
  */
 void _windArchetypeFree(_WindArchetype *archetypePtr){
     /* free all entities (i.e. components) */
-    _windArchetypeClear(archetypePtr);
+    __windArchetypeFreeComponentStorages(archetypePtr);
 
     /* free the component bitset */
     bitsetFree(&(archetypePtr->_componentSet));

@@ -382,6 +382,15 @@ static void initDiffMenu(
         screenCenter
     );
 
+    /*
+     * next scene is either game or stage depending on
+     * if the player pressed start or practice
+     */
+    SceneID nextScene = gamePtr->messages.gameState
+        .gameMode == game_story
+            ? scene_game
+            : scene_stage;
+
     /* add the buttons for the main menu */
     Point2D initPos = {
         config_graphicsWidth / 2,
@@ -403,7 +412,7 @@ static void initDiffMenu(
             "button_normalSel",
             menu_enter,
             (MenuCommandData){.sceneData = {
-                scene_game,
+                nextScene,
                 gb_normal
             }},
             0,
@@ -424,7 +433,7 @@ static void initDiffMenu(
             "button_hardSel",
             menu_enter,
             (MenuCommandData){.sceneData = {
-                scene_game,
+                nextScene,
                 gb_hard
             }},
             0,
@@ -435,7 +444,7 @@ static void initDiffMenu(
             false
         )
     );
-    /* the lunatic button button */
+    /* the lunatic button */
     arrayListPushBack(WindEntity,
         &buttonHandles,
         addButtonInLine(
@@ -445,7 +454,7 @@ static void initDiffMenu(
             "button_lunaticSel",
             menu_enterStopMusic,
             (MenuCommandData){.sceneData = {
-                scene_game,
+                nextScene,
                 gb_lunatic
             }},
             0,
@@ -469,6 +478,128 @@ static void initDiffMenu(
     scenePtr->messages.backSceneID = scene_main;
 }
 
+/* initializes the entities for the stage menu */
+static void initStageMenu(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    /* add the background for the difficulty menu */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_stage",
+        0,
+        screenCenter
+    );
+
+    /* add the buttons for the main menu */
+    Point2D initPos = {
+        config_graphicsWidth / 2,
+        165.0f
+    };
+    Vector2D lineOffset = {0.0f, -40.0f};
+    Vector2D selOffset = {0.0f, 1.0f};
+
+    ArrayList buttonHandles = arrayListMake(WindEntity,
+        10
+    );
+    /* the stage 1 button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_s1Unsel",
+            "button_s1Sel",
+            menu_enter,
+            (MenuCommandData){.sceneData = {
+                scene_game,
+                gb_stage1
+            }},
+            0,
+            initPos,
+            lineOffset,
+            0,
+            selOffset,
+            true
+        )
+    );
+    /* the stage 2 button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_s2Unsel",
+            "button_s2Sel",
+            menu_enter,
+            (MenuCommandData){.sceneData = {
+                scene_game,
+                gb_stage2
+            }},
+            0,
+            initPos,
+            lineOffset,
+            1,
+            selOffset,
+            false
+        )
+    );
+    /* the stage 3 button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_s3Unsel",
+            "button_s3Sel",
+            menu_enterStopMusic,
+            (MenuCommandData){.sceneData = {
+                scene_game,
+                gb_stage3
+            }},
+            0,
+            initPos,
+            lineOffset,
+            2,
+            selOffset,
+            false
+        )
+    );
+    /* the stage 4 button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_s4Unsel",
+            "button_s4Sel",
+            menu_enterStopMusic,
+            (MenuCommandData){.sceneData = {
+                scene_game,
+                gb_stage4
+            }},
+            0,
+            initPos,
+            lineOffset,
+            3,
+            selOffset,
+            false
+        )
+    );
+    linkElements(scenePtr, &buttonHandles, topDown);
+    setInitSelectedElement(
+        scenePtr,
+        arrayListFront(WindEntity, &buttonHandles)
+    );
+
+    arrayListFree(WindEntity, &buttonHandles);
+
+    scenePtr->messages.backMenuCommand
+        = menu_backTo;
+    scenePtr->messages.backSceneID = scene_difficulty;
+}
+
 /* initializes each scene */
 void initSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.initFlag){
@@ -482,6 +613,9 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
             break;
         case scene_difficulty:
             initDiffMenu(gamePtr, scenePtr);
+            break;
+        case scene_stage:
+            initStageMenu(gamePtr, scenePtr);
             break;
         //todo: init other scenes
         default:

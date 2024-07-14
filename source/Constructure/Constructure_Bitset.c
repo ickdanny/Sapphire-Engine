@@ -786,11 +786,14 @@ void printBitset(
     size_t nextCharToWriteIndex = 0;
 
     /* write the bits in the last set block */
+    BlockType *frontPtr = arrayListFrontPtr(BlockType,
+        &(bitsetPtr->_blockArray)
+    );
     for(size_t i = lastSetBitSubIndex;
         i != SIZE_MAX;
         --i
     ){
-        if(getBit(lastSetBlockIndex, i)){
+        if(getBit(frontPtr[lastSetBlockIndex], i)){
             tempStorage[nextCharToWriteIndex++] = '1';
         }
         else{
@@ -799,9 +802,6 @@ void printBitset(
     }
 
     /* for each other block, write bits backwards */
-    BlockType *frontPtr = arrayListFrontPtr(BlockType,
-        &(bitsetPtr->_blockArray)
-    );
     BlockType currentBlock = 0;
     for(size_t blockIndex = lastSetBlockIndex - 1;
         blockIndex != SIZE_MAX;
