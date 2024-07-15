@@ -843,6 +843,11 @@ size_t bitsetHash(const void *bitsetPtr){
     static size_t modulo = 1294967281;
     size_t hash = 0;
 
+    /* if null passed, return 0 */
+    if(!bitsetPtr){
+        return 0;
+    }
+
     Bitset *castPtr = (Bitset *)bitsetPtr;
     
     /* return 0 if bitset array is empty */
@@ -886,6 +891,15 @@ bool bitsetEquals(
     const void *bitsetPtr1,
     const void *bitsetPtr2
 ){
+    /* if pointing to the same object, return true */
+    if(bitsetPtr1 == bitsetPtr2){
+        return true;
+    }
+    /* if one of the pointers is null, return false */
+    if(!bitsetPtr1 || !bitsetPtr2){
+        return false;
+    }
+
     Bitset *castPtr1 = (Bitset *)bitsetPtr1;
     Bitset *castPtr2 = (Bitset *)bitsetPtr2;
 
