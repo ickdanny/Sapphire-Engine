@@ -37,7 +37,9 @@ WindComponents *componentsMake(){
     insertComponent(MenuCommands, NULL);
     insertComponent(NeighborElements, NULL);
     insertComponent(ButtonData, NULL);
-    
+    insertComponent(Inbound, NULL);
+    insertComponent(Outbound, NULL);
+
     return toRet;
 
     #undef insertComponent

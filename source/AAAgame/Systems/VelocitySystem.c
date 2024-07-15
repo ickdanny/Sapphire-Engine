@@ -16,10 +16,7 @@ static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
         bitsetSet(&accept, PositionID);
-        bitsetSet(
-            &accept,
-            VelocityID
-        );
+        bitsetSet(&accept, VelocityID);
 
         registerSystemDestructor(destroy);
         
@@ -42,10 +39,10 @@ void velocitySystem(Game *gamePtr, Scene *scenePtr){
             Position,
             &itr
         );
-        Velocity *velocityPtr
-            = windQueryItrGetPtr(Velocity,
-                &itr
-            );
+        Velocity *velocityPtr = windQueryItrGetPtr(
+            Velocity,
+            &itr
+        );
         positionPtr->pastPos = positionPtr->currentPos;
         positionPtr->currentPos = point2DAddPolar(
             positionPtr->currentPos,

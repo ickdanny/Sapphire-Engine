@@ -9,6 +9,7 @@
 #include "LoadingScreenSystem.h"
 
 #include "VelocitySystem.h"
+#include "InboundSystem.h"
 
 /* Updates the specified scene */
 void updateScene(Game *gamePtr, Scene *scenePtr){
@@ -24,7 +25,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     //todo call script system
     //todo call player movement system
     velocitySystem(gamePtr, scenePtr);
-    //todo call inbound system
+    inboundSystem(gamePtr, scenePtr);
     //todo call collision detector system
     //todo call collision handler system
     //todo call clear system

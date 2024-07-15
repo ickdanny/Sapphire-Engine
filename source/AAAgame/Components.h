@@ -105,6 +105,12 @@ typedef struct ButtonData{
      */
 } ButtonData;
 
+/* Component 14: Inbound */
+typedef float Inbound;
+
+/* Component 15: Outbound */
+typedef float Outbound;
+
 /* each component needs TYPENAME##ID defined */
 typedef enum ComponentID{
     PositionID,
@@ -114,6 +120,8 @@ typedef enum ComponentID{
     MenuCommandsID,
     NeighborElementsID,
     ButtonDataID,
+    InboundID,
+    OutboundID,
     numComponents,
 } ComponentID;
 
