@@ -6,6 +6,7 @@
 #include "MenuNavigationSystem.h"
 #include "ButtonSpriteSystem.h"
 #include "GameBuilderSystem.h"
+#include "LoadingScreenSystem.h"
 
 /* Updates the specified scene */
 void updateScene(Game *gamePtr, Scene *scenePtr){
@@ -16,5 +17,6 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     menuNavigationSystem(gamePtr, scenePtr);
     buttonSpriteSystem(gamePtr, scenePtr);
     gameBuilderSystem(gamePtr, scenePtr);
+    loadingScreenSystem(gamePtr, scenePtr);
     //todo update scene
 }

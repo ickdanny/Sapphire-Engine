@@ -6,6 +6,12 @@ static const Point2D screenCenter = {
     config_graphicsHeight / 2.0f
 };
 
+/* point at the center of the game screen */
+static const Point2D gameCenter = {
+    100.0f,
+    config_graphicsHeight / 2.0f
+};
+
 /* Adds the requested background to the given scene */
 static void addBackground(
     Game *gamePtr,
@@ -391,7 +397,7 @@ static void initDiffMenu(
             ? scene_game
             : scene_stage;
 
-    /* add the buttons for the main menu */
+    /* add the buttons for the difficulty menu */
     Point2D initPos = {
         config_graphicsWidth / 2,
         155.0f
@@ -492,7 +498,7 @@ static void initStageMenu(
         screenCenter
     );
 
-    /* add the buttons for the main menu */
+    /* add the buttons for the stage menu */
     Point2D initPos = {
         config_graphicsWidth / 2,
         165.0f
@@ -600,6 +606,121 @@ static void initStageMenu(
     scenePtr->messages.backSceneID = scene_difficulty;
 }
 
+//todo: init music menu
+
+/* initializes the entities for the options menu */
+static void initOptionsMenu(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    /* add the background for the difficulty menu */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_options",
+        0,
+        screenCenter
+    );
+
+    /* add the buttons for the main menu */
+    Point2D initPos = {
+        config_graphicsWidth / 2,
+        165.0f
+    };
+    Vector2D lineOffset = {0.0f, -40.0f};
+    Vector2D selOffset = {0.0f, 1.0f};
+
+    ArrayList buttonHandles = arrayListMake(WindEntity,
+        10
+    );
+    /* the fullscreen button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_fullscreenUnsel",
+            "button_fullscreenSel",
+            menu_toggleFullscreen,
+            (MenuCommandData){0},
+            0,
+            initPos,
+            lineOffset,
+            0,
+            selOffset,
+            true
+        )
+    );
+    /* the mute button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_soundUnsel",
+            "button_soundSel",
+            menu_toggleSound,
+            (MenuCommandData){0},
+            0,
+            initPos,
+            lineOffset,
+            1,
+            selOffset,
+            false
+        )
+    );
+    /* the exit button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_optionsExitUnsel",
+            "button_optionsExitSel",
+            menu_backWriteSettings,
+            (MenuCommandData){.sceneData = {
+                scene_main
+            }},
+            0,
+            initPos,
+            lineOffset,
+            2,
+            selOffset,
+            false
+        )
+    );
+    linkElements(scenePtr, &buttonHandles, topDown);
+    setInitSelectedElement(
+        scenePtr,
+        arrayListFront(WindEntity, &buttonHandles)
+    );
+
+    arrayListFree(WindEntity, &buttonHandles);
+
+    scenePtr->messages.backMenuCommand
+        = menu_navFarDown;
+}
+
+/* initializes the entities for the loading screen */
+static void initLoadingScreen(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    /* add the loading screen background */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_loading",
+        0,
+        gameCenter
+    );
+}
+
+/* initializes the entities for the game */
+static void initGame(Game *gamePtr, Scene *scenePtr){
+    //todo: init game
+}
+
 /* initializes each scene */
 void initSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.initFlag){
@@ -618,6 +739,26 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
             initStageMenu(gamePtr, scenePtr);
             break;
         //todo: init other scenes
+        
+        //scene_music,
+        case scene_options:
+            initOptionsMenu(gamePtr, scenePtr);
+            break;
+        case scene_loading:
+            initLoadingScreen(gamePtr, scenePtr);
+            break;
+        case scene_game:
+            initGame(gamePtr, scenePtr);
+            break;
+        /*
+    scene_loading,
+    scene_game,
+    scene_dialogue,
+    scene_pause,
+    scene_continues,
+    scene_credits,
+    scene_numScenes,
+    */
         default:
             pgError(
                 "unrecognized scene in init system; "

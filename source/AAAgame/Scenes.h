@@ -72,6 +72,12 @@ typedef struct SceneMessages{
     GameBuilderCommand gameBuilderCommand;
 
     /*
+     * Timer used by systems; -1 if not currently in
+     * use; loading screen system
+     */
+    int timer1;
+
+    /*
      * Flag to signal a dialogue read handled by input
      * parser system
      */

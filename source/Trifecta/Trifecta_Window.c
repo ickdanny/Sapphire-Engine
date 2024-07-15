@@ -197,7 +197,6 @@ void tfWindowSetExitCallback(
 
 /* Has the specified TFWindow render */
 void tfWindowRender(TFWindow *windowPtr){
-    //todo window rendering
     glfwSwapBuffers(windowPtr->_windowPtr);
 
     glClearColor(1.0, 0.5, 1.0, 1.0);

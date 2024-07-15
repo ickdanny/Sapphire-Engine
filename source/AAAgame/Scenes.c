@@ -13,6 +13,7 @@ SceneMessages sceneMessagesMake(){
         MenuNavigationCommand,
         10
     );
+    toRet.timer1 = -1;
     return toRet;
 }
 
@@ -31,6 +32,7 @@ void sceneMessagesClear(
     messagesPtr->elementChanges.prevElement
         = (WindEntity){0};
     messagesPtr->gameBuilderCommand = gb_none;
+    messagesPtr->timer1 = -1;
     messagesPtr->readDialogueFlag = false;
     messagesPtr->clearFlag = false;
     messagesPtr->pauseFlag = false;
