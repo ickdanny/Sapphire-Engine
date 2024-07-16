@@ -721,6 +721,98 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
     //todo: init game
 }
 
+/* initializes the entities for the pause menu */
+static void initPause(Game *gamePtr, Scene *scenePtr){
+    /* add the pause menu background */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_pause",
+        0,
+        gameCenter
+    );
+
+    /* add the buttons for the pause menu */
+    Point2D initPos = {
+        gameCenter.x,
+        155.0f
+    };
+    Vector2D lineOffset = {0.0f, -30.0f};
+    Vector2D selOffset = {0.0f, 1.0f};
+
+    ArrayList buttonHandles = arrayListMake(WindEntity,
+        10
+    );
+    /* the resume button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_resumeUnsel",
+            "button_resumeSel",
+            menu_backTo,
+            (MenuCommandData){
+                .sceneData.sceneID = scene_game
+            },
+            0,
+            initPos,
+            lineOffset,
+            0,
+            selOffset,
+            true
+        )
+    );
+    /* the restart button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_restartUnsel",
+            "button_restartSel",
+            menu_restartGame,
+            (MenuCommandData){0},
+            0,
+            initPos,
+            lineOffset,
+            1,
+            selOffset,
+            false
+        )
+    );
+    /* the retire button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_retireUnsel",
+            "button_retireSel",
+            menu_gameOver,
+            (MenuCommandData){0},
+            0,
+            initPos,
+            lineOffset,
+            2,
+            selOffset,
+            false
+        )
+    );
+    linkElements(scenePtr, &buttonHandles, topDown);
+    setInitSelectedElement(
+        scenePtr,
+        arrayListFront(WindEntity, &buttonHandles)
+    );
+
+    arrayListFree(WindEntity, &buttonHandles);
+
+    //todo: this or nav far down?
+    scenePtr->messages.backMenuCommand
+        = menu_backTo;
+    scenePtr->messages.backSceneID = scene_game;
+}
+
 /* initializes each scene */
 void initSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.initFlag){
@@ -753,9 +845,11 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
         /*
     scene_loading,
     scene_game,
-    scene_dialogue,
-    scene_pause,
-    scene_continues,
+    scene_dialogue,*/
+        case scene_pause:
+            initPause(gamePtr, scenePtr);
+            break;
+    /*scene_continues,
     scene_credits,
     scene_numScenes,
     */

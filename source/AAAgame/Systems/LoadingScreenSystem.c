@@ -18,6 +18,7 @@ void loadingScreenSystem(
     }
     /* if timer over, pop the scene */
     if(scenePtr->messages.timer1 == 0){
+        --(scenePtr->messages.timer1);
         gamePtr->messages.sceneExitToID = scene_game;
     }
     /* if timer was never set, set the timer */

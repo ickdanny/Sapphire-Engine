@@ -13,6 +13,8 @@
 #include "VelocitySystem.h"
 #include "InboundSystem.h"
 
+#include "PauseSystem.h"
+
 #include "OutboundSystem.h"
 
 /* Updates the specified scene */
@@ -41,7 +43,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     //todo call player reactivate system (?)
     //todo call death handler system
     //todo call overlay system
-    //todo call pause system
+    pauseSystem(gamePtr, scenePtr);
     //todo call animation system
     //todo call rotate sprite forward system
     //todo call sprite spin system

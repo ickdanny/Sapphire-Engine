@@ -2,6 +2,30 @@
 
 #include "GameCommand.h"
 
+static Bitset accept;
+static bool initialized = false;
+
+/* destroys the player movement system */
+static void destroy(){
+    if(initialized){
+        bitsetFree(&accept);
+        initialized = false;
+    }
+}
+
+/* inits the player movement system */
+static void init(){
+    if(!initialized){
+        accept = bitsetMake(numComponents);
+        bitsetSet(&accept, PlayerDataID);
+        bitsetSet(&accept, VelocityID);
+
+        registerSystemDestructor(destroy);
+        
+        initialized = true;
+    }
+}
+
 /* Holds data pertaining to player movement input */
 typedef uint_fast8_t PlayerMoveState;
 
@@ -76,7 +100,7 @@ typedef uint_fast8_t PlayerMoveState;
     _setHelper(MOVESTATE, DOWN, downMask)
 
 /* Sets the left state to the specified value */
-#define setDown(MOVESTATE, LEFT) \
+#define setLeft(MOVESTATE, LEFT) \
     _setHelper(MOVESTATE, LEFT, leftMask)
 
 /* Sets the right state to the specified value */
@@ -158,6 +182,8 @@ void playerMovementSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
+    init();
+
     ArrayList *gameCommandsPtr
         = &(scenePtr->messages.gameCommands);
 
@@ -189,11 +215,36 @@ void playerMovementSystem(
             case game_right:
                 setRight(moveState, true);
                 break;
+            default:
+                /* ignore all other game commands */
+                break;
         }
     }
 
     /* translate move state into a move vector */
     Velocity velocity = moveStateToVelocity(moveState);
 
-    //todo: query for player
+    /* get entities with player data and velocity */
+    WindQueryItr itr = windWorldRequestQueryItr(
+        &(scenePtr->ecsWorld),
+        &accept,
+        NULL
+    );
+    while(windQueryItrHasEntity(&itr)){
+        PlayerData *playerDataPtr = windQueryItrGetPtr(
+            PlayerData,
+            &itr
+        );
+        Velocity *velocityPtr = windQueryItrGetPtr(
+            Velocity,
+            &itr
+        );
+        if(playerCanMove(playerDataPtr)){
+            *velocityPtr = velocity;
+        }
+        else{
+            *velocityPtr = (Velocity){0};
+        }
+        windQueryItrAdvance(&itr);
+    }
 }
