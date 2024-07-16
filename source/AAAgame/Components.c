@@ -39,6 +39,7 @@ WindComponents *componentsMake(){
     insertComponent(ButtonData, NULL);
     insertComponent(Inbound, NULL);
     insertComponent(Outbound, NULL);
+    insertComponent(PlayerData, NULL);
 
     return toRet;
 

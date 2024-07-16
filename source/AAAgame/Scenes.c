@@ -1,6 +1,7 @@
 #include "Scenes.h"
 
 #include "MenuNavigationCommand.h"
+#include "GameCommand.h"
 
 /*
  * Constructs and returns a new SceneMessages by
@@ -11,6 +12,10 @@ SceneMessages sceneMessagesMake(){
     SceneMessages toRet = {0};
     toRet.menuNavigationCommands = arrayListMake(
         MenuNavigationCommand,
+        10
+    );
+    toRet.gameCommands = arrayListMake(
+        GameCommand,
         10
     );
     toRet.timer1 = -1;
@@ -34,6 +39,9 @@ void sceneMessagesClear(
     messagesPtr->gameBuilderCommand = gb_none;
     messagesPtr->timer1 = -1;
     messagesPtr->readDialogueFlag = false;
+    arrayListClear(GameCommand,
+        &(messagesPtr->gameCommands)
+    );
     messagesPtr->clearFlag = false;
     messagesPtr->pauseFlag = false;
     messagesPtr->winFlag = false;
@@ -50,6 +58,9 @@ void sceneMessagesFree(
     //todo scene message free
     arrayListFree(MenuNavigationCommand,
         &(messagesPtr->menuNavigationCommands)
+    );
+    arrayListFree(GameCommand,
+        &(messagesPtr->gameCommands)
     );
     memset(
         messagesPtr,

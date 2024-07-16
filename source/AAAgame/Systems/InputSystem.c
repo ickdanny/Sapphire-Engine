@@ -1,6 +1,7 @@
 #include "InputSystem.h"
 
 #include "MenuNavigationCommand.h"
+#include "GameCommand.h"
 
 /* checks to see if the specified key was pressed */
 #define pressed(GAMEPTR, KEY) \
@@ -8,6 +9,14 @@
         (GAMEPTR)->keyTablePtr, \
         KEY \
     ) == tf_statePress)
+
+/* checks to see if the specified key is down */
+#define down(GAMEPTR, KEY) \
+    (pressed(GAMEPTR, KEY) || \
+        (tfKeyTableGetState( \
+            (GAMEPTR)->keyTablePtr, \
+            KEY \
+        ) == tf_stateDown))
 
 /* parses input for a menu scene */
 void parseMenuInput(
@@ -79,40 +88,72 @@ void parseGameInput(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    //todo parse game input
-    /*
-    auto& gameCommandChannel{
-			scene.getChannel(SceneTopics::gameCommands)
-		};
-		gameCommandChannel.clear();
+    ArrayList *gameCommandsPtr
+        = &(scenePtr->messages.gameCommands);
+    arrayListClear(GameCommand, gameCommandsPtr);
+    if(pressed(gamePtr, tf_escape)){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_pause
+        );
+    }
+    if(down(gamePtr, tf_shift)){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_focus
+        );
+    }
+    if(down(gamePtr, tf_z)
+        || down(gamePtr, tf_slash)
+    ){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_shoot
+        );
+    }
+    if(pressed(gamePtr, tf_x)
+        || pressed(gamePtr, tf_period)
+    ){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_bomb
+        );
+    }
+    if(down(gamePtr, tf_up)
+        || down(gamePtr, tf_w)
+    ){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_up
+        );
+    }
+    if(down(gamePtr, tf_down)
+        || down(gamePtr, tf_s)
+    ){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_down
+        );
+    }
+    if(down(gamePtr, tf_left)
+        || down(gamePtr, tf_a)
+    ){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_left
+        );
+    }
+    if(down(gamePtr, tf_right)
+        || down(gamePtr, tf_d)
+    ){
+        arrayListPushBack(GameCommand,
+            gameCommandsPtr,
+            game_right
+        );
+    }
 
-		if (isJustPressed(KeyValues::k_escape)) {
-			gameCommandChannel.addMessage(GameCommands::pause);
-		}
-		if (isBeingPressed(KeyValues::k_shift)) {
-			gameCommandChannel.addMessage(GameCommands::focus);
-		}
-		if (isBeingPressed(KeyValues::k_z) || isBeingPressed(KeyValues::k_slash)) {
-			gameCommandChannel.addMessage(GameCommands::shoot);
-		}
-		if (isJustPressed(KeyValues::k_x) || isJustPressed(KeyValues::k_period)) {
-			gameCommandChannel.addMessage(GameCommands::bomb);
-		}
-		if (isBeingPressed(KeyValues::k_up) || isBeingPressed(KeyValues::k_w)) {
-			gameCommandChannel.addMessage(GameCommands::up);
-		}
-		if (isBeingPressed(KeyValues::k_down) || isBeingPressed(KeyValues::k_s)) {
-			gameCommandChannel.addMessage(GameCommands::down);
-		}
-		if (isBeingPressed(KeyValues::k_left) || isBeingPressed(KeyValues::k_a)) {
-			gameCommandChannel.addMessage(GameCommands::left);
-		}
-		if (isBeingPressed(KeyValues::k_right) || isBeingPressed(KeyValues::k_d)) {
-			gameCommandChannel.addMessage(GameCommands::right);
-		}
-
-		keyInputTablePointer->lockAll();	//game has no input transparency
-        */
+    /* game has no transparency */
+    tfKeyTableLockAll(gamePtr->keyTablePtr);
 }
 
 /* parses input for a dialogue scene */

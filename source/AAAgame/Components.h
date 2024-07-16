@@ -111,6 +111,27 @@ typedef float Inbound;
 /* Component 15: Outbound */
 typedef float Outbound;
 
+/* Component 16: Player Data */
+typedef enum PlayerState{
+    player_none,
+    player_normal,
+    player_bombing,
+    player_dead,
+    player_respawning,
+    player_respawnIFrames,
+    player_gameOver,
+} PlayerState;
+typedef struct PlayerData{
+    int lives;
+    int bombs;
+    int continues;
+    int power;
+    struct {
+        PlayerState playerState;
+        int timer;
+    } stateMachine;
+} PlayerData;
+
 /* each component needs TYPENAME##ID defined */
 typedef enum ComponentID{
     PositionID,
@@ -122,6 +143,7 @@ typedef enum ComponentID{
     ButtonDataID,
     InboundID,
     OutboundID,
+    PlayerDataID,
     numComponents,
 } ComponentID;
 

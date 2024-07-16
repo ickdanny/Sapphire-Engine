@@ -8,12 +8,15 @@
 #include "GameBuilderSystem.h"
 #include "LoadingScreenSystem.h"
 
+#include "PlayerMovementSystem.h"
+
 #include "VelocitySystem.h"
 #include "InboundSystem.h"
 
+#include "OutboundSystem.h"
+
 /* Updates the specified scene */
 void updateScene(Game *gamePtr, Scene *scenePtr){
-    //pgWarning("updating scene\n");
     initSystem(gamePtr, scenePtr);
     messageCleanupSystem(gamePtr, scenePtr);
     inputSystem(gamePtr, scenePtr);
@@ -23,7 +26,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     loadingScreenSystem(gamePtr, scenePtr);
     //todo call dialogue system
     //todo call script system
-    //todo call player movement system
+    playerMovementSystem(gamePtr, scenePtr);
     velocitySystem(gamePtr, scenePtr);
     inboundSystem(gamePtr, scenePtr);
     //todo call collision detector system
@@ -43,9 +46,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     //todo call rotate sprite forward system
     //todo call sprite spin system
     //todo call sub image scroll system
-    //todo call outbound system
+    outboundSystem(gamePtr, scenePtr);
     //todo call game over system
     //todo call credits system
-
-    //todo update scene
 }

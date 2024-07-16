@@ -84,6 +84,12 @@ typedef struct SceneMessages{
     bool readDialogueFlag;
 
     /*
+     * List of GameCommand, handled by input parser
+     * system
+     */
+    ArrayList gameCommands;
+
+    /*
      * Flag to signal clearing the screen of bullets,
      * handled by clear system
      */
