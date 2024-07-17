@@ -72,7 +72,13 @@
 /* Square radius of the player hitbox */
 #define config_playerHitboxRadius 1.5f
 
-//todo: player hitbox aabb?
+#define config_playerHitbox \
+    ((AABB){ \
+        config_playerHitboxRadius, \
+        config_playerHitboxRadius, \
+        config_playerHitboxRadius, \
+        config_playerHitboxRadius \
+    })
 
 /* Speed of the player in pixels per second */
 #define config_playerSpeed 166.0f
@@ -94,16 +100,28 @@
  * playable area which the player is not allowed to
  * move out of
  */
-#define config_playerInboundRadius 5.0f
+#define config_playerInbound 5.0f
 
-//todo: player state not sure if system or program
 /*
-constexpr int deathBombPeriod{ 15 };
-	constexpr int bombInvulnerabilityPeriod{ 4 * 60 + 30};
-	constexpr int deathPeriod{ 30 };
-	constexpr int respawnPeriod{ 20 };
-	constexpr int respawnInvulnerabilityPeriod{ 3 * 60 };
-*/
+ * The number of game ticks the player is able to
+ * death bomb
+ */
+#define config_deathBombTicks 15
+
+/* The number of game ticks the player is dead for */
+#define config_deathTicks 30
+
+/*
+ * The number of game ticks the player is respawning
+ * for
+ */
+#define config_respawnTicks 20
+
+/*
+ * The number of game ticks the player has IFrames
+ * after respawning for
+ */
+#define config_respawnIFrameTicks 180
 
 /*
  * The initial number of lives given to players at the

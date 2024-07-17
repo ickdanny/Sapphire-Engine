@@ -39,8 +39,12 @@ typedef struct AnimationList{
     size_t idleIndex;
     /* index of current animation in the list */
     size_t currentIndex;
-    /* used for timekeeping */
+    /*
+     * used for timekeeping; starts at 0, ends at
+     * max tick exclusive
+     */
     int _tick;
+    int _maxTick;
 } AnimationList;
 
 /* Constructs and returns a new empty animation list */

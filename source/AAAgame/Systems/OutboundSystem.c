@@ -79,7 +79,7 @@ void outboundSystem(Game *gamePtr, Scene *scenePtr){
             positionPtr->currentPos,
             bound)
         ){
-            windWorldQueueIDRemoveEntity(
+            windWorldIDQueueRemoveEntity(
                 &(scenePtr->ecsWorld),
                 windQueryItrCurrentID(&itr)
             );

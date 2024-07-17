@@ -656,7 +656,7 @@ bool windWorldIDRemoveEntity(
  * true if successful, false otherwise (e.g. if the
  * entity is already dead)
  */
-bool windWorldQueueHandleRemoveEntity(
+bool windWorldHandleQueueRemoveEntity(
     WindWorld *worldPtr,
     WindEntity handle
 );
@@ -665,11 +665,11 @@ bool windWorldQueueHandleRemoveEntity(
  * Queues an order to remove the entity specified by
  * the given ID from the given ECS world
  */
-#define windWorldQueueIDRemoveEntity( \
+#define windWorldIDQueueRemoveEntity( \
     WORLDPTR, \
     ENTITYID \
 ) \
-    windWorldQueueHandleRemoveEntity( \
+    windWorldHandleQueueRemoveEntity( \
         WORLDPTR, \
         windWorldMakeHandle(WORLDPTR, ENTITYID) \
     )

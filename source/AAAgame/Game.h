@@ -8,6 +8,7 @@
 #include "Scenes.h"
 #include "Settings.h"
 #include "GameState.h"
+#include "PlayerData.h"
 
 /* Stores messages for interscene communication */
 typedef struct GameMessages{    
@@ -74,13 +75,15 @@ typedef struct GameMessages{
      */
     GameState gameState;
 
+    //todo: really confusing comment
     /*
-        //todo: remaining game messages
-        
-		//set and cleared by ContinueSystem and ScriptSystem (for moving stages)
-		//cleared by InitSystem if moving stages
-		static const Topic<components::PlayerData> playerData;
+     * set and cleared by continue system and script
+     * system, cleared by init system
      */
+    struct{
+        PlayerData data;
+        bool isPresent;
+    } playerData;
 } GameMessages;
 
 /*

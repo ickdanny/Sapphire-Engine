@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include "WindECS.h"
+#include "ZMath.h"
 
 #include "MenuCommand.h"
 #include "GameBuilderCommand.h"
@@ -82,6 +83,9 @@ typedef struct SceneMessages{
      * parser system
      */
     bool readDialogueFlag;
+
+    /* A PRNG set by init system if needed */
+    ZMT prng;
 
     /*
      * List of GameCommand, handled by input parser

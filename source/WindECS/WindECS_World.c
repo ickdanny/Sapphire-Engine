@@ -1439,7 +1439,7 @@ bool windWorldIDRemoveEntity(
  * true if successful, false otherwise (e.g. if the
  * entity is already dead)
  */
-bool windWorldQueueHandleRemoveEntity(
+bool windWorldHandleQueueRemoveEntity(
     WindWorld *worldPtr,
     WindEntity handle
 ){

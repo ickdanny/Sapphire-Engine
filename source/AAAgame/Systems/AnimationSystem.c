@@ -159,18 +159,75 @@ bool handleTurning(
 }
 
 /*
+ * Updates the frame based on the current animation;
+ * returns true if the animation must continue, false
+ * if it is done and should be removed
+ */
+bool stepAnimation(Animations *animationsPtr){
+    Animation *currentAnimationPtr = arrayListGetPtr(
+        Animation,
+        &(animationsPtr->animations),
+        animationsPtr->currentIndex
+    );
+    size_t nextIndex
+        = currentAnimationPtr->currentIndex + 1;
+    if(nextIndex
+        >= currentAnimationPtr->frameNames.size
+    ){
+        if(!currentAnimationPtr->looping){
+            return false;
+        }
+        nextIndex = 0;
+    }
+    currentAnimationPtr->currentIndex = nextIndex;
+    return true;
+}
+
+/*
  * Updates the animation and sprite instruction of
  * a single entity; returns true if the animation
  * must continue, false if it is done and should be
  * removed
  */
 bool handleAnimation(
+    Game *gamePtr,
     Scene *scenePtr,
     WindEntity handle,
-    SpriteInstruction *spriteInstructionptr,
+    SpriteInstruction *spriteInstructionPtr,
     Animations *animationsPtr
 ){
-    //todo
+    bool currentAnimationOver = false;
+    bool hasTurn = animationsPtr->animations.size > 1;
+    bool turned = handleTurning(
+        scenePtr,
+        handle,
+        animationsPtr
+    );
+    if(!turned){
+        currentAnimationOver = stepAnimation(
+            animationsPtr
+        );
+    }
+    Animation *currentAnimationPtr = arrayListGetPtr(
+        Animation,
+        &(animationsPtr->animations),
+        animationsPtr->currentIndex
+    );
+    String *frameNamePtr = arrayListGetPtr(String,
+        &(currentAnimationPtr->frameNames),
+        currentAnimationPtr->currentIndex
+    );
+    spriteInstructionPtr->spritePtr
+        = resourcesGetSprite(
+            gamePtr->resourcesPtr,
+            frameNamePtr
+        );
+
+    /*
+     * even if current animation is over, should
+     * not consider animation done if it has turns
+     */
+    return hasTurn || !currentAnimationOver;
 }
 
 /*
@@ -188,20 +245,41 @@ void animationSystem(Game *gamePtr, Scene *scenePtr){
         NULL
     );
     while(windQueryItrHasEntity(&itr)){
-        SpriteInstruction *spriteInstructionPtr
-            = windQueryItrGetPtr(
-                SpriteInstruction,
-                &itr
-            );
         Animations *animationsPtr = windQueryItrGetPtr(
             Animations,
             &itr
         );
-        WindEntity handle = windWorldMakeHandle(
-            &(scenePtr->ecsWorld),
-            windQueryItrCurrentID(&itr)
-        );
-        //todo
+        ++(animationsPtr->_tick);
+        if(animationsPtr->_tick
+            >= animationsPtr->_maxTick
+        ){
+            animationsPtr->_tick = 0;
+            SpriteInstruction *spriteInstructionPtr
+                = windQueryItrGetPtr(
+                    SpriteInstruction,
+                    &itr
+                );
+            WindEntity handle = windWorldMakeHandle(
+                &(scenePtr->ecsWorld),
+                windQueryItrCurrentID(&itr)
+            );
+            bool animationContinues = handleAnimation(
+                gamePtr,
+                scenePtr,
+                handle,
+                spriteInstructionPtr,
+                animationsPtr
+            );
+            /* if animation over, remove it */
+            if(!animationContinues){
+                windWorldHandleQueueRemoveComponent(
+                    Animations,
+                    &(scenePtr->ecsWorld),
+                    handle
+                );
+            }
+        }
         windQueryItrAdvance(&itr);
     }
+    windWorldHandleOrders(&(scenePtr->ecsWorld));
 }

@@ -513,5 +513,8 @@ bool zmtRandBool(ZMT *zmtPtr){
  * Mersenne Twister
  */
 void zmtFree(ZMT *zmtPtr){
-    pgFree(zmtPtr->stateArray);
+    if(zmtPtr->stateArray){
+        pgFree(zmtPtr->stateArray);
+    }
+    memset(zmtPtr, 0, sizeof(*zmtPtr));
 }

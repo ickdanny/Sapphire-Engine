@@ -9,6 +9,8 @@
 #include "GameBuilderCommand.h"
 #include "Scenes.h"
 #include "Animation.h"
+#include "PlayerData.h"
+#include "CollisionType.h"
 
 /*
  * Allocates and returns a new WindComponents object
@@ -39,9 +41,10 @@ typedef TFSpriteInstruction SpriteInstruction;
 
 /* TODO: Component 7: TextInstruction with string and int rightBound */
 
-/* TODO: Component 8: Rotate sprite forward marker */
+/* Component 8: Rotate sprite forward marker */
 
-/* TODO: Component 9: SpriteSpin with float spin */
+/* Component 9: SpriteSpin */
+typedef float SpriteSpin;
 
 /* Component 10: Animations */
 typedef AnimationList Animations;
@@ -116,25 +119,30 @@ typedef float Inbound;
 typedef float Outbound;
 
 /* Component 16: Player Data */
-typedef enum PlayerState{
-    player_none,
-    player_normal,
-    player_bombing,
-    player_dead,
-    player_respawning,
-    player_respawnIFrames,
-    player_gameOver,
-} PlayerState;
-typedef struct PlayerData{
-    int lives;
-    int bombs;
-    int continues;
-    int power;
-    struct {
-        PlayerState playerState;
-        int timer;
-    } stateMachine;
-} PlayerData;
+
+//todo
+/* Component 17: Collidable Marker */
+
+/* Component 18: Hitbox */
+typedef AABB Hitbox;
+
+/* Component 19: Health */
+typedef int Health;
+
+/* Component 20: Damage */
+typedef int Damage;
+
+/* Component 21: PlayerCollision */
+typedef CollisionType PlayerCollision;
+
+/* Component 22: EnemyCollision */
+typedef CollisionType EnemyCollision;
+
+/* Component 23: BulletCollision */
+typedef CollisionType BulletCollision;
+
+/* Component 24: PickupCollision */
+typedef CollisionType PickupCollision;
 
 /* each component needs TYPENAME##ID defined */
 typedef enum ComponentID{
@@ -142,6 +150,8 @@ typedef enum ComponentID{
     VelocityID,
     VisibleMarkerID,
     SpriteInstructionID,
+    RotateSpriteForwardMarkerID,
+    SpriteSpinID,
     AnimationsID,
     MenuCommandsID,
     NeighborElementsID,
@@ -149,6 +159,14 @@ typedef enum ComponentID{
     InboundID,
     OutboundID,
     PlayerDataID,
+    CollidableMarkerID,
+    HitboxID,
+    HealthID,
+    DamageID,
+    PlayerCollisionID,
+    EnemyCollisionID,
+    BulletCollisionID,
+    PickupCollisionID,
     numComponents,
 } ComponentID;
 

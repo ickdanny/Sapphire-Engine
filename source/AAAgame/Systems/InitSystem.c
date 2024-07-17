@@ -37,6 +37,31 @@ static void addBackground(
     );
 }
 
+/* Adds the requested foreground to the given scene */
+static void addForeground(
+    Game *gamePtr,
+    Scene *scenePtr,
+    const char *spriteName,
+    int relativeDepth,
+    Point2D pos
+){
+    declareList(componentList, 10);
+    addVisible(&componentList);
+    addPosition(&componentList, pos);
+    addSpriteInstructionSimple(
+        &componentList,
+        gamePtr,
+        spriteName,
+        config_foregroundDepth + relativeDepth,
+        ((Vector2D){0})
+    );
+    addEntityAndFreeList(
+        &componentList,
+        scenePtr,
+        NULL
+    );
+}
+
 /*
  * Adds the requested button to the given scene and
  * returns its handle; the button is assumed to be part
@@ -716,8 +741,100 @@ static void initLoadingScreen(
     );
 }
 
+/*
+ * adds the player to the specified scene (should be
+ * the game scene) and returns the handle of the player
+ */
+static WindEntity addPlayer(
+    Game *gamePtr,
+    Scene *scenePtr,
+    PlayerData playerData
+){
+    declareList(componentList, 20);
+    addVisible(&componentList);
+    addCollidable(&componentList);
+    addPosition(
+        &componentList,
+        config_playerSpawn
+    );
+    addHitbox(
+        &componentList,
+        config_playerHitbox
+    );
+    addVelocity(&componentList, (Velocity){0});
+    addSpriteInstructionSimple(
+        &componentList,
+        gamePtr,
+        "p_idle1",
+        config_playerDepth,
+        ((Vector2D){0.0f, 4.0f})
+    );
+    addPlayerData(&componentList, playerData);
+    addInbound(&componentList, config_playerInbound);
+    addPlayerCollision(
+        &componentList,
+        ((PlayerCollision){
+            collision_target,
+            collision_player
+        })
+    );
+    addPickupCollision(
+        &componentList,
+        ((PickupCollision){
+            collision_target,
+            collision_none
+        })
+    );
+    //todo death command
+    //todo script list
+    //todo death spawn
+    //todo animations
+
+    WindEntity toRet = {0};
+    addEntityAndFreeList(
+        &componentList,
+        scenePtr,
+        &toRet
+    );
+    return toRet;
+}
+
 /* initializes the entities for the game */
 static void initGame(Game *gamePtr, Scene *scenePtr){
+    const GameState gameState
+        = gamePtr->messages.gameState;
+    WindWorld *worldPtr = &(scenePtr->ecsWorld);
+    
+    /* create prng */
+    scenePtr->messages.prng
+        = zmtMake(gameState.prngSeed);
+    
+    /* add overlay gui */
+    addForeground(
+        gamePtr,
+        scenePtr,
+        "overlay_frame",
+        0,
+        screenCenter
+    );
+
+    /* add the player */
+    PlayerData playerData = {0};
+    if(gamePtr->messages.playerData.isPresent){
+        playerData = gamePtr->messages.playerData.data;
+        gamePtr->messages.playerData.isPresent = false;
+    }
+    else{
+        playerData.lives = config_initLives;
+        playerData.bombs = config_initBombs;
+        playerData.continues = config_initContinues;
+        //todo get init power
+        playerData.stateMachine.playerState
+            = player_normal;
+        playerData.stateMachine.timer = 0;
+    }
+    addPlayer(gamePtr, scenePtr, playerData);
+
     //todo: init game
 }
 

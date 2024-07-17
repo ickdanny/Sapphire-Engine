@@ -15,6 +15,8 @@
 
 #include "PauseSystem.h"
 #include "AnimationSystem.h"
+#include "RotateSpriteForwardSystem.h"
+#include "SpriteSpinSystem.h"
 
 #include "OutboundSystem.h"
 
@@ -46,8 +48,8 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     //todo call overlay system
     pauseSystem(gamePtr, scenePtr);
     animationSystem(gamePtr, scenePtr);
-    //todo call rotate sprite forward system
-    //todo call sprite spin system
+    rotateSpriteForwardSystem(gamePtr, scenePtr);
+    spriteSpinSystem(gamePtr, scenePtr);
     //todo call sub image scroll system
     outboundSystem(gamePtr, scenePtr);
     //todo call game over system

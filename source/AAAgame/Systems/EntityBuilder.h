@@ -60,6 +60,13 @@
     )
 
 /*
+ * Adds the specified velocity to the given component
+ * list
+ */
+#define addVelocity(LISTPTR, VELOCITY) \
+    addComponent(LISTPTR, Velocity, VELOCITY)
+
+/*
  * Adds a visible marker to the specified component
  * list
  */
@@ -129,15 +136,26 @@
     )
 
 /*
+ * Adds the specified sprite spin to the given
+ * component list
+ */
+#define addSpriteSpin(LISTPTR, SPRITESPIN) \
+    addComponent(LISTPTR, SpriteSpin, SPRITESPIN)
+
+/*
+ * Makes a copy of the specified animations and adds
+ * it to the specified component list (does not free
+ * the animations parameter)
+ */
+#define addAnimations(LISTPTR, ANIMATIONSPTR) \
+    addComponent(LISTPTR, Animations, *(ANIMATIONSPTR))
+
+/*
  * Adds the given menu commands object to the
  * specified component list
  */
 #define addMenuCommands(LISTPTR, COMMANDS) \
-    addComponent( \
-        LISTPTR, \
-        MenuCommands, \
-        COMMANDS \
-    )
+    addComponent(LISTPTR, MenuCommands, COMMANDS)
 
 /*
  * Adds the given neighbor elements object to the
@@ -155,12 +173,100 @@
  * component list
  */
 #define addButtonData(LISTPTR, BUTTONDATA) \
+    addComponent(LISTPTR, ButtonData, BUTTONDATA)
+
+/*
+ * Adds the specified inbound to the given component
+ * list
+ */
+#define addInbound(LISTPTR, INBOUND) \
+    addComponent(LISTPTR, Inbound, INBOUND)
+
+/*
+ * Adds the specified outbound to the given component
+ * list
+ */
+#define addOutbound(LISTPTR, OUTBOUND) \
+    addComponent(LISTPTR, Outbound, OUTBOUND)
+
+/*
+ * Adds the specified player data to the given
+ * component list
+ */
+#define addPlayerData(LISTPTR, PLAYERDATA) \
+    addComponent(LISTPTR, PlayerData, PLAYERDATA)
+
+/*
+ * Adds a collidable marker to the specified component
+ * list
+ */
+#define addCollidable(LISTPTR) \
+    addMarker(LISTPTR, CollidableMarkerID)
+
+/*
+ * Adds the specified hitbox to the given component
+ * list
+ */
+#define addHitbox(LISTPTR, HITBOX) \
+    addComponent(LISTPTR, Hitbox, HITBOX)
+
+/*
+ * Adds the specified health to the given component
+ * list
+ */
+#define addHealth(LISTPTR, HEALTH) \
+    addComponent(LISTPTR, Health, HEALTH)
+
+/*
+ * Adds the specified damage to the given component
+ * list
+ */
+#define addDamage(LISTPTR, DAMAGE) \
+    addComponent(LISTPTR, Damage, DAMAGE)
+
+/*
+ * Adds the specified player collision to the given
+ * component list
+ */
+#define addPlayerCollision(LISTPTR, PLAYERCOLLISION) \
     addComponent( \
         LISTPTR, \
-        ButtonData, \
-        BUTTONDATA \
+        PlayerCollision, \
+        PLAYERCOLLISION \
     )
 
+/*
+ * Adds the specified enemy collision to the given
+ * component list
+ */
+#define addEnemyCollision(LISTPTR, ENEMYCOLLISION) \
+    addComponent( \
+        LISTPTR, \
+        EnemyCollision, \
+        ENEMYCOLLISION \
+    )
+
+/*
+ * Adds the specified bullet collision to the given
+ * component list
+ */
+#define addBulletCollision(LISTPTR, BULLETCOLLISION) \
+    addComponent( \
+        LISTPTR, \
+        BulletCollision, \
+        BULLETCOLLISION \
+    )
+
+/*
+ * Adds the specified pickup collision to the given
+ * component list
+ */
+#define addPickupCollision(LISTPTR, PICKUPCOLLISION) \
+    addComponent( \
+        LISTPTR, \
+        PickupCollision, \
+        PICKUPCOLLISION \
+    )
 
 //todo: add other components
 

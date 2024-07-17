@@ -38,6 +38,8 @@ WindComponents *componentsMake(){
     insertComponent(Velocity, NULL);
     insertMarker(VisibleMarker);
     insertComponent(SpriteInstruction, NULL);
+    insertMarker(RotateSpriteForwardMarker);
+    insertComponent(SpriteSpin, NULL);
     insertComponent(Animations, animationsDestructor);
     insertComponent(MenuCommands, NULL);
     insertComponent(NeighborElements, NULL);
@@ -45,6 +47,14 @@ WindComponents *componentsMake(){
     insertComponent(Inbound, NULL);
     insertComponent(Outbound, NULL);
     insertComponent(PlayerData, NULL);
+    insertMarker(CollidableMarker);
+    insertComponent(Hitbox, NULL);
+    insertComponent(Health, NULL);
+    insertComponent(Damage, NULL);
+    insertComponent(PlayerCollision, NULL);
+    insertComponent(EnemyCollision, NULL);
+    insertComponent(BulletCollision, NULL);
+    insertComponent(PickupCollision, NULL);
 
     return toRet;
 
