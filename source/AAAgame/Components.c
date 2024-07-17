@@ -1,5 +1,9 @@
 #include "Components.h"
 
+void animationsDestructor(void *voidPtr){
+    animationListFree((AnimationList*)voidPtr);
+}
+
 /*
  * Allocates and returns a new WindComponents object
  * containing the RTTI details of every component
@@ -34,6 +38,7 @@ WindComponents *componentsMake(){
     insertComponent(Velocity, NULL);
     insertMarker(VisibleMarker);
     insertComponent(SpriteInstruction, NULL);
+    insertComponent(Animations, animationsDestructor);
     insertComponent(MenuCommands, NULL);
     insertComponent(NeighborElements, NULL);
     insertComponent(ButtonData, NULL);

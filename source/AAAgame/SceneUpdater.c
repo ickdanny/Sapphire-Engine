@@ -14,6 +14,7 @@
 #include "InboundSystem.h"
 
 #include "PauseSystem.h"
+#include "AnimationSystem.h"
 
 #include "OutboundSystem.h"
 
@@ -44,7 +45,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     //todo call death handler system
     //todo call overlay system
     pauseSystem(gamePtr, scenePtr);
-    //todo call animation system
+    animationSystem(gamePtr, scenePtr);
     //todo call rotate sprite forward system
     //todo call sprite spin system
     //todo call sub image scroll system

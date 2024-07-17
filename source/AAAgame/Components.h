@@ -8,6 +8,7 @@
 #include "MenuCommand.h"
 #include "GameBuilderCommand.h"
 #include "Scenes.h"
+#include "Animation.h"
 
 /*
  * Allocates and returns a new WindComponents object
@@ -42,7 +43,10 @@ typedef TFSpriteInstruction SpriteInstruction;
 
 /* TODO: Component 9: SpriteSpin with float spin */
 
-/* TODO: Component 10: AnimationList */ 
+/* Component 10: Animations */
+typedef AnimationList Animations;
+
+void animationsDestructor(void *voidPtr);
 
 /* Component 11: MenuCommands */
 typedef union MenuCommandData{
@@ -138,6 +142,7 @@ typedef enum ComponentID{
     VelocityID,
     VisibleMarkerID,
     SpriteInstructionID,
+    AnimationsID,
     MenuCommandsID,
     NeighborElementsID,
     ButtonDataID,
