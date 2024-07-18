@@ -12,6 +12,7 @@
 
 #include "VelocitySystem.h"
 #include "InboundSystem.h"
+#include "CollisionDetectionSystem.h"
 
 #include "PauseSystem.h"
 #include "AnimationSystem.h"
@@ -34,7 +35,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     playerMovementSystem(gamePtr, scenePtr);
     velocitySystem(gamePtr, scenePtr);
     inboundSystem(gamePtr, scenePtr);
-    //todo call collision detector system
+    collisionDetectionSystem(gamePtr, scenePtr);
     //todo call collision handler system
     //todo call clear system
     //todo call player shot system (?)

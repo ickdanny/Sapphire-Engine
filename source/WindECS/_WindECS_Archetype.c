@@ -90,6 +90,13 @@ static void __componentStorageClear(
             );
         }
     }
+    _sparseSetClear(
+        componentStoragePtr,
+        componentMetadata._componentSize
+        #ifdef _DEBUG
+        , componentMetadata._typeName
+        #endif
+    );
 }
 
 /*

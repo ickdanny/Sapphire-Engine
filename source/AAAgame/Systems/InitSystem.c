@@ -789,6 +789,38 @@ static WindEntity addPlayer(
     //todo script list
     //todo death spawn
     //todo animations
+    Animations animations = animationListMake();
+    Animation leftAnimation = animationMake(true);
+    animationAddFrame(&leftAnimation, "p_left1");
+    animationAddFrame(&leftAnimation, "p_left2");
+    animationAddFrame(&leftAnimation, "p_left3");
+    animationAddFrame(&leftAnimation, "p_left4");
+    Animation idleAnimation = animationMake(true);
+    animationAddFrame(&idleAnimation, "p_idle1");
+    animationAddFrame(&idleAnimation, "p_idle2");
+    animationAddFrame(&idleAnimation, "p_idle3");
+    animationAddFrame(&idleAnimation, "p_idle4");
+    Animation rightAnimation = animationMake(true);
+    animationAddFrame(&rightAnimation, "p_right1");
+    animationAddFrame(&rightAnimation, "p_right2");
+    animationAddFrame(&rightAnimation, "p_right3");
+    animationAddFrame(&rightAnimation, "p_right4");
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        leftAnimation
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        idleAnimation
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        rightAnimation
+    );
+    animations.currentIndex = 1;
+    animations.idleIndex = 1;
+    animations._maxTick = 5;
+    addAnimations(&componentList, &animations);
 
     WindEntity toRet = {0};
     addEntityAndFreeList(

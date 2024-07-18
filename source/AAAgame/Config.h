@@ -60,7 +60,7 @@
 
 /* Y coordinate of the player spawn position */
 #define config_playerSpawnY \
-    (config_gameHeight - 25.0f) + config_gameOffsetY
+    12.0f + config_gameOffsetY
 
 /* Point coordinate of the player spawn position */
 #define config_playerSpawn \

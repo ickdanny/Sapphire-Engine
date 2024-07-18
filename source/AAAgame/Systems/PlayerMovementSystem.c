@@ -38,7 +38,7 @@ typedef uint_fast8_t PlayerMoveState;
 #define verticalMask (upMask | downMask)
 #define horizontalMask (leftMask | rightMask)
 #define omniDirectionalMask \
-    (verticalMask, horizontalMask)
+    (verticalMask | horizontalMask)
 
 /*
  * Returns true if the player is either not moving
@@ -187,10 +187,10 @@ void playerMovementSystem(
     ArrayList *gameCommandsPtr
         = &(scenePtr->messages.gameCommands);
 
-    /* bail if no game commands */
-    if(arrayListIsEmpty(gameCommandsPtr)){
-        return;
-    }
+    /*
+     * even if no game commands, still need to set
+     * the zero vector
+     */
 
     /* collect all game commands into a move state */
     PlayerMoveState moveState = 0;

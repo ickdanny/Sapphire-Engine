@@ -43,10 +43,14 @@ void velocitySystem(Game *gamePtr, Scene *scenePtr){
             Velocity,
             &itr
         );
+        Velocity scaledVelocity = polarDivide(
+            *velocityPtr,
+            config_updatesPerSecond
+        );
         positionPtr->pastPos = positionPtr->currentPos;
         positionPtr->currentPos = point2DAddPolar(
             positionPtr->currentPos,
-            *velocityPtr
+            scaledVelocity
         );
         windQueryItrAdvance(&itr);
     }
