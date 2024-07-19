@@ -51,10 +51,15 @@ WindComponents *componentsMake(){
     insertComponent(Hitbox, NULL);
     insertComponent(Health, NULL);
     insertComponent(Damage, NULL);
-    insertComponent(PlayerCollision, NULL);
-    insertComponent(EnemyCollision, NULL);
-    insertComponent(BulletCollision, NULL);
-    insertComponent(PickupCollision, NULL);
+    insertComponent(PlayerCollisionSource, NULL);
+    insertComponent(PlayerCollisionTarget, NULL);
+    insertComponent(EnemyCollisionSource, NULL);
+    insertComponent(EnemyCollisionTarget, NULL);
+    insertComponent(BulletCollisionSource, NULL);
+    insertComponent(BulletCollisionTarget, NULL);
+    insertComponent(PickupCollisionSource, NULL);
+    insertComponent(PickupCollisionTarget, NULL);
+    insertComponent(PowerGain, NULL);
 
     return toRet;
 

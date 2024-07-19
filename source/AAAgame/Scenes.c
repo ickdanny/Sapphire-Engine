@@ -18,7 +18,25 @@ SceneMessages sceneMessagesMake(){
         GameCommand,
         10
     );
+    toRet.playerHits = arrayListMake(WindEntity, 10);
+    toRet.deaths = arrayListMake(WindEntity, 100);
     toRet.timer1 = -1;
+    toRet.playerCollisionList = arrayListMake(
+        Collision,
+        10
+    );
+    toRet.enemyCollisionList = arrayListMake(
+        Collision,
+        10
+    );
+    toRet.bulletCollisionList = arrayListMake(
+        Collision,
+        10
+    );
+    toRet.pickupCollisionList = arrayListMake(
+        Collision,
+        10
+    );
     return toRet;
 }
 
@@ -43,9 +61,27 @@ void sceneMessagesClear(
     arrayListClear(GameCommand,
         &(messagesPtr->gameCommands)
     );
+    arrayListClear(WindEntity,
+        &(messagesPtr->playerHits)
+    );
+    arrayListClear(WindEntity,
+        &(messagesPtr->deaths)
+    );
     messagesPtr->clearFlag = false;
     messagesPtr->pauseFlag = false;
     messagesPtr->winFlag = false;
+    arrayListClear(Collision,
+        &(messagesPtr->playerCollisionList)
+    );
+    arrayListClear(Collision,
+        &(messagesPtr->enemyCollisionList)
+    );
+    arrayListClear(Collision,
+        &(messagesPtr->bulletCollisionList)
+    );
+    arrayListClear(Collision,
+        &(messagesPtr->pickupCollisionList)
+    );
     //todo scene messages clear
 }
 
@@ -62,6 +98,24 @@ void sceneMessagesFree(
     );
     arrayListFree(GameCommand,
         &(messagesPtr->gameCommands)
+    );
+    arrayListFree(WindEntity,
+        &(messagesPtr->playerHits)
+    );
+    arrayListFree(WindEntity,
+        &(messagesPtr->deaths)
+    );
+    arrayListFree(Collision,
+        &(messagesPtr->playerCollisionList)
+    );
+    arrayListFree(Collision,
+        &(messagesPtr->enemyCollisionList)
+    );
+    arrayListFree(Collision,
+        &(messagesPtr->bulletCollisionList)
+    );
+    arrayListFree(Collision,
+        &(messagesPtr->pickupCollisionList)
     );
     memset(
         messagesPtr,

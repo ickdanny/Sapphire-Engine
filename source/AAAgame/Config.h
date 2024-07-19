@@ -52,7 +52,21 @@
  */
 #define config_collisionOutbound 100.0f
 
-//todo: collision bounds AABB?
+/*
+ * The bounding box outside of which collisions are not
+ * detected in screen pixel coordinates
+ */
+#define config_collisionBounds \
+    ((AABB){ \
+        config_gameOffsetX \
+            - config_collisionOutbound, \
+        config_gameOffsetX + config_gameWidth \
+            + config_collisionOutbound, \
+        config_gameOffsetY \
+            - config_collisionOutbound, \
+        config_gameOffsetY + config_gameHeight \
+            + config_collisionOutbound \
+    })
 
 /* X coordinate of the player spawn position */
 #define config_playerSpawnX \

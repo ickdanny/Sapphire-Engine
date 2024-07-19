@@ -225,47 +225,115 @@
     addComponent(LISTPTR, Damage, DAMAGE)
 
 /*
- * Adds the specified player collision to the given
- * component list
+ * Adds the specified player collision source to the
+ * given component list
  */
-#define addPlayerCollision(LISTPTR, PLAYERCOLLISION) \
+#define addPlayerCollisionSource( \
+    LISTPTR, \
+    PLAYERCOLLISIONSOURCE \
+) \
     addComponent( \
         LISTPTR, \
-        PlayerCollision, \
-        PLAYERCOLLISION \
+        PlayerCollisionSource, \
+        PLAYERCOLLISIONSOURCE \
     )
 
 /*
- * Adds the specified enemy collision to the given
- * component list
+ * Adds the specified player collision target to the
+ * given component list
  */
-#define addEnemyCollision(LISTPTR, ENEMYCOLLISION) \
+#define addPlayerCollisionTarget( \
+    LISTPTR, \
+    PLAYERCOLLISIONTARGET \
+) \
     addComponent( \
         LISTPTR, \
-        EnemyCollision, \
-        ENEMYCOLLISION \
+        PlayerCollisionTarget, \
+        PLAYERCOLLISIONTARGET \
     )
 
 /*
- * Adds the specified bullet collision to the given
- * component list
+ * Adds the specified enemy collision source to the
+ * given component list
  */
-#define addBulletCollision(LISTPTR, BULLETCOLLISION) \
+#define addEnemyCollisionSource( \
+    LISTPTR, \
+    ENEMYCOLLISIONSOURCE \
+) \
     addComponent( \
         LISTPTR, \
-        BulletCollision, \
-        BULLETCOLLISION \
+        EnemyCollisionSource, \
+        ENEMYCOLLISIONSOURCE \
     )
 
 /*
- * Adds the specified pickup collision to the given
- * component list
+ * Adds the specified player collision target to the
+ * given component list
  */
-#define addPickupCollision(LISTPTR, PICKUPCOLLISION) \
+#define addEnemyCollisionTarget( \
+    LISTPTR, \
+    ENEMYCOLLISIONTARGET \
+) \
     addComponent( \
         LISTPTR, \
-        PickupCollision, \
-        PICKUPCOLLISION \
+        EnemyCollisionTarget, \
+        ENEMYCOLLISIONTARGET \
+    )
+
+/*
+ * Adds the specified bullet collision source to the
+ * given component list
+ */
+#define addBulletCollisionSource( \
+    LISTPTR, \
+    BULLETCOLLISIONSOURCE \
+) \
+    addComponent( \
+        LISTPTR, \
+        BulletCollisionSource, \
+        BULLETCOLLISIONSOURCE \
+    )
+
+/*
+ * Adds the specified bullet collision target to the
+ * given component list
+ */
+#define addBulletCollisionTarget( \
+    LISTPTR, \
+    BULLETCOLLISIONTARGET \
+) \
+    addComponent( \
+        LISTPTR, \
+        BulletCollisionTarget, \
+        BULLETCOLLISIONTARGET \
+    )
+
+/*
+ * Adds the specified pickup collision source to the
+ * given component list
+ */
+#define addPickupCollisionSource( \
+    LISTPTR, \
+    PICKUPCOLLISIONSOURCE \
+) \
+    addComponent( \
+        LISTPTR, \
+        PickupCollisionSource, \
+        PICKUPCOLLISIONSOURCE \
+    )
+
+/*
+ * Adds the specified pickup collision target to the
+ * given component list
+ */
+#define addPickupCollisionTarget( \
+    LISTPTR, \
+    PICKUPCOLLISIONSOURCE \
+) \
+    addComponent( \
+        LISTPTR, \
+        PickupCollisionTarget, \
+        PICKUPCOLLISIONSOURCE \
     )
 
 //todo: add other components

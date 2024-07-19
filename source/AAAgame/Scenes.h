@@ -23,6 +23,12 @@ typedef enum SceneID{
     scene_numScenes,
 } SceneID;
 
+/* Used for the collision messages */
+typedef struct Collision{
+    WindEntity sourceHandle;
+    WindEntity targetHandle;
+} Collision;
+
 /* Stores messages for intersystem communication */
 typedef struct SceneMessages{
     /*
@@ -94,6 +100,19 @@ typedef struct SceneMessages{
     ArrayList gameCommands;
 
     /*
+     * List of WindEntity for player hits, handled
+     * by collision handler system
+     */
+    ArrayList playerHits;
+
+    /*
+     * List of dead entities, set by collision handler
+     * system and player death detector system, cleared
+     * by message cleanup system
+     */
+    ArrayList deaths;
+
+    /*
      * Flag to signal clearing the screen of bullets,
      * handled by clear system
      */
@@ -110,6 +129,30 @@ typedef struct SceneMessages{
      * completing a stage, handled by the stage script
      */
     bool winFlag;
+
+    /* 
+     * List of player Collision handled by collision
+     * detector system
+     */
+    ArrayList playerCollisionList;
+
+    /* 
+     * List of enemy Collision handled by collision
+     * detector system
+     */
+    ArrayList enemyCollisionList;
+
+    /* 
+     * List of bullet Collision handled by collision
+     * detector system
+     */
+    ArrayList bulletCollisionList;
+
+    /* 
+     * List of pickup Collision handled by collision
+     * detector system
+     */
+    ArrayList pickupCollisionList;
 
     //todo scene messages struct
 } SceneMessages;

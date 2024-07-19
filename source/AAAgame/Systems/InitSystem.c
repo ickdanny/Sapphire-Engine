@@ -767,23 +767,17 @@ static WindEntity addPlayer(
         gamePtr,
         "p_idle1",
         config_playerDepth,
-        ((Vector2D){0.0f, 4.0f})
+        ((Vector2D){0.0f, -4.0f})
     );
     addPlayerData(&componentList, playerData);
     addInbound(&componentList, config_playerInbound);
-    addPlayerCollision(
+    addPlayerCollisionTarget(
         &componentList,
-        ((PlayerCollision){
-            collision_target,
-            collision_player
-        })
+        collision_player
     );
-    addPickupCollision(
+    addPickupCollisionTarget(
         &componentList,
-        ((PickupCollision){
-            collision_target,
-            collision_none
-        })
+        collision_none
     );
     //todo death command
     //todo script list

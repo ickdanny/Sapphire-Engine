@@ -537,12 +537,187 @@ static void quadTreeFree(QuadTree *quadTreePtr){
 }
 
 /*
- * detects collisions between sources and targets of
+ * declares a set of functions for checking collisions
+ * of a specific type
+ */
+#define COLLISION_TYPE_DECLARE(PREFIX, SUFFIX) \
+static Bitset sourceSet##SUFFIX; \
+static Bitset targetSet##SUFFIX; \
+static bool initialized##SUFFIX = false; \
+\
+/* destroys the collision system */ \
+static void destroy##SUFFIX(){ \
+    if(initialized##SUFFIX){ \
+        bitsetFree(&sourceSet##SUFFIX); \
+        bitsetFree(&targetSet##SUFFIX); \
+        initialized##SUFFIX = false; \
+    } \
+} \
+\
+/* inits the collision system */ \
+static void init##SUFFIX(){ \
+    if(!initialized##SUFFIX){ \
+        sourceSet##SUFFIX \
+            = bitsetMake(numComponents); \
+        bitsetSet(&sourceSet##SUFFIX, PositionID); \
+        bitsetSet(&sourceSet##SUFFIX, HitboxID); \
+        bitsetSet( \
+            &sourceSet##SUFFIX, \
+            CollidableMarkerID \
+        ); \
+        bitsetSet( \
+            &sourceSet##SUFFIX, \
+            SUFFIX##CollisionSourceID \
+        ); \
+        \
+        targetSet##SUFFIX \
+            = bitsetMake(numComponents); \
+        bitsetSet(&targetSet##SUFFIX, PositionID); \
+        bitsetSet(&targetSet##SUFFIX, HitboxID); \
+        bitsetSet( \
+            &targetSet##SUFFIX, \
+            CollidableMarkerID \
+        ); \
+        bitsetSet( \
+            &targetSet##SUFFIX, \
+            SUFFIX##CollisionTargetID \
+        ); \
+        \
+        registerSystemDestructor(destroy##SUFFIX); \
+        \
+        initialized##SUFFIX = true; \
+    } \
+} \
+\
+/* checks for collisions of a specific type */ \
+void detectCollisions##SUFFIX(Scene *scenePtr){ \
+    init##SUFFIX(); \
+    \
+    /* clear the collision channel */ \
+    ArrayList *collisionChannelPtr \
+        = &(scenePtr->messages \
+            .PREFIX##CollisionList); \
+    arrayListClear(Collision, \
+        collisionChannelPtr \
+    ); \
+    \
+    /* get source entities and put in quadtree */ \
+    QuadTree quadTree = quadTreeMake( \
+        0, \
+        config_collisionBounds \
+    ); \
+    WindQueryItr sourceItr \
+        = windWorldRequestQueryItr( \
+            &(scenePtr->ecsWorld), \
+            &sourceSet##SUFFIX, \
+            NULL \
+        ); \
+    while(windQueryItrHasEntity(&sourceItr)){ \
+        Position *positionPtr = windQueryItrGetPtr( \
+            Position, \
+            &sourceItr \
+        ); \
+        Hitbox *hitboxPtr = windQueryItrGetPtr( \
+            Hitbox, \
+            &sourceItr \
+        ); \
+        WindEntity handle = windWorldMakeHandle( \
+            &(scenePtr->ecsWorld), \
+            windQueryItrCurrentID(&sourceItr) \
+        ); \
+        quadTreeInsert( \
+            &quadTree, \
+            handle, \
+            hitboxPtr, \
+            positionPtr \
+        ); \
+        windQueryItrAdvance(&sourceItr); \
+    } \
+    \
+    /* bail if quad tree is empty */ \
+    if(quadTreeIsEmpty(&quadTree)){ \
+        quadTreeFree(&quadTree); \
+        return; \
+    } \
+    \
+    /* check all targets against the quad tree */ \
+    ArrayList collisionList = arrayListMake( \
+        WindEntity, \
+        10 \
+    ); \
+    WindQueryItr targetItr \
+        = windWorldRequestQueryItr( \
+            &(scenePtr->ecsWorld), \
+            &targetSet##SUFFIX, \
+            NULL \
+        ); \
+    while(windQueryItrHasEntity(&targetItr)){ \
+        Position *positionPtr = windQueryItrGetPtr( \
+            Position, \
+            &targetItr \
+        ); \
+        Hitbox *hitboxPtr = windQueryItrGetPtr( \
+            Hitbox, \
+            &targetItr \
+        ); \
+        quadTreePopulateCollisionList( \
+            &quadTree, \
+            &collisionList, \
+            hitboxPtr, \
+            positionPtr \
+        ); \
+        if(!arrayListIsEmpty(&collisionList)){ \
+            WindEntity target = windWorldMakeHandle( \
+                &(scenePtr->ecsWorld), \
+                windQueryItrCurrentID(&sourceItr) \
+            ); \
+            for(size_t i = 0; \
+                i < collisionList.size; \
+                ++i \
+            ){ \
+                WindEntity source = arrayListGet( \
+                    WindEntity, \
+                    &collisionList, \
+                    i \
+                ); \
+                if(!windEntityEquals( \
+                    target, \
+                    source \
+                )){ \
+                    arrayListPushBack(Collision, \
+                        collisionChannelPtr, \
+                        ((Collision){ \
+                            source, \
+                            target \
+                        }) \
+                    ); \
+                } \
+            } \
+        } \
+        \
+        arrayListClear(WindEntity, &collisionList); \
+        windQueryItrAdvance(&targetItr); \
+    } \
+    arrayListFree(WindEntity, &collisionList); \
+}
+
+COLLISION_TYPE_DECLARE(player, Player)
+COLLISION_TYPE_DECLARE(enemy, Enemy)
+COLLISION_TYPE_DECLARE(bullet, Bullet)
+COLLISION_TYPE_DECLARE(pickup, Pickup)
+
+#undef COLLISION_TYPE_DECLARE
+
+/*
+ * Detects collisions between sources and targets of
  * the same collision type
  */
 void collisionDetectionSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    //todo
+    detectCollisionsPlayer(scenePtr);
+    detectCollisionsEnemy(scenePtr);
+    detectCollisionsBullet(scenePtr);
+    detectCollisionsPickup(scenePtr);
 }

@@ -5,6 +5,8 @@ void messageCleanupSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    //todo cleanup deaths
+    arrayListClear(WindEntity,
+        &(scenePtr->messages.deaths)
+    );
     scenePtr->messages.pauseFlag = false;
 }

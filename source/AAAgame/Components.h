@@ -10,7 +10,7 @@
 #include "Scenes.h"
 #include "Animation.h"
 #include "PlayerData.h"
-#include "CollisionType.h"
+#include "CollisionCommand.h"
 
 /*
  * Allocates and returns a new WindComponents object
@@ -132,17 +132,32 @@ typedef int Health;
 /* Component 20: Damage */
 typedef int Damage;
 
-/* Component 21: PlayerCollision */
-typedef CollisionType PlayerCollision;
+/* Component 21: PlayerCollisionSource */
+typedef CollisionCommand PlayerCollisionSource;
 
-/* Component 22: EnemyCollision */
-typedef CollisionType EnemyCollision;
+/* Component 22: PlayerCollisionTarget */
+typedef CollisionCommand PlayerCollisionTarget;
 
-/* Component 23: BulletCollision */
-typedef CollisionType BulletCollision;
+/* Component 23: EnemyCollisionSource */
+typedef CollisionCommand EnemyCollisionSource;
 
-/* Component 24: PickupCollision */
-typedef CollisionType PickupCollision;
+/* Component 24: EnemyCollisionTarget */
+typedef CollisionCommand EnemyCollisionTarget;
+
+/* Component 25: BulletCollisionSource */
+typedef CollisionCommand BulletCollisionSource;
+
+/* Component 26: BulletCollisionTarget */
+typedef CollisionCommand BulletCollisionTarget;
+
+/* Component 27: PickupCollisionSource */
+typedef CollisionCommand PickupCollisionSource;
+
+/* Component 28: PickupCollisionTarget */
+typedef CollisionCommand PickupCollisionTarget;
+
+/* Component 29: PowerGain */
+typedef int PowerGain;
 
 /* each component needs TYPENAME##ID defined */
 typedef enum ComponentID{
@@ -163,10 +178,15 @@ typedef enum ComponentID{
     HitboxID,
     HealthID,
     DamageID,
-    PlayerCollisionID,
-    EnemyCollisionID,
-    BulletCollisionID,
-    PickupCollisionID,
+    PlayerCollisionSourceID,
+    PlayerCollisionTargetID,
+    EnemyCollisionSourceID,
+    EnemyCollisionTargetID,
+    BulletCollisionSourceID,
+    BulletCollisionTargetID,
+    PickupCollisionSourceID,
+    PickupCollisionTargetID,
+    PowerGainID,
     numComponents,
 } ComponentID;
 

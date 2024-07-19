@@ -1,6 +1,10 @@
-#ifndef COLLISIONTYPE_H
-#define COLLISIONTYPE_H
+#ifndef COLLISIONCOMMAND_H
+#define COLLISIONCOMMAND_H
 
+/*
+ * Defines the behavior an entity exhibits when
+ * colliding with another entity
+ */
 typedef enum CollisionCommand{
     collision_none,
     /* die upon collision */
@@ -14,19 +18,5 @@ typedef enum CollisionCommand{
     /* special collision type for pickups */
     collision_pickup
 } CollisionCommand;
-
-typedef enum CollisionSourceOrTarget{
-    collision_source,
-    collision_target
-} CollisionSourceOrTarget;
-
-/*
- * Represents the behavior an entity should exhibit
- * upon collision with another entity
- */
-typedef struct CollisionType{
-    CollisionSourceOrTarget type;
-    CollisionCommand command;
-} CollisionType;
 
 #endif
