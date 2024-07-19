@@ -20,7 +20,7 @@
 #include "AnimationSystem.h"
 #include "RotateSpriteForwardSystem.h"
 #include "SpriteSpinSystem.h"
-
+#include "TileScrollSystem.h"
 #include "OutboundSystem.h"
 
 /* Updates the specified scene */
@@ -53,7 +53,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     animationSystem(gamePtr, scenePtr);
     rotateSpriteForwardSystem(gamePtr, scenePtr);
     spriteSpinSystem(gamePtr, scenePtr);
-    //todo call sub image scroll system
+    tileScrollSystem(gamePtr, scenePtr);
     outboundSystem(gamePtr, scenePtr);
     //todo call game over system
     //todo call credits system

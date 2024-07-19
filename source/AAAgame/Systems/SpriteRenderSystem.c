@@ -3,9 +3,7 @@
 static Bitset normalSpriteAccept;
 static Bitset normalSpriteReject;
 static Bitset subSpriteAccept;
-static Bitset subSpriteReject;
 static Bitset tileSpriteAccept;
-static Bitset tileSpriteReject;
 static bool initialized = false;
 
 /* destroys the sprite render system */
@@ -14,9 +12,7 @@ static void destroy(){
         bitsetFree(&normalSpriteAccept);
         bitsetFree(&normalSpriteReject);
         bitsetFree(&subSpriteAccept);
-        bitsetFree(&subSpriteReject);
         bitsetFree(&tileSpriteAccept);
-        bitsetFree(&tileSpriteReject);
 
         initialized = false;
     }
@@ -36,12 +32,33 @@ static void init(){
             SpriteInstructionID
         );
 
-        //todo: rest of component sets for render system
         normalSpriteReject = bitsetMake(numComponents);
+        bitsetSet(&normalSpriteReject, SubImageID);
+        bitsetSet(
+            &normalSpriteReject,
+            TilingInstructionID
+        );
+
         subSpriteAccept = bitsetMake(numComponents);
-        subSpriteReject = bitsetMake(numComponents);
+        bitsetSet(&subSpriteAccept, PositionID);
+        bitsetSet(&subSpriteAccept, VisibleMarkerID);
+        bitsetSet(
+            &subSpriteAccept,
+            SpriteInstructionID
+        );
+        bitsetSet(&subSpriteAccept, SubImageID);
+
         tileSpriteAccept = bitsetMake(numComponents);
-        tileSpriteReject = bitsetMake(numComponents);
+        bitsetSet(&tileSpriteAccept, PositionID);
+        bitsetSet(&tileSpriteAccept, VisibleMarkerID);
+        bitsetSet(
+            &tileSpriteAccept,
+            SpriteInstructionID
+        );
+        bitsetSet(
+            &tileSpriteAccept,
+            TilingInstructionID
+        );
 
         registerSystemDestructor(destroy);
         
@@ -77,5 +94,62 @@ void spriteRenderSystem(
             spriteInstrPtr
         );
         windQueryItrAdvance(&normalItr);
+    }
+
+    /* draw sub sprites */
+    WindQueryItr subItr = windWorldRequestQueryItr(
+        &(scenePtr->ecsWorld),
+        &subSpriteAccept,
+        NULL
+    );
+    while(windQueryItrHasEntity(&subItr)){
+        Position *positionPtr = windQueryItrGetPtr(
+            Position,
+            &subItr
+        );
+        SpriteInstruction *spriteInstrPtr
+            = windQueryItrGetPtr(SpriteInstruction,
+                &subItr
+            );
+        SubImage *subImagePtr = windQueryItrGetPtr(
+            SubImage,
+            &subItr
+        );
+        tfWindowDrawSubSprite(
+            gamePtr->windowPtr,
+            positionPtr->currentPos,
+            spriteInstrPtr,
+            subImagePtr
+        );
+        windQueryItrAdvance(&subItr);
+    }
+
+    /* draw tiled sprites */
+    WindQueryItr tileItr = windWorldRequestQueryItr(
+        &(scenePtr->ecsWorld),
+        &tileSpriteAccept,
+        NULL
+    );
+    while(windQueryItrHasEntity(&tileItr)){
+        Position *positionPtr = windQueryItrGetPtr(
+            Position,
+            &tileItr
+        );
+        SpriteInstruction *spriteInstrPtr
+            = windQueryItrGetPtr(SpriteInstruction,
+                &tileItr
+            );
+        TilingInstruction *tilingInstrPtr
+            = windQueryItrGetPtr(
+                TilingInstruction,
+                &tileItr
+            );
+        tfWindowDrawTileSprite(
+            gamePtr->windowPtr,
+            &(tilingInstrPtr->drawRect),
+            spriteInstrPtr,
+            tilingInstrPtr->pixelOffset
+        );
+        windQueryItrAdvance(&tileItr);
     }
 }

@@ -782,7 +782,7 @@ static WindEntity addPlayer(
     //todo death command
     //todo script list
     //todo death spawn
-    //todo animations
+    /* add player animations */
     Animations animations = animationListMake();
     Animation leftAnimation = animationMake(true);
     animationAddFrame(&leftAnimation, "p_left1");
@@ -860,6 +860,79 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
         playerData.stateMachine.timer = 0;
     }
     addPlayer(gamePtr, scenePtr, playerData);
+
+    /* add the background */
+    #define backgroundWidth 200.0f
+    #define backgroundHeight 250.0f
+
+    char *backgroundSpriteName = NULL;
+    float pixelScrollPerSec = 0.0f;
+    switch(gameState.stage){
+        case 1:
+            backgroundSpriteName = "gamebg_1";
+            pixelScrollPerSec = 15.0f;
+            break;
+        case 2:
+            backgroundSpriteName = "gamebg_2";
+            pixelScrollPerSec = 15.0f;
+            break;
+        case 3:
+            backgroundSpriteName = "gamebg_3";
+            pixelScrollPerSec = 15.0f;
+            break;
+        case 4:
+            backgroundSpriteName = "gamebg_4";
+            pixelScrollPerSec = 15.0f;
+            break;
+        default:
+            pgError(
+                "Unexpected stage in init game; "
+                SRC_LOCATION
+            );
+            break;
+    }
+
+    declareList(componentList, 10);
+    addVisible(&componentList);
+    addPosition(
+        &componentList,
+        gameCenter
+    );
+    addSpriteInstructionSimple(
+        &componentList,
+        gamePtr,
+        backgroundSpriteName,
+        config_backgroundDepth,
+        ((Vector2D){0})
+    );
+    addTilingInstruction(
+        &componentList,
+        ((Rectangle){
+            0.0f,
+            0.0f,
+            backgroundWidth,
+            backgroundHeight
+        }),
+        ((Point2D){0.0f, 0.0f})
+    );
+    addTileScroll(
+        &componentList,
+        ((Vector2D){
+            0.0f,
+            pixelScrollPerSec
+        })
+    );
+    WindEntity toRet = {0};
+    addEntityAndFreeList(
+        &componentList,
+        scenePtr,
+        &toRet
+    );
+    
+
+
+    #undef backgroundWidth;
+    #undef backgroundHeight;
 
     //todo: init game
 }

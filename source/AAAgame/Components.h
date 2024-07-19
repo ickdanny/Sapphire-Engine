@@ -33,11 +33,17 @@ typedef Polar Velocity;
 /* Component 3: SpriteInstruction */
 typedef TFSpriteInstruction SpriteInstruction;
 
-/* TODO: Component 4: subimage rectangle */
+/* Component 4: SubImage */
+typedef Rectangle SubImage;
 
-/* TODO: Component 5: TilingInstruction with rect and point2 */
+/* Component 5: TilingInstruction */
+typedef struct TilingInstruction{
+    Rectangle drawRect;
+    Point2D pixelOffset;
+} TilingInstruction;
 
-/* TODO: Component 6: TileScroll vec2 */
+/* Component 6: TileScroll */
+typedef Vector2D TileScroll;
 
 /* TODO: Component 7: TextInstruction with string and int rightBound */
 
@@ -166,6 +172,9 @@ typedef enum ComponentID{
     VelocityID,
     VisibleMarkerID,
     SpriteInstructionID,
+    SubImageID,
+    TilingInstructionID,
+    TileScrollID,
     RotateSpriteForwardMarkerID,
     SpriteSpinID,
     AnimationsID,

@@ -136,6 +136,45 @@
     )
 
 /*
+ * Adds the specified sub image to the given component
+ * list
+ */
+#define addSubImage(LISTPTR, SUBIMAGE) \
+    addComponent(LISTPTR, SubImage, SUBIMAGE)
+
+/*
+ * Adds the specified tiling instruction to the given
+ * component list
+ */
+#define addTilingInstruction( \
+    LISTPTR, \
+    DRAWRECT, \
+    PIXELOFFSET \
+) \
+    addComponent( \
+        LISTPTR, \
+        TilingInstruction, \
+        ((TilingInstruction){ \
+            (DRAWRECT), \
+            (PIXELOFFSET) \
+        }) \
+    )
+
+/*
+ * Adds the specified tile scroll to the given
+ * component list
+ */
+#define addTileScroll(LISTPTR, TILESCROLL) \
+    addComponent(LISTPTR, TileScroll, TILESCROLL)
+
+/*
+ * Adds a rotate sprite forward marker to the given
+ * component list
+ */
+#define addRotateSpriteForward(LISTPTR) \
+    addMarker(LISTPTR, RotateSpriteForwardMarkerID)
+
+/*
  * Adds the specified sprite spin to the given
  * component list
  */

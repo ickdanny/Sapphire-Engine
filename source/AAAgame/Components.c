@@ -38,6 +38,9 @@ WindComponents *componentsMake(){
     insertComponent(Velocity, NULL);
     insertMarker(VisibleMarker);
     insertComponent(SpriteInstruction, NULL);
+    insertComponent(SubImage, NULL);
+    insertComponent(TilingInstruction, NULL);
+    insertComponent(TileScroll, NULL);
     insertMarker(RotateSpriteForwardMarker);
     insertComponent(SpriteSpin, NULL);
     insertComponent(Animations, animationsDestructor);
