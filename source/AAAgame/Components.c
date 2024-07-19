@@ -60,6 +60,7 @@ WindComponents *componentsMake(){
     insertComponent(PickupCollisionSource, NULL);
     insertComponent(PickupCollisionTarget, NULL);
     insertComponent(PowerGain, NULL);
+    insertMarker(ClearMarker);
 
     return toRet;
 

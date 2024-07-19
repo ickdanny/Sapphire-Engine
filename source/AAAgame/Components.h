@@ -120,7 +120,6 @@ typedef float Outbound;
 
 /* Component 16: Player Data */
 
-//todo
 /* Component 17: Collidable Marker */
 
 /* Component 18: Hitbox */
@@ -159,6 +158,8 @@ typedef CollisionCommand PickupCollisionTarget;
 /* Component 29: PowerGain */
 typedef int PowerGain;
 
+/* Component 30: ClearMarker*/
+
 /* each component needs TYPENAME##ID defined */
 typedef enum ComponentID{
     PositionID,
@@ -187,6 +188,7 @@ typedef enum ComponentID{
     PickupCollisionSourceID,
     PickupCollisionTargetID,
     PowerGainID,
+    ClearMarkerID,
     numComponents,
 } ComponentID;
 

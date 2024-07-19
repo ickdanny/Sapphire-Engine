@@ -106,9 +106,9 @@ typedef struct SceneMessages{
     ArrayList playerHits;
 
     /*
-     * List of dead entities, set by collision handler
-     * system and player death detector system, cleared
-     * by message cleanup system
+     * List of dead WindEntity, set by collision
+     * handler system and player death detector system,
+     * cleared by message cleanup system
      */
     ArrayList deaths;
 
