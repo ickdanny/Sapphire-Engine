@@ -201,8 +201,6 @@ static void loadUserFuncIntoResources(
 ){
     ScriptResources *scriptResourcesPtr
         = scriptResourcesVoidPtr;
-    HashMap *scriptMapPtr
-        = &(scriptResourcesPtr->_scriptMap);
     UNUserFuncSet *userFuncSetPtr
         = &(scriptResourcesPtr->userFuncSet);
     UNCompiler *compilerPtr
@@ -214,21 +212,12 @@ static void loadUserFuncIntoResources(
             fileName
         );
 
-    String stringID = isolateFileName(fileName);
+    /*
+     * do not attempt to insert into the script map
+     * because a double free will occur
+     */
 
-    /* insert the func into the script map also */
-    if(hashMapHasKeyPtr(String, UNObjectFunc*,
-        scriptMapPtr,
-        &stringID
-    )){
-        pgWarning(fileName);
-        pgError("try to load multiple of same func");
-    }
-    hashMapPutPtr(String, UNObjectFunc*,
-        scriptMapPtr,
-        &stringID,
-        &funcPtr
-    );
+    String stringID = isolateFileName(fileName);
 
     /*
      * add the func to the set using the c string
@@ -359,6 +348,22 @@ MidiSequence *resourcesGetMidi(
 ){
     return hashMapGetPtr(String, MidiSequence,
         resourcesPtr->_midiMapPtr,
+        stringPtr
+    );
+}
+
+/*
+ * Returns a pointer to the script resource specified
+ * by the given String or NULL if no such script
+ * exists
+ */
+UNObjectFunc *resourcesGetScript(
+    Resources *resourcesPtr,
+    String *stringPtr
+){
+    return *hashMapGetPtr(String, UNObjectFunc*,
+        &(resourcesPtr->scriptResourcesPtr
+            ->_scriptMap),
         stringPtr
     );
 }

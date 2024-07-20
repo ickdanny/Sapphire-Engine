@@ -1,1 +1,3 @@
 print "test";
+timer(30);
+print "test";

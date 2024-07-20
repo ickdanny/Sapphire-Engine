@@ -113,6 +113,13 @@ typedef struct SceneMessages{
     ArrayList deaths;
 
     /*
+     * Flag to signal boss death (i.e. phase change),
+     * set by death handler system, cleared by
+     * boss script
+     */
+    bool bossDeathFlag;
+
+    /*
      * Flag to signal clearing the screen of bullets,
      * handled by clear system
      */

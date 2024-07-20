@@ -77,6 +77,16 @@ MidiSequence *resourcesGetMidi(
     String *stringPtr
 );
 
+/*
+ * Returns a pointer to the script resource specified
+ * by the given String or NULL if no such script
+ * exists
+ */
+UNObjectFunc *resourcesGetScript(
+    Resources *resourcesPtr,
+    String *stringPtr
+);
+
 //todo get other resources (e.g. dialogue)
 
 /*

@@ -3,12 +3,14 @@
 #include "GameCommand.h"
 
 static Bitset accept;
+static String shotID;
 static bool initialized = false;
 
 /* destroys the player shot system */
 static void destroy(){
     if(initialized){
         bitsetFree(&accept);
+        stringFree(&shotID);
         initialized = false;
     }
 }
@@ -18,6 +20,8 @@ static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
         bitsetSet(&accept, PlayerDataID);
+
+        shotID = stringMakeC("player_shot");
 
         registerSystemDestructor(destroy);
         
@@ -57,10 +61,31 @@ static void addPlayerShot(
             if(!scriptsPtr->vm3){
                 scriptsPtr->vm3 = vmPoolRequest();
                 unVirtualMachineLoad(
-                    scripts->vm3,
-                    //todo: resources get script
-                )
+                    scriptsPtr->vm3,
+                    resourcesGetScript(
+                        gamePtr->resourcesPtr,
+                        &shotID
+                    )
+                );
             }
+        }
+        /* otherwise, add a new script component */
+        else{
+            Scripts scripts = {0};
+            scripts.vm3 = vmPoolRequest();
+            unVirtualMachineLoad(
+                scripts.vm3,
+                resourcesGetScript(
+                    gamePtr->resourcesPtr,
+                    &shotID
+                )
+            );
+            windWorldHandleQueueAddComponent(
+                Scripts,
+                &(scenePtr->ecsWorld),
+                handle,
+                &scripts
+            );
         }
         windQueryItrAdvance(&itr);
     }
@@ -84,6 +109,7 @@ void playerShotSystem(Game *gamePtr, Scene *scenePtr){
                 i
             ) == game_shoot
         ){
+            pgWarning("adding player shot");
             addPlayerShot(gamePtr, scenePtr);
             break;
         }

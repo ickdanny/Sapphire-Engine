@@ -18,9 +18,9 @@ typedef enum GameMode{
  * bullets the player must dodge
  */
 typedef enum Difficulty{
-    game_normal,
-    game_hard,
-    game_lunatic
+    game_normal = 1,
+    game_hard = 2,
+    game_lunatic = 3
 } Difficulty;
 
 /*

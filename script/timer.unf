@@ -1,0 +1,5 @@
+(time){
+    for(let i = 0; i < time; i = i + 1){
+        yield;
+    }
+}

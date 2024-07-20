@@ -1,0 +1,5 @@
+timer(30);
+print "hello world";
+timer(30);
+print "goodbye world";
+error("lol");

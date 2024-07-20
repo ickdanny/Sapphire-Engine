@@ -54,6 +54,7 @@ typedef enum UNTokenType{
     un_tokenWhile,
     un_tokenYield,
 
+    /* useful for printing not just strings */
     un_tokenPrint,
 
     /* meta */

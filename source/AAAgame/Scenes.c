@@ -67,6 +67,7 @@ void sceneMessagesClear(
     arrayListClear(WindEntity,
         &(messagesPtr->deaths)
     );
+    messagesPtr->bossDeathFlag = false;
     messagesPtr->clearFlag = false;
     messagesPtr->pauseFlag = false;
     messagesPtr->winFlag = false;
