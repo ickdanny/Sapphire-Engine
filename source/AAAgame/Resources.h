@@ -4,12 +4,41 @@
 #include "BLoader.h"
 #include "Trifecta.h"
 #include "MokyoMidi.h"
+#include "Unknown.h"
+
+/* Stores file resources for scripts */
+typedef struct ScriptResources{
+    /* compiler for scripts */
+    UNCompiler _compiler;
+    /* map of UNObjectFunc* */
+    HashMap _scriptMap;
+    /* set of user functions detected while loading */
+    UNUserFuncSet userFuncSet;
+} ScriptResources;
+
+/*
+ * Constructs and returns a new (empty) ScriptResources
+ * object by value
+ */
+ScriptResources scriptResourcesMake();
+
+/*
+ * Frees the memory associated with the specified
+ * ScriptResources
+ */
+void scriptResourcesFree(
+    ScriptResources *scriptResourcesPtr
+);
 
 /* Stores all file resources for the game */
 typedef struct Resources{
     BLResourceLoader _loader;
+    /* ptr to map of TFSprite */
     HashMap *_imageMapPtr;
+    /* ptr to map of MidiSequence */
     HashMap *_midiMapPtr;
+    /* ptr to script resources */
+    ScriptResources *scriptResourcesPtr;
     //todo other fields for other resources
 } Resources;
 

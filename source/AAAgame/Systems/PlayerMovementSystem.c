@@ -195,8 +195,7 @@ void playerMovementSystem(
     /* collect all game commands into a move state */
     PlayerMoveState moveState = 0;
     for(int i = 0; i < gameCommandsPtr->size; ++i){
-        switch(arrayListGet(
-            GameCommand,
+        switch(arrayListGet(GameCommand,
             gameCommandsPtr,
             i
         )){

@@ -78,6 +78,16 @@ UNInterpretResult unVirtualMachineInterpret(
 );
 
 /*
+ * Loads the specified program into the given virtual
+ * machine but does not start running it; resume
+ * should be called to run it
+ */
+void unVirtualMachineLoad(
+    UNVirtualMachine *vmPtr,
+    UNObjectFunc *funcObjectProgramPtr
+);
+
+/*
  * Has the specified virtual machine continue running
  * its program; should only be used if the virtual
  * machine has previously yielded

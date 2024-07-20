@@ -39,10 +39,20 @@ add_subdirectory(./source/ZMath)
 add_subdirectory(./source/PGUtil)
 add_subdirectory(./source/AAAgame)
 
+# copy scripts
+add_custom_target(script)
+add_custom_command(TARGET script POST_BUILD COMMAND ${CMAKE_COMMAND}
+        -E rm -r ${CMAKE_BINARY_DIR}/res/script)
+add_custom_command(TARGET script POST_BUILD COMMAND ${CMAKE_COMMAND}
+        -E copy_directory
+        ${CMAKE_SOURCE_DIR}/script/ ${CMAKE_BINARY_DIR}/res/script)
+
 include_directories(${PROJECT_DIRECTORIES})
 include_directories(${CMAKE_SOURCE_DIR}/libraries/glfw/include)
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+add_dependencies(${PROJECT_NAME} script)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 

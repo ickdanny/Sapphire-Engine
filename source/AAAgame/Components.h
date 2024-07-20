@@ -11,6 +11,7 @@
 #include "Animation.h"
 #include "PlayerData.h"
 #include "CollisionCommand.h"
+#include "Scripts.h"
 
 /*
  * Allocates and returns a new WindComponents object
@@ -164,7 +165,10 @@ typedef CollisionCommand PickupCollisionTarget;
 /* Component 29: PowerGain */
 typedef int PowerGain;
 
-/* Component 30: ClearMarker*/
+/* Component 30: ClearMarker */
+
+/* Component 31: Scripts */
+void scriptsDestructor(void *voidPtr);
 
 /* each component needs TYPENAME##ID defined */
 typedef enum ComponentID{
@@ -198,6 +202,7 @@ typedef enum ComponentID{
     PickupCollisionTargetID,
     PowerGainID,
     ClearMarkerID,
+    ScriptsID,
     numComponents,
 } ComponentID;
 

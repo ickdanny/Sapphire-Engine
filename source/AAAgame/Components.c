@@ -4,6 +4,10 @@ void animationsDestructor(void *voidPtr){
     animationListFree((AnimationList*)voidPtr);
 }
 
+void scriptsDestructor(void *voidPtr){
+    scriptsReclaim((Scripts*)voidPtr);
+}
+
 /*
  * Allocates and returns a new WindComponents object
  * containing the RTTI details of every component
@@ -64,6 +68,7 @@ WindComponents *componentsMake(){
     insertComponent(PickupCollisionTarget, NULL);
     insertComponent(PowerGain, NULL);
     insertMarker(ClearMarker);
+    insertComponent(Scripts, scriptsDestructor);
 
     return toRet;
 

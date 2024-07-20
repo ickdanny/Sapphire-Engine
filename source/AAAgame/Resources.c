@@ -2,6 +2,66 @@
 
 #define initImageCapacity 200
 #define initMidiCapacity 20
+#define initScriptCapacity 200
+
+/*
+ * Constructs and returns a new (empty) ScriptResources
+ * object by value
+ */
+ScriptResources scriptResourcesMake(){
+    ScriptResources toRet = {0};
+    toRet._compiler = unCompilerMake();
+    toRet._scriptMap = hashMapMake(
+        String, UNObjectFunc*,
+        initScriptCapacity,
+        constructureStringHash,
+        constructureStringEquals
+    );
+    toRet.userFuncSet = unUserFuncSetMake();
+    return toRet;
+}
+
+/*
+ * For freeing UNObjectFunc* with hashmap since hashmap
+ * apply provides double pointers
+ */
+static void freeScript(UNObjectFunc** doublePtr){
+    unObjectFree((UNObject*)(*doublePtr));
+}
+
+/*
+ * Frees the memory associated with the specified
+ * ScriptResources
+ */
+void scriptResourcesFree(
+    ScriptResources *scriptResourcesPtr
+){
+    unCompilerFree(&(scriptResourcesPtr->_compiler));
+
+    /* free script map */
+    hashMapApply(String, UNObjectFunc*,
+        &(scriptResourcesPtr->_scriptMap),
+        freeScript
+    );
+    hashMapKeyApply(String, UNObjectFunc*,
+        &(scriptResourcesPtr->_scriptMap),
+        stringFree
+    );
+    hashMapFree(String, UNObjectFunc*,
+        &(scriptResourcesPtr->_scriptMap)
+    );
+
+    /* free user func set */
+    unUserFuncSetFree(
+        &(scriptResourcesPtr->userFuncSet)
+    );
+
+    memset(
+        scriptResourcesPtr,
+        0,
+        sizeof(*scriptResourcesPtr)
+    );
+}
 
 /*
  * Isolates the file name from the given file path
@@ -102,6 +162,86 @@ static void loadMidiIntoResources(
     );
 }
 
+/* Script loading callback (.un) */
+static void loadScriptIntoResources(
+    const char *fileName,
+    void *scriptResourcesVoidPtr
+){
+    ScriptResources *scriptResourcesPtr
+        = scriptResourcesVoidPtr;
+    HashMap *scriptMapPtr
+        = &(scriptResourcesPtr->_scriptMap);
+    UNCompiler *compilerPtr
+        = &(scriptResourcesPtr->_compiler);
+
+    UNObjectFunc *scriptPtr = unCompilerCompileScript(
+        compilerPtr,
+        fileName
+    );
+
+    String stringID = isolateFileName(fileName);
+    if(hashMapHasKeyPtr(String, UNObjectFunc*,
+        scriptMapPtr,
+        &stringID
+    )){
+        pgWarning(fileName);
+        pgError("try to load multiple of same script");
+    }
+    hashMapPutPtr(String, UNObjectFunc*,
+        scriptMapPtr,
+        &stringID,
+        &scriptPtr
+    );
+}
+
+/* User func loading callback (.unf) */
+static void loadUserFuncIntoResources(
+    const char *fileName,
+    void *scriptResourcesVoidPtr
+){
+    ScriptResources *scriptResourcesPtr
+        = scriptResourcesVoidPtr;
+    HashMap *scriptMapPtr
+        = &(scriptResourcesPtr->_scriptMap);
+    UNUserFuncSet *userFuncSetPtr
+        = &(scriptResourcesPtr->userFuncSet);
+    UNCompiler *compilerPtr
+        = &(scriptResourcesPtr->_compiler);
+
+    UNObjectFunc *funcPtr
+        = unCompilerCompileFuncFile(
+            compilerPtr,
+            fileName
+        );
+
+    String stringID = isolateFileName(fileName);
+
+    /* insert the func into the script map also */
+    if(hashMapHasKeyPtr(String, UNObjectFunc*,
+        scriptMapPtr,
+        &stringID
+    )){
+        pgWarning(fileName);
+        pgError("try to load multiple of same func");
+    }
+    hashMapPutPtr(String, UNObjectFunc*,
+        scriptMapPtr,
+        &stringID,
+        &funcPtr
+    );
+
+    /*
+     * add the func to the set using the c string
+     * owned by the stringID object, whose life should
+     * extend throughout the use of the user func
+     */
+    unUserFuncSetAdd(
+        userFuncSetPtr,
+        stringID._ptr,
+        funcPtr
+    );
+}
+
 /*
  * Constructs and returns a new (empty) Resources
  * object by value
@@ -118,6 +258,10 @@ Resources resourcesMake(){
         1,
         sizeof(*(toRet._midiMapPtr))
     );
+    toRet.scriptResourcesPtr = pgAlloc(
+        1,
+        sizeof(*(toRet.scriptResourcesPtr))
+    );
     (*toRet._imageMapPtr) = hashMapMake(
         String, TFSprite,
         initImageCapacity,
@@ -130,6 +274,8 @@ Resources resourcesMake(){
         constructureStringHash,
         constructureStringEquals
     );
+    (*toRet.scriptResourcesPtr)
+        = scriptResourcesMake();
 
     /* create and configure loader */
     toRet._loader = blResourceLoaderMake();
@@ -143,6 +289,16 @@ Resources resourcesMake(){
         loadMidiIntoResources,
         toRet._midiMapPtr
     );
+    BLResourceType scriptType = blResourceTypeMake(
+        "un",
+        loadScriptIntoResources,
+        toRet.scriptResourcesPtr
+    );
+    BLResourceType userFuncType = blResourceTypeMake(
+        "unf",
+        loadUserFuncIntoResources,
+        toRet.scriptResourcesPtr
+    );
     blResourceLoaderRegisterType(
         &(toRet._loader),
         &imageType
@@ -150,6 +306,14 @@ Resources resourcesMake(){
     blResourceLoaderRegisterType(
         &(toRet._loader),
         &midiType
+    );
+    blResourceLoaderRegisterType(
+        &(toRet._loader),
+        &scriptType
+    );
+    blResourceLoaderRegisterType(
+        &(toRet._loader),
+        &userFuncType
     );
 
     return toRet;
@@ -238,4 +402,11 @@ void resourcesFree(Resources *resourcesPtr){
     pgFree(resourcesPtr->_midiMapPtr);
 
     //todo free other resource types
+
+
+    /* free script resources */
+    scriptResourcesFree(
+        resourcesPtr->scriptResourcesPtr
+    );
+    pgFree(resourcesPtr->scriptResourcesPtr);
 }

@@ -8,6 +8,7 @@
 #include "GameBuilderSystem.h"
 #include "LoadingScreenSystem.h"
 
+#include "ScriptSystem.h"
 #include "PlayerMovementSystem.h"
 
 #include "VelocitySystem.h"
@@ -15,6 +16,7 @@
 #include "CollisionDetectionSystem.h"
 #include "CollisionHandlerSystem.h"
 #include "ClearSystem.h"
+#include "PlayerShotSystem.h"
 
 #include "PauseSystem.h"
 #include "AnimationSystem.h"
@@ -33,14 +35,14 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     gameBuilderSystem(gamePtr, scenePtr);
     loadingScreenSystem(gamePtr, scenePtr);
     //todo call dialogue system
-    //todo call script system
+    scriptSystem(gamePtr, scenePtr);
     playerMovementSystem(gamePtr, scenePtr);
     velocitySystem(gamePtr, scenePtr);
     inboundSystem(gamePtr, scenePtr);
     collisionDetectionSystem(gamePtr, scenePtr);
     collisionHandlerSystem(gamePtr, scenePtr);
     clearSystem(gamePtr, scenePtr);
-    //todo call player shot system (?)
+    playerShotSystem(gamePtr, scenePtr);
     //todo call player state system (?)
     //todo call player bomb system (?)
     //todo call player death detector system (?)

@@ -365,7 +365,7 @@ void unObjectFree(UNObject *objectPtr){
         }
         default:
             pgError(
-                "unexpected default; "
+                "unexpected default object type; "
                 SRC_LOCATION
             );
             return;

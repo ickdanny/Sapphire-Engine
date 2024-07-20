@@ -1,5 +1,7 @@
 #include "InitSystem.h"
 
+#include "NativeFuncs.h"
+
 /* point at the center of the screen */
 static const Point2D screenCenter = {
     config_graphicsWidth / 2.0f,
@@ -929,10 +931,8 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
         &toRet
     );
     
-
-
-    #undef backgroundWidth;
-    #undef backgroundHeight;
+    #undef backgroundWidth
+    #undef backgroundHeight
 
     //todo: init game
 }
@@ -1036,6 +1036,13 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
     }
     scenePtr->messages.initFlag = true;
 
+    /* putting the vm pool initializer here */
+    vmPoolInit(
+        getNativeFuncSet(), 
+        &(gamePtr->resourcesPtr->scriptResourcesPtr
+            ->userFuncSet)
+    );
+
     switch(scenePtr->id){
         case scene_main:
             initMainMenu(gamePtr, scenePtr);
@@ -1059,15 +1066,12 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
             initGame(gamePtr, scenePtr);
             break;
         /*
-    scene_loading,
-    scene_game,
     scene_dialogue,*/
         case scene_pause:
             initPause(gamePtr, scenePtr);
             break;
     /*scene_continues,
     scene_credits,
-    scene_numScenes,
     */
         default:
             pgError(

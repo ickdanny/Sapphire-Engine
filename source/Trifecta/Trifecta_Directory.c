@@ -1,10 +1,50 @@
 #include "Trifecta_Directory.h"
 
-#include <errno.h>
-
 #include "PGUtil.h"
 
 #ifdef __APPLE__
+
+#include <unistd.h>
+#include <errno.h>
+
+/* debug function to print the current directory */
+void printCurrentDir(){
+    #define bufferSize 50
+    static char buffer[bufferSize] = {0};
+    if(getcwd(buffer, bufferSize) != NULL){
+        pgWarning(buffer);
+    }
+    else{
+        pgWarning("failed to get current dir");
+        switch(errno){
+            case EACCES:
+                pgWarning("permission denied");
+                break;
+            case EFAULT:
+                pgWarning("bad buffer ptr");
+                break;
+            case EINVAL:
+                pgWarning("invalid args");
+                break;
+            case ENAMETOOLONG:
+                pgWarning("path too long");
+                break;
+            case ENOENT:
+                pgWarning("cwd unlinked");
+                break;
+            case ENOMEM:
+                pgWarning("insufficient memory");
+                break;
+            case ERANGE:
+                pgWarning("buffer too small");
+                break;
+            default:
+                pgWarning("unknown error");
+                break;
+        }
+    }
+    #undef bufferSize
+}
 
 /*
  * Opens the specified directory and returns a
@@ -15,7 +55,37 @@ TFDirectory tfDirectoryOpen(const char *dirName){
 
     /* try to open the directory */
     toRet._dirPtr = opendir(dirName);
-    assertNotNull(toRet._dirPtr, "failed to opendir");
+    if(!toRet._dirPtr){
+        pgWarning(dirName);
+        switch(errno){
+            case EACCES:
+                pgWarning("permission denied");
+                break;
+            case EBADF:
+                pgWarning("bad fd");
+                break;
+            case EMFILE:
+                pgWarning("process fd limit reached");
+                break;
+            case ENFILE:
+                pgWarning("system fd limit reached");
+                break;
+            case ENOENT:
+                pgWarning("dir does not exist");
+                break;
+            case ENOMEM:
+                pgWarning("insufficient memory");
+                break;
+            case ENOTDIR:
+                pgWarning("not a directory");
+                break;
+            default:
+                pgWarning("unknown error");
+                break;
+        }
+        printCurrentDir();
+        pgError("failed to opendir");
+    }
 
     /* copy directory name */
     int nameLength = strlen(dirName);

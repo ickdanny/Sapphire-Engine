@@ -1705,6 +1705,19 @@ UNInterpretResult unVirtualMachineInterpret(
     UNVirtualMachine *vmPtr,
     UNObjectFunc *funcObjectProgramPtr
 ){
+    unVirtualMachineLoad(vmPtr, funcObjectProgramPtr);
+    return unVirtualMachineRun(vmPtr);
+}
+
+/*
+ * Loads the specified program into the given virtual
+ * machine but does not start running it; resume
+ * should be called to run it
+ */
+void unVirtualMachineLoad(
+    UNVirtualMachine *vmPtr,
+    UNObjectFunc *funcObjectProgramPtr
+){
     unVirtualMachineReset(vmPtr);
 
     /*
@@ -1743,8 +1756,6 @@ UNInterpretResult unVirtualMachineInterpret(
         0,
         false /* do not copy strings */
     );
-
-    return unVirtualMachineRun(vmPtr);
 }
 
 /*

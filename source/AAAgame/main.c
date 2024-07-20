@@ -18,6 +18,7 @@
 #include "Settings.h"
 
 #include "SystemDestructors.h"
+#include "Scripts.h" /* to destroy vm pool */
 
 #include <unistd.h>
 
@@ -116,6 +117,10 @@ int main(){
         &(engine.resources),
         "res/midi"
     );
+    resourcesLoadDirectory(
+        &(engine.resources),
+        "res/script"
+    );
     //todo: load more directories as needed
 
     /* init MIDI */
@@ -157,7 +162,8 @@ int main(){
 
     /* clean up after game ends */
     engineFree(&engine);
-    freeSystems(); /* jank but whatever */
+    freeSystems();
+    vmPoolDestroy();
 
     #ifdef _DEBUG
     printf("main completed\n");
