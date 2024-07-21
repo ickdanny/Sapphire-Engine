@@ -8,6 +8,27 @@ void scriptsDestructor(void *voidPtr){
     scriptsReclaim((Scripts*)voidPtr);
 }
 
+void deathScriptsDestructor(void *voidPtr){
+    DeathScripts *deathScriptsPtr = voidPtr;
+
+    #define freeStringIfAllocated(SLOT) \
+        do{ \
+            if(deathScriptsPtr->scriptID##SLOT._ptr){ \
+                stringFree( \
+                    &(deathScriptsPtr \
+                        ->scriptID##SLOT) \
+                ); \
+            } \
+        } while(false)
+    
+    freeStringIfAllocated(1);
+    freeStringIfAllocated(2);
+    freeStringIfAllocated(3);
+    freeStringIfAllocated(4);
+
+    #undef freeStringIfAllocated
+}
+
 /*
  * Allocates and returns a new WindComponents object
  * containing the RTTI details of every component
@@ -67,8 +88,13 @@ WindComponents *componentsMake(){
     insertComponent(PickupCollisionSource, NULL);
     insertComponent(PickupCollisionTarget, NULL);
     insertComponent(PowerGain, NULL);
-    insertMarker(ClearMarker);
+    insertMarker(ClearableMarker);
     insertComponent(Scripts, scriptsDestructor);
+    insertComponent(DeathCommand, NULL);
+    insertComponent(
+        DeathScripts,
+        deathScriptsDestructor
+    );
 
     return toRet;
 

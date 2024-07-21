@@ -31,7 +31,7 @@ void vmPoolInit(
 UNVirtualMachine *vmPoolRequest();
 
 /* Reclaims the specified VM pointer into the pool */
-void vmReclaim(UNVirtualMachine *vmPtr);
+void vmPoolReclaim(UNVirtualMachine *vmPtr);
 
 /*
  * Reclaims the virtual machines associated with the

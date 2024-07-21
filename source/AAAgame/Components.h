@@ -12,6 +12,7 @@
 #include "PlayerData.h"
 #include "CollisionCommand.h"
 #include "Scripts.h"
+#include "DeathCommand.h"
 
 /*
  * Allocates and returns a new WindComponents object
@@ -165,10 +166,22 @@ typedef CollisionCommand PickupCollisionTarget;
 /* Component 29: PowerGain */
 typedef int PowerGain;
 
-/* Component 30: ClearMarker */
+/* Component 30: ClearableMarker */
 
 /* Component 31: Scripts */
 void scriptsDestructor(void *voidPtr);
+
+/* Component 32: DeathCommand */
+
+/* Component 33: DeathScripts */
+typedef struct DeathScripts{
+    String scriptID1;
+    String scriptID2;
+    String scriptID3;
+    String scriptID4;
+} DeathScripts;
+
+void deathScriptsDestructor(void *voidPtr);
 
 /* each component needs TYPENAME##ID defined */
 typedef enum ComponentID{
@@ -201,8 +214,10 @@ typedef enum ComponentID{
     PickupCollisionSourceID,
     PickupCollisionTargetID,
     PowerGainID,
-    ClearMarkerID,
+    ClearableMarkerID,
     ScriptsID,
+    DeathCommandID,
+    DeathScriptsID,
     numComponents,
 } ComponentID;
 

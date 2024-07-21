@@ -375,6 +375,40 @@
         PICKUPCOLLISIONSOURCE \
     )
 
+/*
+ * Adds the specified power gain to the given component
+ * list
+ */
+#define addPowerGain(LISTPTR, POWERGAIN) \
+    addComponent(LISTPTR, PowerGain, POWERGAIN)
+
+/*
+ * Adds a clearable marker to the given component list
+ */
+#define addClearable(LISTPTR) \
+    addMarker(LISTPTR, ClearableMarkerID)
+
+/*
+ * Adds the specified Scripts object to the given
+ * component list
+ */
+#define addScripts(LISTPTR, SCRIPTS) \
+    addComponent(LISTPTR, Scripts, SCRIPTS)
+
+/*
+ * Adds the specified death command to the given
+ * component list
+ */
+#define addDeathCommand(LISTPTR, DEATHCOMMAND) \
+    addComponent(LISTPTR, DeathCommand, DEATHCOMMAND)
+
+/*
+ * Adds the specified death scripts object to the
+ * given component list
+ */
+#define addDeathScripts(LISTPTR, DEATHSCRIPTS) \
+    addComponent(LISTPTR, DeathScripts, DEATHSCRIPTS)
+
 //todo: add other components
 
 /*

@@ -18,6 +18,8 @@
 #include "ClearSystem.h"
 #include "PlayerShotSystem.h"
 
+#include "DeathHandlerSystem.h"
+
 #include "PauseSystem.h"
 #include "AnimationSystem.h"
 #include "RotateSpriteForwardSystem.h"
@@ -49,7 +51,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     //todo call continue system
     //todo call player respawn system (?)
     //todo call player reactivate system (?)
-    //todo call death handler system
+    deathHandlerSystem(gamePtr, scenePtr);
     //todo call overlay system
     pauseSystem(gamePtr, scenePtr);
     animationSystem(gamePtr, scenePtr);

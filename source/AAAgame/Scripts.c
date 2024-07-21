@@ -118,7 +118,7 @@ UNVirtualMachine *vmPoolRequest(){
 }
 
 /* Reclaims the specified VM pointer into the pool */
-void vmReclaim(UNVirtualMachine *vmPtr){
+void vmPoolReclaim(UNVirtualMachine *vmPtr){
     if(!vmPtr){
         return;
     }
@@ -146,10 +146,10 @@ void scriptsReclaim(Scripts *scriptsPtr){
         "vm pool not initialized; " SRC_LOCATION
     );
 
-    vmReclaim(scriptsPtr->vm1);
-    vmReclaim(scriptsPtr->vm2);
-    vmReclaim(scriptsPtr->vm3);
-    vmReclaim(scriptsPtr->vm4);
+    vmPoolReclaim(scriptsPtr->vm1);
+    vmPoolReclaim(scriptsPtr->vm2);
+    vmPoolReclaim(scriptsPtr->vm3);
+    vmPoolReclaim(scriptsPtr->vm4);
 
     memset(scriptsPtr, 0, sizeof(*scriptsPtr));
 }

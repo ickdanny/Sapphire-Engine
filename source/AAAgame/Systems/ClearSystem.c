@@ -15,7 +15,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, ClearMarkerID);
+        bitsetSet(&accept, ClearableMarkerID);
 
         registerSystemDestructor(destroy);
         

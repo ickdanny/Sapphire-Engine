@@ -35,7 +35,7 @@ static void init(){
                 ); \
             switch(result){ \
                 case un_success: \
-                    vmReclaim(VMPTRNAME); \
+                    vmPoolReclaim(VMPTRNAME); \
                     VMPTRNAME = NULL; \
                     break; \
                 case un_yielded: \
