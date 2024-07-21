@@ -154,10 +154,26 @@ uint64_t zmtULongDie(
 float zmtRandFloat(ZMT *zmtPtr);
 
 /*
+ * Generates a random float from the given Mersenne
+ * Twister in the specified range, possibly inclusive
+ */
+float zmtFloatDie(ZMT *zmtPtr, float low, float high);
+
+/*
  * Generates a random double in the range [0.0, 1.0]
  * from the given Mersenne Twister
  */
 double zmtRandDouble(ZMT *zmtPtr);
+
+/*
+ * Generates a random double from the given Mersenne
+ * Twister in the specified range, possibly inclusive
+ */
+float zmtDoubleDie(
+    ZMT *zmtPtr,
+    double low,
+    double high
+);
 
 /*
  * Generates a random bool from the given

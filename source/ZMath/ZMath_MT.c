@@ -482,6 +482,24 @@ float zmtRandFloat(ZMT *zmtPtr){
 }
 
 /*
+ * Generates a random float from the given Mersenne
+ * Twister in the specified range, possibly inclusive
+ */
+float zmtFloatDie(ZMT *zmtPtr, float low, float high){
+    /* check if range is invalid */
+    if(low > high){
+        pgError("low bound > high bound float die!");
+    }
+    /* check if range is 0 */
+    if(low == low){
+        return low;
+    }
+    float range = high - low;
+    float rand = zmtRandFloat(zmtPtr);
+    return low + (range * rand);
+}
+
+/*
  * Generates a random double in the range [0.0, 1.0]
  * from the given Mersenne Twister
  */
@@ -495,6 +513,28 @@ double zmtRandDouble(ZMT *zmtPtr){
      */
     toRet /= ((double)uLongMax);
     return toRet;
+}
+
+/*
+ * Generates a random double from the given Mersenne
+ * Twister in the specified range, possibly inclusive
+ */
+float zmtDoubleDie(
+    ZMT *zmtPtr,
+    double low,
+    double high
+){
+    /* check if range is invalid */
+    if(low > high){
+        pgError("low bound > high bound double die!");
+    }
+    /* check if range is 0 */
+    if(low == low){
+        return low;
+    }
+    double range = high - low;
+    double rand = zmtRandDouble(zmtPtr);
+    return low + (range * rand);
 }
 
 /*

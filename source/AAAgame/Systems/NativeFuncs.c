@@ -103,6 +103,23 @@ static WindEntity _handle;
         _handle \
     )
 
+/*
+ * Retrieves the value of the specified UNValue as
+ * a number; error if the value was not an int or
+ * a float
+ */
+#define getValueAsNumber(VALUE, ERRMSG) \
+    (unIsInt(VALUE) \
+        ? unAsInt(VALUE) \
+        : (unIsFloat(VALUE) \
+            ? unAsFloat(VALUE) \
+            : ( \
+                pgError(ERRMSG), \
+                0 \
+            ) \
+        ) \
+    )
+
 #define DECLARE_FLOAT_CONST(FUNCNAME, VALUE) \
     static UNValue FUNCNAME( \
         int argc, \
@@ -1221,10 +1238,543 @@ static UNValue addDeathScript(int argc, UNValue *argv){
     return unBoolValue(false);
 }
 
+/* MATH */
+
+/*
+ * Flips a float angle or a polar vector about the x
+ * axis
+ */
+static UNValue flipX(int argc, UNValue *argv){
+    assertArity(
+        1,
+        "flipX expects float or vector arg"
+    );
+
+    UNValue value = *argv;
+    if(unIsFloat(value)){
+        float floatValue = unAsFloat(value);
+        return unFloatValue(angleFlipX(floatValue));
+    }
+    else if(unIsVector(value)){
+        Polar vectorValue = unAsVector(value);
+        vectorValue.angle
+            = angleFlipX(vectorValue.angle);
+        return unVectorValue(vectorValue);
+    }
+    else{
+        pgError(
+            "flipX expects float or vector; "
+            SRC_LOCATION
+        );
+        return unBoolValue(false);
+    }
+}
+
+/*
+ * Flips a float angle or a polar vector about the x
+ * axis
+ */
+static UNValue flipY(int argc, UNValue *argv){
+    assertArity(
+        1,
+        "flipY expects float or vector arg"
+    );
+
+    UNValue value = *argv;
+    if(unIsFloat(value)){
+        float floatValue = unAsFloat(value);
+        return unFloatValue(angleFlipY(floatValue));
+    }
+    else if(unIsVector(value)){
+        Polar vectorValue = unAsVector(value);
+        vectorValue.angle
+            = angleFlipY(vectorValue.angle);
+        return unVectorValue(vectorValue);
+    }
+    else{
+        pgError(
+            "flipY expects float or vector; "
+            SRC_LOCATION
+        );
+        return unBoolValue(false);
+    }
+}
+
+/*
+ * Computes an exponent (number base, number exp);
+ * if both arguments are ints, the result will be an
+ * int, otherwise float (if the exponent is negative,
+ * the result will also be a float)
+ */
+static UNValue _pow(int argc, UNValue *argv){
+    assertArity(
+        2,
+        "usage: pow(base, exponent)"
+    );
+
+    UNValue baseValue = argv[0];
+    UNValue expValue = argv[1];
+
+    /* if both ints, we may return an int */
+    if(unIsInt(baseValue) && unIsInt(expValue)){
+        int base = unAsInt(baseValue);
+        int exp = unAsInt(expValue);
+        if(exp == 0){
+            return unIntValue(1);
+        }
+        if(exp < 0){
+            return unFloatValue(powf(base, exp));
+        }
+        /* calculate integer power */
+        int result = 1;
+        while(true){
+            if(exp & 1){
+                result *= base;
+            }
+            exp >>= 1;
+            if(!exp){
+                break;
+            }
+            base *= base;
+        }
+        return unIntValue(result);
+    }
+
+    /* if not both ints, return a float */
+    float base = getValueAsNumber(
+        baseValue,
+        "base of pow() function should be number; "
+        SRC_LOCATION
+    );
+    float exp = getValueAsNumber(
+        expValue,
+        "exp of pow() function should be number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(powf(base, exp));
+}
+
+/*
+ * Computes the sin function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue _sin(int argc, UNValue *argv){
+    assertArity(1, "sin expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of sin() function should be number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(sinf(arg));
+}
+
+/*
+ * Computes the cos function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue _cos(int argc, UNValue *argv){
+    assertArity(1, "cos expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of cos() function should be number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(cosf(arg));
+}
+
+/*
+ * Computes the tan function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue _tan(int argc, UNValue *argv){
+    assertArity(1, "tan expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of tan() function should be number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(tanf(arg));
+}
+
+/*
+ * Computes the sec function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue _sec(int argc, UNValue *argv){
+    assertArity(1, "sec expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of sec() function should be number; "
+        SRC_LOCATION
+    );
+    float cos = cosf(arg);
+    if(cos == 0.0f){
+        pgError("cannot compute sec; divide by 0");
+    }
+    return unFloatValue(1.0f/cos);
+}
+
+/*
+ * Computes the csc function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue _csc(int argc, UNValue *argv){
+    assertArity(1, "csc expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of csc() function should be number; "
+        SRC_LOCATION
+    );
+    float sin = sinf(arg);
+    if(sin == 0.0f){
+        pgError("cannot compute csc; divide by 0");
+    }
+    return unFloatValue(1.0f/sin);
+}
+
+/*
+ * Computes the cot function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue _cot(int argc, UNValue *argv){
+    assertArity(1, "cot expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of cot() function should be number; "
+        SRC_LOCATION
+    );
+    float tan = tanf(arg);
+    if(tan == 0.0f){
+        pgError("cannot compute cot; divide by 0");
+    }
+    return unFloatValue(1.0f/tan);
+}
+
+/*
+ * Computes the arcsin function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue arcsin(int argc, UNValue *argv){
+    assertArity(1, "arcsin expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of arcsin() function should be number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(asinf(arg));
+}
+
+/*
+ * Computes the arccos function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue arccos(int argc, UNValue *argv){
+    assertArity(1, "arccos expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of arccos() function should be number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(acosf(arg));
+}
+
+/*
+ * Computes the arctan function; takes either int or
+ * float and returns a float, works in radians
+ */
+static UNValue arctan(int argc, UNValue *argv){
+    assertArity(1, "arctan expects 1 number arg");
+
+    float arg = getValueAsNumber(
+        *argv,
+        "arg of arctan() function should be number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(atanf(arg));
+}
+
+/*
+ * Returns the maximum of any number of numbers passed
+ * in; error if 0 numbers passed in
+ */
+static UNValue _max(int argc, UNValue *argv){
+    static const char* notNumberErrMsg
+        = "args of max() should all be numbers";
+    if(argc <= 0){
+        pgError("max should have at least 1 arg");
+    }
+    float maxValue = getValueAsNumber(
+        *argv,
+        notNumberErrMsg
+    );
+    int maxIndex = 0;
+    for(int i = 1; i < argc; ++i){
+        float testValue = getValueAsNumber(
+            argv[i],
+            notNumberErrMsg
+        );
+        if(testValue > maxValue){
+            maxValue = testValue;
+            maxIndex = i;
+        }
+    }
+    return argv[maxIndex];
+}
+
+/*
+ * Returns the minimum of any number of numbers passed
+ * in; error if 0 numbers passed in
+ */
+static UNValue _min(int argc, UNValue *argv){
+    static const char* notNumberErrMsg
+        = "args of min() should all be numbers";
+    if(argc <= 0){
+        pgError("min should have at least 1 arg");
+    }
+    float minValue = getValueAsNumber(
+        *argv,
+        notNumberErrMsg
+    );
+    int minIndex = 0;
+    for(int i = 1; i < argc; ++i){
+        float testValue = getValueAsNumber(
+            argv[i],
+            notNumberErrMsg
+        );
+        if(testValue < minValue){
+            minValue = testValue;
+            minIndex = i;
+        }
+    }
+    return argv[minIndex];
+}
+
+/*
+ * Returns the smaller angle difference from the first
+ * number arg to the second as a float
+ */
+static UNValue smallerAngleDiff(
+    int argc,
+    UNValue *argv
+){
+    static const char* notNumberErrMsg
+        = "args of smallerAngleDiff() should all be "
+            "numbers";
+    assertArity(
+        2,
+        "usage: smallerAngleDiff(from, to)"
+    );
+
+    float from = getValueAsNumber(
+        argv[0],
+        notNumberErrMsg
+    );
+    float to = getValueAsNumber(
+        argv[1],
+        notNumberErrMsg
+    );
+    return unFloatValue(
+        angleSmallerDifference(from, to)
+    );
+}
+
+/*
+ * Returns the larger angle difference from the first
+ * number arg to the second as a float
+ */
+static UNValue largerAngleDiff(
+    int argc,
+    UNValue *argv
+){
+    static const char* notNumberErrMsg
+        = "args of largerAngleDiff() should all be "
+            "numbers";
+    assertArity(
+        2,
+        "usage: largerAngleDiff(from, to)"
+    );
+
+    float from = getValueAsNumber(
+        argv[0],
+        notNumberErrMsg
+    );
+    float to = getValueAsNumber(
+        argv[1],
+        notNumberErrMsg
+    );
+    return unFloatValue(
+        angleLargerDifference(from, to)
+    );
+}
+
+/*
+ * Returns the absolute value of the argument as an
+ * integer or a float depending on its type
+ */
+static UNValue _abs(int argc, UNValue *argv){
+    assertArity(1, "abs expects 1 number arg");
+
+    UNValue value = *argv;
+    if(unIsInt(value)){
+        return unIntValue(abs(unAsInt(value)));
+    }
+    else if(unIsFloat(value)){
+        return unFloatValue(fabsf(unAsFloat(value)));
+    }
+    else{
+        pgError(
+            "arg of abs() should be number; "
+            SRC_LOCATION
+        );
+        return unBoolValue(false);
+    }
+}
+
+/* Returns the distance between two points */
+static UNValue pointDist(int argc, UNValue *argv){
+    assertArity(2, "pointDist expects 2 point args");
+
+    Point2D pointA = unAsPoint(argv[0]);
+    Point2D pointB = unAsPoint(argv[1]);
+
+    return unFloatValue(
+        point2DDistance(pointA, pointB)
+    );
+}
+
+/*
+ * Returns the angle from point a to point b 
+ * in degrees
+ */
+static UNValue pointAngle(int argc, UNValue *argv){
+    assertArity(2, "pointAngle expects 2 point args");
+
+    Point2D pointA = unAsPoint(argv[0]);
+    Point2D pointB = unAsPoint(argv[1]);
+
+    return unFloatValue(point2DAngle(pointA, pointB));
+}
+
+/*
+ * Converts the given number from degrees to radians
+ * and returns the result as a float
+ */
+static UNValue _toRadians(int argc, UNValue *argv){
+    assertArity(1, "toRadians expects 1 number arg");
+    float degrees = getValueAsNumber(
+        *argv,
+        "toRadians expects a number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(toRadians(degrees));
+}
+
+/*
+ * Converts the given number from radians to degrees
+ * and returns the result as a float
+ */
+static UNValue _toDegrees(int argc, UNValue *argv){
+    assertArity(1, "toDegrees expects 1 number arg");
+    float radians = getValueAsNumber(
+        *argv,
+        "toDegrees expects a number; "
+        SRC_LOCATION
+    );
+    return unFloatValue(toDegrees(radians));
+}
+
+/*
+ * Returns a random number between
+ * (number min, number max) inclusive;
+ * calculates a random int if both numbers are ints,
+ * otherwise calculates a random float
+ */
+static UNValue random(int argc, UNValue *argv){
+    assertArity(
+        2,
+        "usage: random(number min, number max)"
+    );
+
+    ZMT *prngPtr = &(_scenePtr->messages.prng);
+    
+    UNValue minValue = argv[0];
+    UNValue maxValue = argv[1];
+
+    /* if both ints, calculate random int */
+    if(unIsInt(minValue) && unIsInt(maxValue)){
+        int min = unAsInt(minValue);
+        int max = unAsInt(maxValue);
+        if(max < min){
+            pgError("max < min; " SRC_LOCATION);
+        }
+        int result = zmtIntDie(prngPtr, min, max);
+        return unIntValue(result);
+    }
+
+    /* if not both ints, return a float */
+    float min = getValueAsNumber(
+        minValue,
+        "min of random() function should be number; "
+        SRC_LOCATION
+    );
+    float max = getValueAsNumber(
+        maxValue,
+        "max of random() function should be number; "
+        SRC_LOCATION
+    );
+    if(max < min){
+        pgError("max < min; " SRC_LOCATION);
+    }
+    float result = zmtFloatDie(prngPtr, min, max);
+    return unFloatValue(result);
+}
+
+/*
+ * Generates a random bool based on the provided
+ * chance [0.0, 1.0]; error if the chance is out of
+ * bounds
+ */
+static UNValue chance(int argc, UNValue *argv){
+    assertArity(1, "chance() expects 1 float arg");
+
+    ZMT *prngPtr = &(_scenePtr->messages.prng);
+
+    float chance = unAsFloat(*argv);
+
+    if(chance < 0.0f || chance > 1.0f){
+        pgError("chance out of range; " SRC_LOCATION);
+    }
+
+    if(chance == 0.0f){
+        return unBoolValue(false);
+    }
+    if(chance == 1.0f){
+        return unBoolValue(true);
+    }
+
+    /* random float in range [0.0, 1.0] */
+    float rand = zmtRandFloat(prngPtr);
+    
+    return unBoolValue(rand < chance);
+}
+
+/* SCENE SIGNALING */
+
+//todo
+
 #undef assertArity
 #undef fillComponentPtr
 #undef setComponent
 #undef removeComponent
+#undef getValueAsNumber
 
 #undef DECLARE_FLOAT_CONST
 #undef DECLARE_INT_CONST
@@ -1356,6 +1906,34 @@ static void init(){
         addNativeFunc(removeScript);
         addNativeFunc(removeSpawns);
         addNativeFunc(addDeathScript);
+
+        /* math */
+        addNativeFunc(flipX);
+        addNativeFunc(flipY);
+        addNativeFuncWithName(_pow, pow);
+        addNativeFuncWithName(_sin, sin);
+        addNativeFuncWithName(_cos, cos);
+        addNativeFuncWithName(_tan, tan);
+        addNativeFuncWithName(_sec, sec);
+        addNativeFuncWithName(_csc, csc);
+        addNativeFuncWithName(_cot, cot);
+        addNativeFunc(arcsin);
+        addNativeFunc(arccos);
+        addNativeFunc(arctan);
+        addNativeFuncWithName(_max, max);
+        addNativeFuncWithName(_min, min);
+        addNativeFunc(smallerAngleDiff);
+        addNativeFunc(largerAngleDiff);
+        addNativeFuncWithName(_abs, abs);
+        addNativeFunc(pointDist);
+        addNativeFunc(pointAngle);
+        addNativeFuncWithName(_toRadians, toRadians);
+        addNativeFuncWithName(_toDegrees, toDegrees);
+        addNativeFunc(random);
+        addNativeFunc(chance);
+
+        /* scene signaling */
+
         //todo
         
         #undef addNativeFunc
