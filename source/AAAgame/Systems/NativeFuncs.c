@@ -525,13 +525,8 @@ static UNValue getAngleToPlayer(
 
     Point2D entityPos
         = unAsPoint(getPosition(0, NULL));
-    
-    //todo: do i seriously have no angle func?
-    float angle = vector2DAngle(vector2DFromAToB(
-        entityPos,
-        playerPos
-    ));
 
+    float angle = point2DAngle(entityPos, playerPos);
     return unFloatValue(angle);
 }
 
@@ -1697,7 +1692,7 @@ static UNValue _toDegrees(int argc, UNValue *argv){
  * calculates a random int if both numbers are ints,
  * otherwise calculates a random float
  */
-static UNValue random(int argc, UNValue *argv){
+static UNValue _random(int argc, UNValue *argv){
     assertArity(
         2,
         "usage: random(number min, number max)"
@@ -1768,7 +1763,155 @@ static UNValue chance(int argc, UNValue *argv){
 
 /* SCENE SIGNALING */
 
-//todo
+/*
+ * Flags a boss death; flagging multiple times on the
+ * same tick has no extra effect
+ */
+static UNValue flagBossDeath(int argc, UNValue *argv){
+    assertArity(0, "flagBossDeath expects 0 args");
+    _scenePtr->messages.bossDeathFlag = true;
+    return unBoolValue(false);
+}
+
+/*
+ * Flags a bullet clear; flagging multiple times on the
+ * same tick has no extra effect
+ */
+static UNValue flagBulletClear(
+    int argc,
+    UNValue *argv
+){
+    assertArity(0, "flagBulletClear expects 0 args");
+    _scenePtr->messages.clearFlag = true;
+    return unBoolValue(false);
+}
+
+/*
+ * Flags a stage win; flagging multiple times on the
+ * same tick has no extra effect
+ */
+static UNValue flagWin(int argc, UNValue *argv){
+    assertArity(0, "flagWin expects 0 args");
+    _scenePtr->messages.winFlag = true;
+    return unBoolValue(false);
+}
+
+/*
+ * Ends the current stage and either advances to the
+ * next stage, goes back to the menu, or enters the
+ * credits scene depending on the game state
+ */
+static UNValue endStage(int argc, UNValue *argv){
+    assertArity(0, "endStage expects 0 args");
+    
+    GameState *gameStatePtr
+        = &(_gamePtr->messages.gameState);
+
+    SceneID backTo = -1;
+    switch(gameStatePtr->gameMode){
+        case game_story:
+            backTo = scene_main;
+            break;
+        case game_practice:
+            backTo = scene_stage;
+            break;
+        default:
+            pgError(
+                "unexpected default game mode; "
+                SRC_LOCATION
+            );
+            break;
+    }
+
+    _gamePtr->messages.sceneExitToID = backTo;
+
+    /* in story mode, advance stage or go to credits */
+    if(gameStatePtr->gameMode == game_story){
+        /* if stage not final, advance */
+        if(gameStatePtr->stage < 4){
+            ++(gameStatePtr->stage);
+
+            /* push new game and loading screen */
+            arrayListPushBack(SceneID,
+                &(_gamePtr->messages.sceneEntryList),
+                scene_game
+            );
+            arrayListPushBack(SceneID,
+                &(_gamePtr->messages.sceneEntryList),
+                scene_loading
+            );
+
+            /* save player data */
+            WindQueryItr itr
+                = windWorldRequestQueryItr(
+                    &(_scenePtr->ecsWorld),
+                    &playerSet,
+                    NULL
+                );
+            /* if player exists, grab first one */
+            if(windQueryItrHasEntity(&itr)){
+                PlayerData *playerDataPtr
+                    = windQueryItrGetPtr(
+                        PlayerData,
+                        &itr
+                    );
+                _gamePtr->messages.playerData.data
+                    = *playerDataPtr;
+                _gamePtr->messages.playerData.isPresent
+                    = true;
+            }
+            /* error if no player exists */
+            else{
+                pgError(
+                    "failed to find player for "
+                    "endStage; "
+                    SRC_LOCATION
+                );
+            }
+        }
+        /* otherwise, if final stage, go to credits */
+        else{
+            arrayListPushBack(SceneID,
+                &(_gamePtr->messages.sceneEntryList),
+                scene_credits
+            );
+            //todo: start track 10
+        }
+    }
+    /*
+     * if practice mode, start menu track since we
+     * are going back to the menu
+     */
+    else if(gameStatePtr->gameMode == game_practice){
+        //todo: start track 1
+    }
+    else{
+        pgError(
+            "Unexpected gamemode; not story or "
+            "practice; " SRC_LOCATION
+        );
+    }
+
+    return unBoolValue(false);
+}
+
+/*
+ * Displays the dialogue with the specified string ID
+ */
+static UNValue startDialogue(int argc, UNValue *argv){
+    assertArity(0, "startDialogue expects string arg");
+    String *stringPtr
+        = &(unObjectAsString(*argv)->string);
+    //todo show the dialogue
+    pgError(
+        "dialogue not yet implemented;"
+        SRC_LOCATION
+    );
+
+    return unBoolValue(false);
+}
+
+//todo: possibly flag and unflag user defined gameplay
 
 #undef assertArity
 #undef fillComponentPtr
@@ -1929,12 +2072,15 @@ static void init(){
         addNativeFunc(pointAngle);
         addNativeFuncWithName(_toRadians, toRadians);
         addNativeFuncWithName(_toDegrees, toDegrees);
-        addNativeFunc(random);
+        addNativeFuncWithName(_random, random);
         addNativeFunc(chance);
 
         /* scene signaling */
-
-        //todo
+        addNativeFunc(flagBossDeath);
+        addNativeFunc(flagBulletClear);
+        addNativeFunc(flagWin);
+        addNativeFunc(endStage);
+        addNativeFunc(startDialogue);
         
         #undef addNativeFunc
         #undef addNativeFuncWithName
