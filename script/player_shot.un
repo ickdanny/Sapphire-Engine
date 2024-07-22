@@ -1,5 +1,12 @@
-timer(30);
+func test(){
+    print pointEpsilon();
+}
+
+test();
+print angleEpsilon();
+
+secTimer(2.5);
 print "hello world";
-timer(30);
+secTimer(2.5);
 print "goodbye world";
 error("lol");

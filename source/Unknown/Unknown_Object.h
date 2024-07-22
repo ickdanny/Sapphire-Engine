@@ -152,6 +152,15 @@ static inline UNObjectNativeFunc *unObjectAsNativeFunc(
 }
 
 /*
+ * An equals function for UNObjectString* that actually
+ * walks the strings, used for string interning
+ */
+bool _unObjectStringPtrCharwiseEquals(
+    const void *voidPtr1,
+    const void *voidPtr2
+);
+
+/*
  * Allocates and returns a new UNObjectString by
  * pointer, copying the specified number of characters
  * from the given character pointer, and inserting that

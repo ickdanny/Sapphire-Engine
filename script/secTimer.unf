@@ -1,0 +1,4 @@
+(secs){    
+    let ticks = secs * updatesPerSecond();
+    tickTimer(ticks);
+}

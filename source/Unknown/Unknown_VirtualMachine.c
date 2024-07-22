@@ -447,7 +447,7 @@ static void unVirtualMachineDefineUserFunc(
             pgWarning((ERRMSG)); \
             unVirtualMachineRuntimeError( \
                 (VMPTR), \
-                "undefined variable"  \
+                "undefined variable; " SRC_LOCATION \
             ); \
             return un_runtimeError; \
         } \
@@ -747,25 +747,59 @@ static UNInterpretResult unVirtualMachineRun(
                  */
                 UNObjectString *name
                     = readString(framePtr);
-                if(!hashMapHasKey(
+
+                UNValue value = {0};
+
+                if(hashMapHasKey(
                     UNObjectString*,
                     UNValue,
                     &(vmPtr->globalsMap),
                     name
                 )){
-                    pgWarning(name->string._ptr);
-                    unVirtualMachineRuntimeError(
-                        vmPtr,
-                        "undefined variable" 
+                    value = hashMapGet(
+                        UNObjectString*,
+                        UNValue,
+                        &(vmPtr->globalsMap),
+                        name
                     );
-                    return un_runtimeError;
                 }
-                UNValue value = hashMapGet(
-                    UNObjectString*,
-                    UNValue,
-                    &(vmPtr->globalsMap),
-                    name
-                );
+                else{
+                    /*
+                     * special case: user defined funcs
+                     * have different string interning,
+                     * so try to do a full O(n)
+                     * charwise string compare
+                     */
+                    vmPtr->globalsMap._equalsFunc
+                    = _unObjectStringPtrCharwiseEquals;
+
+                    if(hashMapHasKey(
+                        UNObjectString*,
+                        UNValue,
+                        &(vmPtr->globalsMap),
+                        name
+                    )){
+                        value = hashMapGet(
+                            UNObjectString*,
+                            UNValue,
+                            &(vmPtr->globalsMap),
+                            name
+                        );
+                        vmPtr->globalsMap._equalsFunc
+                            = _unObjectStringPtrEquals;
+                    }
+                    else{
+                        pgWarning(name->string._ptr);
+                        unVirtualMachineRuntimeError(
+                            vmPtr,
+                            "undefined variable; " 
+                            SRC_LOCATION
+                        );
+                        vmPtr->globalsMap._equalsFunc
+                            = _unObjectStringPtrEquals;
+                        return un_runtimeError;
+                    }
+                }
                 unVirtualMachineStackPush(
                     vmPtr,
                     value
@@ -788,7 +822,8 @@ static UNInterpretResult unVirtualMachineRun(
                     pgWarning(name->string._ptr);
                     unVirtualMachineRuntimeError(
                         vmPtr,
-                        "undefined variable" 
+                        "undefined variable; "
+                        SRC_LOCATION
                     );
                     return un_runtimeError;
                 }

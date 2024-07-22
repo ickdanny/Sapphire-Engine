@@ -1,6 +1,7 @@
 #include "NativeFuncs.h"
 
 #include "GameCommand.h"
+#include "Prototypes.h"
 
 static UNNativeFuncSet *nativeFuncSetPtr = NULL;
 static Bitset playerPosSet;
@@ -171,6 +172,15 @@ DECLARE_FLOAT_CONST(angleEpsilon, _angleEpsilon)
  * considered equal)
  */
 DECLARE_FLOAT_CONST(pointEpsilon, _pointEpsilon)
+
+/*
+ * Returns the number of updates per second the game is
+ * running at
+ */
+DECLARE_INT_CONST(
+    updatesPerSecond,
+    config_updatesPerSecond
+)
 
 /* Returns the game offset as a polar vector */
 DECLARE_POLAR_CONST(
@@ -1913,6 +1923,123 @@ static UNValue startDialogue(int argc, UNValue *argv){
 
 //todo: possibly flag and unflag user defined gameplay
 
+/* SPAWNING */
+
+/*
+ * Queues a new entity to be spawned:
+ * spawn(
+ *      String prototypeID,
+ *      Point pos,
+ *      Vector vel,
+ *      int depthOffset,
+ *      OPTIONAL string scriptID1, 2, 3, 4
+ * )
+ */
+static UNValue spawn(int argc, UNValue *argv){
+    static const char *usageMsg
+        = "spawn(String prototypeID, Point position, "
+            "Vector velocity, int depthOffset, "
+            "OPTIONAL String scriptID1, 2, 3, 4)";
+    if(argc < 4 || argc > 8){
+        pgError(usageMsg);
+    }
+
+    String *prototypeIDPtr
+        = &(unObjectAsString(argv[0])->string);
+    Point2D pos = unAsPoint(argv[1]);
+    Polar vel = unAsVector(argv[2]);
+    int depthOffset = unAsInt(argv[3]);
+
+    String *scriptID1Ptr = NULL;
+    String *scriptID2Ptr = NULL;
+    String *scriptID3Ptr = NULL;
+    String *scriptID4Ptr = NULL;
+    switch(argc){
+        case 8:
+            scriptID4Ptr
+                = &(unObjectAsString(argv[7])->string);
+            /* fallthrough */
+        case 7:
+            scriptID3Ptr
+                = &(unObjectAsString(argv[6])->string);
+            /* fallthrough */
+        case 6:
+            scriptID2Ptr
+                = &(unObjectAsString(argv[5])->string);
+            /* fallthrough */
+        case 5:
+            scriptID1Ptr
+                = &(unObjectAsString(argv[4])->string);
+            /* fallthrough */
+        default:
+            /* do nothing */
+    }
+
+    declareList(componentList, 10);
+
+    /* load the prototype */
+    applyPrototype(
+        _gamePtr,
+        _scenePtr,
+        prototypeIDPtr,
+        &componentList,
+        depthOffset
+    );
+    addPosition(&componentList, pos);
+    addVelocity(&componentList, vel);
+
+    /* add scripts if needed */
+    if(argc > 4){
+        Scripts scripts = {0};
+
+        #define loadScriptIfStringIDValid(SLOT) \
+            do{ \
+                if(!stringIsEmpty( \
+                    scriptID##SLOT##Ptr \
+                )){ \
+                    scripts.vm##SLOT \
+                        = vmPoolRequest(); \
+                    UNObjectFunc *scriptPtr \
+                        = resourcesGetScript( \
+                            _gamePtr->resourcesPtr, \
+                            scriptID##SLOT##Ptr \
+                        ); \
+                    unVirtualMachineLoad( \
+                        scripts.vm##SLOT, \
+                        scriptPtr \
+                    ); \
+                } \
+            } while(false)
+
+        loadScriptIfStringIDValid(1);
+        loadScriptIfStringIDValid(2);
+        loadScriptIfStringIDValid(3);
+        loadScriptIfStringIDValid(4);
+
+        #undef loadScriptIfStringIDValid
+
+        /*
+         * only add scripts if at least one VM is
+         * not null
+         */
+        if(scripts.vm1 || scripts.vm2 
+            || scripts.vm3 || scripts.vm4
+        ){
+            addScripts(&componentList, scripts);
+        }
+
+    }
+
+    addEntityAndFreeList(
+        &componentList,
+        _scenePtr,
+        NULL
+    );
+
+    //todo: prototype funcs should just add components
+    //to the component list
+}
+
 #undef assertArity
 #undef fillComponentPtr
 #undef setComponent
@@ -1973,6 +2100,7 @@ static void init(){
         /* constants */
         addNativeFunc(angleEpsilon);
         addNativeFunc(pointEpsilon);
+        addNativeFunc(updatesPerSecond);
         addNativeFunc(gameOffset);
         addNativeFunc(gameWidth);
         addNativeFunc(gameHeight);
@@ -2081,6 +2209,9 @@ static void init(){
         addNativeFunc(flagWin);
         addNativeFunc(endStage);
         addNativeFunc(startDialogue);
+
+        /* spawning */
+        addNativeFunc(spawn);
         
         #undef addNativeFunc
         #undef addNativeFuncWithName

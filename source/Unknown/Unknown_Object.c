@@ -33,7 +33,7 @@ static UNObject *_unObjectAlloc(
  * An equals function for UNObjectString* that actually
  * walks the strings, used for string interning
  */
-static bool _unObjectStringPtrCharwiseEquals(
+bool _unObjectStringPtrCharwiseEquals(
     const void *voidPtr1,
     const void *voidPtr2
 ){
