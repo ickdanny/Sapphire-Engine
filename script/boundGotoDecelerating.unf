@@ -1,0 +1,27 @@
+(xLow, xHigh, yLow, yHigh, rLow, rHigh, maxSpeed){
+    let pos = getPosition();
+    let r = max(
+        random(rLow, rHigh),
+        random(rLow, rHigh)
+    );
+    let angle = randomAngle();
+    let targetPos = pos + <<r, angle>>;
+
+    #keep rolling until we get a point within the
+    #bounds - DON'T CLAMP!
+
+    let x = targetPos.x;
+    let y = targetPos.y;
+    while(x < xLow | x > xHigh | y < yLow | y > yHigh){
+        r = max(
+            random(rLow, rHigh),
+            random(rLow, rHigh)
+        );
+        angle = randomAngle();
+        targetPos = pos + <<r, angle>>;
+        x = targetPos.x;
+        y = targetPos.y;
+    }
+
+    gotoDecelerating([x, y], maxSpeed);
+}

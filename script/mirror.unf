@@ -1,0 +1,14 @@
+# next func takes position, velocity, and spawn index
+(position, velocity, axis, nextFunc){
+    let mirrorPosition = [
+        -position.x + (2.0 * axis),
+        position.y
+    ];
+    let mirrorVelocity = <<
+        velocity.r,
+        180.0 - velocity.t
+    >>;
+
+    nextFunc(position, velocity, 0);
+    nextFunc(mirrorPosition, mirrorVelocity, 1);
+}

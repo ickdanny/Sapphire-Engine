@@ -1,0 +1,7 @@
+#nextFunc takes velocity and spawn index
+(velocity, count, increment, nextFunc){
+    for(let i = 0; i < count; i = i + 1){
+        nextFunc(velocity, i);
+        velocity.r = velocity.r + increment;
+    }
+}

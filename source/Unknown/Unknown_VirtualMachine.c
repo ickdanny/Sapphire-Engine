@@ -1818,6 +1818,8 @@ static void unVirtualMachineFreeObjects(
         unObjectFree(currentPtr);
         currentPtr = nextPtr;
     }
+    
+    vmPtr->objectListHeadPtr = NULL;
 }
 
 /*

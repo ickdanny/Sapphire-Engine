@@ -1,12 +1,88 @@
-func test(){
-    print pointEpsilon();
+let yOffset = 8.0;
+let shardSpeed = 550.0;
+
+let yOffsetVector = <<yOffset, -90.0>>;
+
+func spawnShard(position, velocity, depthOffset){
+    spawn("shard", position, velocity, depthOffset);
 }
 
-test();
-print angleEpsilon();
+func spawnSingle(posOffset, angle){
+    if(isPlayerFocused()){
+        spawnShard(
+            getPosition() + posOffset
+                + yOffsetVector,
+            <<shardSpeed, -90.0>>,
+            0
+        );
+    }
+    else{
+        spawnShard(
+            getPosition() + posOffset
+                + yOffsetVector,
+            <<shardSpeed, angle>>,
+            0
+        );
+    }
+}
 
-secTimer(2.5);
-print "hello world";
-secTimer(2.5);
-print "goodbye world";
-error("lol");
+func spawnPair(posOffset, angleRight, depthOffset){
+    let position = getPosition();
+    let mirrorAxis = position.x;
+    let velocity;
+    if(isPlayerFocused()){
+        velocity = <<shardSpeed, -90.0>>;
+    }
+    else{
+        velocity = <<shardSpeed, angleRight>>;
+    }
+    mirror(
+        rightPos, velocity, mirrorAxis, spawnShard
+    );
+}
+
+# bucket func; each lasts about 30 ticks
+
+let zeroVec = <<0, 0>>;
+
+func func0(){
+    # 5 spawns
+    for(let i = 0; i < 5; i = i + 1){
+        spawnSingle(zeroVec, -90.0);
+        tickTimer(6);
+    }
+}
+
+func func1(){
+    print "TODO: func1";
+}
+
+func func2(){
+    print "TODO: func2";
+}
+
+func func3(){
+    print "TODO: func3";
+}
+
+func func4(){
+    print "TODO: func4";
+}
+
+func func5(){
+    print "TODO: func5";
+}
+
+func func6(){
+    print "TODO: func6";
+}
+
+playerPowerSplit(
+    func0,
+    func1,
+    func2,
+    func3,
+    func4,
+    func5,
+    func6
+);

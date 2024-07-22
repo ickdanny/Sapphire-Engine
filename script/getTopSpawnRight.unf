@@ -1,0 +1,7 @@
+(x){
+    let preOffset = [
+        gameWidth() - x,
+        -enemySpawnDist()
+    ];
+    return preOffset + gameOffset();
+}

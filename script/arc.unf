@@ -1,0 +1,9 @@
+# nextFunc takes velocity and spawn index
+(velocity, symmetry, increment, nextFunc){
+    velocity.t = velocity.t
+        - ((symmetry - 1) * increment / 2.0);
+    for(let i = 0; i < symmetry; i = i + 1){
+        nextFunc(velocity, i);
+        velocity.t = velocity.t + increment;
+    }
+}

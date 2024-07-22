@@ -1,0 +1,18 @@
+(direction, acceleration, dragCoefficient){
+    let velocity;
+    let speed;
+    let drag;
+    let accelVector = <<acceleration, direction>>;
+
+    while(true){
+        velocity = getVelocity();
+        velocity = velocity + accelVector;
+        speed = velocity.r;
+
+        #technically should have a 0.5 term
+        drag = speed * speed * dragCoefficient;
+        velocity.r = speed = drag;
+        setVelocity(velocity);
+        yield;
+    }
+}

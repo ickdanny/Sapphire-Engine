@@ -339,22 +339,12 @@ void unObjectFree(UNObject *objectPtr){
         case un_stringObject: {
             UNObjectString *stringPtr
                 = (UNObjectString*)objectPtr;
-            printf(
-                "free: \"%s\"\n",
-                stringPtr->string._ptr
-            );
             stringFree(&(stringPtr->string));
             break;
         }
         case un_funcObject: {
             UNObjectFunc *funcPtr
                 = (UNObjectFunc*)objectPtr;
-            printf(
-                "free func: %s\n",
-                funcPtr->namePtr != NULL
-                    ? funcPtr->namePtr->string._ptr
-                    : "*unnamed func*"
-            );
             /* functions own their own code; free it */
             unProgramFree(&(funcPtr->program));
             break;

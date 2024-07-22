@@ -1977,7 +1977,10 @@ static UNValue spawn(int argc, UNValue *argv){
 
     declareList(componentList, 10);
 
-    /* load the prototype */
+    /*
+     * load the prototype, passing depth offset to the
+     * sprite instruction
+     */
     applyPrototype(
         _gamePtr,
         _scenePtr,
@@ -1985,6 +1988,7 @@ static UNValue spawn(int argc, UNValue *argv){
         &componentList,
         depthOffset
     );
+
     addPosition(&componentList, pos);
     addVelocity(&componentList, vel);
 
@@ -2027,7 +2031,6 @@ static UNValue spawn(int argc, UNValue *argv){
         ){
             addScripts(&componentList, scripts);
         }
-
     }
 
     addEntityAndFreeList(
@@ -2036,8 +2039,7 @@ static UNValue spawn(int argc, UNValue *argv){
         NULL
     );
 
-    //todo: prototype funcs should just add components
-    //to the component list
+    return unBoolValue(false);
 }
 
 #undef assertArity

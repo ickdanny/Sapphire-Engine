@@ -1,0 +1,21 @@
+(targetSpeed, increment){
+    let currentSpeed = entitySpeed();
+
+    while(currentSpeed != targetSpeed){
+        currentSpeed = currentSpeed + increment;
+        if(increment >= 0
+            & currentSpeed >= targetSpeed
+        ){
+            setSpeed(targetSpeed);
+            return;
+        }
+        else if(increment <= 0
+            & currentSpeed <= targetSpeed
+        ){
+            setSpeed(targetSpeed);
+            return;
+        }
+        setSpeed(currentSpeed);
+        yield;
+    }
+}

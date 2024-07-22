@@ -1,0 +1,22 @@
+(targetAngle, increment){
+    let currentAngle = entityAngle();
+
+    while(currentAngle != targetAngle){
+        currentAngle = currentAngle + increment;
+        if(increment >= 0
+            & currentAngle >= targetAngle
+        ){
+            setAngle(targetAngle);
+            return;
+        }
+        else if(increment <= 0
+            & currentAngle <= targetAngle
+        ){
+            setAngle(targetAngle);
+            return;
+        }
+        
+        setAngle(currentAngle);
+        yield;
+    }
+}
