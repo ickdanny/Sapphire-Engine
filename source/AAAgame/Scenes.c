@@ -49,6 +49,7 @@ void sceneMessagesClear(
         &(messagesPtr->menuNavigationCommands)
     );
     messagesPtr->backMenuCommand = menu_none;
+    messagesPtr->backSceneID = scene_numScenes;
     messagesPtr->currentElement = (WindEntity){0};
     messagesPtr->elementChanges.newElementSelected
         = false;
@@ -61,6 +62,9 @@ void sceneMessagesClear(
     arrayListClear(GameCommand,
         &(messagesPtr->gameCommands)
     );
+    messagesPtr->playerStateEntry.playerHandle
+        = (WindEntity){0};
+    messagesPtr->playerStateEntry.state = player_none;
     arrayListClear(WindEntity,
         &(messagesPtr->playerHits)
     );

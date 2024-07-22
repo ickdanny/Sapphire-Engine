@@ -47,6 +47,33 @@ static void addPlayerShot(
             &(scenePtr->ecsWorld),
             windQueryItrCurrentID(&itr)
         );
+
+        /* bail if the player is in the wrong state */
+        PlayerData *playerDataPtr
+            = windWorldHandleGetPtr(PlayerData,
+                &(scenePtr->ecsWorld),
+                handle
+            );
+        switch(playerDataPtr->stateMachine.state){
+            case player_normal:
+            case player_bombing:
+            case player_respawnIFrames:
+                /* continue by adding shot */
+                break;
+            case player_none:
+            case player_dead:
+            case player_respawning:
+            case player_gameOver:
+                /* bail out */
+                continue;
+            default:
+                pgError(
+                    "unexpected player state; "
+                    SRC_LOCATION
+                );
+                continue;
+        }
+
         /* if player has scripts, add in slot 4 */
         if(windWorldHandleContainsComponent(Scripts,
             &(scenePtr->ecsWorld),

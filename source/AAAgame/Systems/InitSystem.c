@@ -859,7 +859,7 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
         //todo get init power
         playerData.stateMachine.state
             = player_normal;
-        playerData.stateMachine.timer = 0;
+        playerData.stateMachine.timer = -1;
     }
     addPlayer(gamePtr, scenePtr, playerData);
 

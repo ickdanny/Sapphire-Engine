@@ -10,7 +10,6 @@
 
 #include "ScriptSystem.h"
 #include "PlayerMovementSystem.h"
-
 #include "VelocitySystem.h"
 #include "InboundSystem.h"
 #include "CollisionDetectionSystem.h"
@@ -19,7 +18,10 @@
 #include "PlayerShotSystem.h"
 #include "PlayerStateSystem.h"
 #include "PlayerBombSystem.h"
-
+#include "PlayerDeathSystem.h"
+#include "ContinueSystem.h"
+#include "PlayerRespawnSystem.h"
+#include "PlayerReactivateSystem.h"
 #include "DeathHandlerSystem.h"
 
 #include "PauseSystem.h"
@@ -28,6 +30,8 @@
 #include "SpriteSpinSystem.h"
 #include "TileScrollSystem.h"
 #include "OutboundSystem.h"
+#include "GameOverSystem.h"
+#include "CreditsSystem.h"
 
 /* Updates the specified scene */
 void updateScene(Game *gamePtr, Scene *scenePtr){
@@ -49,11 +53,11 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     playerShotSystem(gamePtr, scenePtr);
     playerStateSystem(gamePtr, scenePtr);
     playerBombSystem(gamePtr, scenePtr);
-    //todo call player bomb system (?)
-    //todo call player death detector system (?)
-    //todo call continue system
-    //todo call player respawn system (?)
-    //todo call player reactivate system (?)
+    playerDeathSystem(gamePtr, scenePtr);
+    //todo: need to init the continue scene
+    continueSystem(gamePtr, scenePtr);
+    playerRespawnSystem(gamePtr, scenePtr);
+    playerReactivateSystem(gamePtr, scenePtr);
     deathHandlerSystem(gamePtr, scenePtr);
     //todo call overlay system
     pauseSystem(gamePtr, scenePtr);
@@ -62,6 +66,6 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     spriteSpinSystem(gamePtr, scenePtr);
     tileScrollSystem(gamePtr, scenePtr);
     outboundSystem(gamePtr, scenePtr);
-    //todo call game over system
-    //todo call credits system
+    gameOverSystem(gamePtr, scenePtr);
+    creditsSystem(gamePtr, scenePtr);
 }

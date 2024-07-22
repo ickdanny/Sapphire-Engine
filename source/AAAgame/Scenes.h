@@ -81,7 +81,8 @@ typedef struct SceneMessages{
 
     /*
      * Timer used by systems; -1 if not currently in
-     * use; loading screen system
+     * use; loading screen system, continue system,
+     * credits system
      */
     int timer1;
 
