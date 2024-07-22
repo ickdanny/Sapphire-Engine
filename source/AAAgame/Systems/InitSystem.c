@@ -857,7 +857,7 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
         playerData.bombs = config_initBombs;
         playerData.continues = config_initContinues;
         //todo get init power
-        playerData.stateMachine.playerState
+        playerData.stateMachine.state
             = player_normal;
         playerData.stateMachine.timer = 0;
     }

@@ -6,6 +6,7 @@
 
 #include "MenuCommand.h"
 #include "GameBuilderCommand.h"
+#include "PlayerData.h"
 
 /* used to identify the different kinds of scenes */
 typedef enum SceneID{
@@ -98,6 +99,15 @@ typedef struct SceneMessages{
      * system
      */
     ArrayList gameCommands;
+
+    /*
+     * Set whenever player enters a new state, handled
+     * by player state system
+     */
+    struct{
+        WindEntity playerHandle;
+        PlayerState state;
+    } playerStateEntry;
 
     /*
      * List of WindEntity for player hits, handled

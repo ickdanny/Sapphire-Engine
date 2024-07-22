@@ -118,7 +118,7 @@ typedef uint_fast8_t PlayerMoveState;
 static bool playerCanMove(
     const PlayerData *playerDataPtr
 ){
-    switch(playerDataPtr->stateMachine.playerState){
+    switch(playerDataPtr->stateMachine.state){
         case player_normal:
         case player_bombing:
         case player_respawnIFrames:

@@ -22,7 +22,7 @@ typedef struct PlayerData{
     int continues;
     int power;
     struct {
-        PlayerState playerState;
+        PlayerState state;
         int timer;
     } stateMachine;
 } PlayerData;

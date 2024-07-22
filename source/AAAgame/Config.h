@@ -138,6 +138,12 @@
 #define config_respawnIFrameTicks 180
 
 /*
+ * The number of game ticks the player has IFrames
+ * when bombing
+ */
+#define config_bombIFrameTicks 300
+
+/*
  * The initial number of lives given to players at the
  * start of gameplay
  */
