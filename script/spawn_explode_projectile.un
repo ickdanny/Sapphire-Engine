@@ -1,2 +1,7 @@
-print "TODO: spawn explode projectile";
-error("lol");
+spawn(
+    "explode_projectile",
+    getPosition(),
+    <<0, 0>>,
+    0,
+    "remove_explode_projectile"
+);

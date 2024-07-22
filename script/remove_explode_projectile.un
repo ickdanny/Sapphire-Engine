@@ -1,2 +1,2 @@
-tickTimer(30);
+tickTimer(6);
 removeEntity();

@@ -1113,25 +1113,8 @@ bool _windWorldIDRemoveComponent(
             worldPtr,
             entityID
         );
-    /* run destructor if needed */
-    WindComponentMetadata componentMetadata
-        = windComponentsGet(
-            worldPtr->_componentsPtr,
-            componentID
-        );
-    if(componentMetadata._componentSize != 0
-        && componentMetadata._destructor
-    ){
-        void *componentPtrIntoArchetype
-            = __windArchetypeGetPtr(
-                oldArchetypePtr,
-                componentID,
-                entityID
-            );
-        componentMetadata._destructor(
-            componentPtrIntoArchetype
-        );
-    }
+    /* do not run destructor; archetype move will */
+    
     /* update component set */
     bitsetUnset(
         &(entityMetadataPtr->_componentSet),

@@ -174,9 +174,14 @@ bool stepAnimation(Animations *animationsPtr){
     if(nextIndex
         >= currentAnimationPtr->frameNames.size
     ){
+        /*
+         * if not looping return false to remove the
+         * animation
+         */
         if(!currentAnimationPtr->looping){
             return false;
         }
+        /* otherwise loop back to index 0 */
         nextIndex = 0;
     }
     currentAnimationPtr->currentIndex = nextIndex;
@@ -204,7 +209,7 @@ bool handleAnimation(
         animationsPtr
     );
     if(!turned){
-        currentAnimationOver = stepAnimation(
+        currentAnimationOver = !stepAnimation(
             animationsPtr
         );
     }

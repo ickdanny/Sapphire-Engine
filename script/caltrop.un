@@ -1,3 +1,8 @@
-let limit = gameHeight() - 10.0;
+# adjust y coordinate limit to taste
+let limit = gameHeight() + 10.0;
+
 wait getY() > limit;
+
+# set y coordinate to the limit exactly for consistency
+setPosition([getX(), limit]);
 die();

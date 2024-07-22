@@ -1,2 +1,28 @@
-print "todo: death caltrop";
-error("lol");
+let spikeSpeed = 550.0;
+
+let position = getPosition();
+
+spawn(
+    "spike_bottomLeft",
+    position,
+    <<spikeSpeed, 135.0>>,
+    0
+);
+spawn(
+    "spike_bottomRight",
+    position,
+    <<spikeSpeed, 45.0>>,
+    0
+);
+spawn(
+    "spike_topLeft",
+    position,
+    <<spikeSpeed, 225.0>>,
+    0
+);
+spawn(
+    "spike_topRight",
+    position,
+    <<spikeSpeed, -45.0>>,
+    0
+);

@@ -109,7 +109,6 @@ void playerShotSystem(Game *gamePtr, Scene *scenePtr){
                 i
             ) == game_shoot
         ){
-            pgWarning("adding player shot");
             addPlayerShot(gamePtr, scenePtr);
             break;
         }

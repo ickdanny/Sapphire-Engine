@@ -9,6 +9,10 @@
 #define caltropDamage 400
 #define caltropOutbound -30.0f /* just in case */
 
+#define spikeHitboxRadius 5.0f
+#define spikeDamage 100
+#define spikeOutbound -30.0f
+
 #define bombHitboxRadius 25.0f
 #define bombDamagePerTick 1 /* small; bomb explodes */
 #define bombOutbound -100.0f /* just in case */
@@ -30,6 +34,8 @@ typedef void (*PrototypeFunction)(
         ArrayList *componentListPtr, \
         int depthOffset \
     )
+
+/* PLAYER PROTOTYPES */
 
 DECLARE_PROTOTYPE(shard){
     addVisible(componentListPtr);
@@ -91,6 +97,85 @@ DECLARE_PROTOTYPE(caltrop){
     }));
 }
 
+#define DECLARE_SPIKE_PROTOTYPE(NAME) \
+    DECLARE_PROTOTYPE(NAME){ \
+        addVisible(componentListPtr); \
+        addCollidable(componentListPtr); \
+        addHitbox( \
+            componentListPtr, \
+            aabbFromRadius(spikeHitboxRadius) \
+        ); \
+        addEnemyCollisionSource( \
+            componentListPtr, \
+            collision_death \
+        ); \
+        addDamage(componentListPtr, spikeDamage); \
+        addOutbound(componentListPtr, spikeOutbound); \
+        addSpriteInstructionSimple( \
+            componentListPtr, \
+            gamePtr, \
+            #NAME, \
+            config_playerBulletDepth + depthOffset, \
+            (Vector2D){0} \
+        ); \
+        addDeathCommand( \
+            componentListPtr, \
+            death_script \
+        ); \
+        addDeathScripts( \
+            componentListPtr, \
+            ((DeathScripts){ \
+                .scriptID1 = stringMakeC( \
+                    "remove_ghost" \
+                ), \
+                .scriptID3 = stringMakeC( \
+                    "spawn_explode_projectile" \
+                ) \
+            }) \
+        ); \
+    }
+DECLARE_SPIKE_PROTOTYPE(spike_bottomLeft)
+DECLARE_SPIKE_PROTOTYPE(spike_bottomRight)
+DECLARE_SPIKE_PROTOTYPE(spike_topLeft)
+DECLARE_SPIKE_PROTOTYPE(spike_topRight)
+#undef DECLARE_SPIKE_PROTOTYPE
+
+/* MISCELLANEOUS PROTOTYPES */
+
+DECLARE_PROTOTYPE(explode_projectile){
+    pgWarning("spawning explode projectile");
+    addVisible(componentListPtr);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "explode_projectile1",
+        config_effectDepth + depthOffset,
+        (Vector2D){0}
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(false);
+    animationAddFrame(
+        &animation,
+        "explode_projectile1"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_projectile2"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_projectile3"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = 2;
+    addAnimations(componentListPtr, &animations);
+}
+
 /* map from char* (unowned) to PrototypeFunction */
 static HashMap prototypeFunctionMap;
 static bool initialized = false;
@@ -129,8 +214,17 @@ static void init(){
                 FUNCNAME \
             )
 
+        /* player prototypes */
         addPrototypeFunction(shard);
         addPrototypeFunction(caltrop);
+        addPrototypeFunction(spike_bottomLeft);
+        addPrototypeFunction(spike_bottomRight);
+        addPrototypeFunction(spike_topLeft);
+        addPrototypeFunction(spike_topRight);
+
+        /* miscellaneous prototypes */
+        addPrototypeFunction(explode_projectile);
+
         //todo add other prototype functions
 
         #undef addPrototypeFunction
