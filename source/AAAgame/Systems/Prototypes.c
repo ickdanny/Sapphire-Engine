@@ -13,11 +13,11 @@
 #define spikeDamage 100
 #define spikeOutbound -30.0f
 
-#define bombHitboxRadius 25.0f
+#define bombHitboxRadius 20.0f
 #define bombDamagePerTick 1 /* small; bomb explodes */
 #define bombOutbound -100.0f /* just in case */
 
-#define bombExplodeHitboxRadius 35.0f
+#define bombExplodeHitboxRadius 27.0f
 #define bombExplodeDamage 2000
 
 typedef void (*PrototypeFunction)(
@@ -140,6 +140,108 @@ DECLARE_SPIKE_PROTOTYPE(spike_topLeft)
 DECLARE_SPIKE_PROTOTYPE(spike_topRight)
 #undef DECLARE_SPIKE_PROTOTYPE
 
+DECLARE_PROTOTYPE(bomb){
+    addVisible(componentListPtr);
+    addCollidable(componentListPtr);
+    addHitbox(
+        componentListPtr,
+        aabbFromRadius(bombHitboxRadius)
+    );
+    /* bomb explodes on enemies */
+    addEnemyCollisionSource(
+        componentListPtr,
+        collision_death
+    );
+    /*
+     * bullets collide with bomb but nothing happens
+     * to bomb
+     */
+    addBulletCollisionSource(
+        componentListPtr,
+        collision_none
+    );
+    addDamage(componentListPtr, bombDamagePerTick);
+    addOutbound(componentListPtr, bombOutbound);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "bomb1",
+        config_playerBulletDepth + depthOffset,
+        (Vector2D){0}
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(&animation, "bomb1");
+    animationAddFrame(&animation, "bomb2");
+    animationAddFrame(&animation, "bomb3");
+    animationAddFrame(&animation, "bomb4");
+    animationAddFrame(&animation, "bomb5");
+    animationAddFrame(&animation, "bomb6");
+    animationAddFrame(&animation, "bomb7");
+    animationAddFrame(&animation, "bomb8");
+    animationAddFrame(&animation, "bomb9");
+    animationAddFrame(&animation, "bomb10");
+    animationAddFrame(&animation, "bomb11");
+    animationAddFrame(&animation, "bomb12");
+    animationAddFrame(&animation, "bomb13");
+    animationAddFrame(&animation, "bomb14");
+    animationAddFrame(&animation, "bomb15");
+    animationAddFrame(&animation, "bomb16");
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = 3;
+    addAnimations(componentListPtr, &animations);
+
+    addRotateSpriteForward(componentListPtr);
+    addDeathCommand(componentListPtr, death_script);
+    addDeathScripts(componentListPtr, ((DeathScripts){
+        .scriptID1 = stringMakeC("remove_ghost"),
+        .scriptID3 = stringMakeC(
+            "spawn_explode_bomb"
+        )
+    }));
+}
+
+DECLARE_PROTOTYPE(explode_bomb){
+    addVisible(componentListPtr);
+    addCollidable(componentListPtr);
+    addHitbox(
+        componentListPtr,
+        aabbFromRadius(bombExplodeHitboxRadius)
+    );
+    addBulletCollisionSource(
+        componentListPtr,
+        collision_none
+    );
+    addDamage(componentListPtr, bombExplodeDamage);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "explode_bomb1",
+        config_playerBulletDepth + depthOffset,
+        (Vector2D){0}
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(false);
+    animationAddFrame(&animation, "explode_bomb1");
+    animationAddFrame(&animation, "explode_bomb2");
+    animationAddFrame(&animation, "explode_bomb3");
+    animationAddFrame(&animation, "explode_bomb4");
+    animationAddFrame(&animation, "explode_bomb5");
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = 2;
+    addAnimations(componentListPtr, &animations);
+}
+
 /* MISCELLANEOUS PROTOTYPES */
 
 DECLARE_PROTOTYPE(explode_projectile){
@@ -221,6 +323,8 @@ static void init(){
         addPrototypeFunction(spike_bottomRight);
         addPrototypeFunction(spike_topLeft);
         addPrototypeFunction(spike_topRight);
+        addPrototypeFunction(bomb);
+        addPrototypeFunction(explode_bomb);
 
         /* miscellaneous prototypes */
         addPrototypeFunction(explode_projectile);

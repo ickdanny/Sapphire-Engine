@@ -1,0 +1,6 @@
+# the script for the bomb projectile movement
+
+let finalSpeed = 190.0;
+let speedPeriod = 220;
+
+shiftSpeedPeriod(finalSpeed, speedPeriod);

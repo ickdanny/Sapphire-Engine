@@ -1,5 +1,5 @@
 (targetSpeed, increment){
-    let currentSpeed = entitySpeed();
+    let currentSpeed = getSpeed();
 
     while(currentSpeed != targetSpeed){
         currentSpeed = currentSpeed + increment;

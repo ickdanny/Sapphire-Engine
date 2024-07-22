@@ -54,9 +54,8 @@ void rotateSpriteForwardSystem(
             Velocity,
             &itr
         );
-        //todo: test if rotate sprite forward works
         spriteInstructionPtr->rotation
-            = velocityPtr->angle + 90.0f;
+            = -velocityPtr->angle + 90.0f;
         windQueryItrAdvance(&itr);
     }
 }

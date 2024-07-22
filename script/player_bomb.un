@@ -1,0 +1,33 @@
+let initSpeed = -90.0;
+let symmetry = 5;
+let angleInc = 17.0;
+
+let pos = getPosition();
+
+func spawnBombs(velocity, depthOffset){
+    spawn(
+        "bomb",
+        pos,
+        velocity,
+        depthOffset,
+        "bomb",
+        "bomb_die_on_wall_upper"
+    );
+
+    spawn(
+        "bomb",
+        pos,
+        <<velocity.r, 180.0 + velocity.t>>,
+        depthOffset,
+        "bomb",
+        "bomb_die_on_wall_lower"
+    );
+
+    # wait between bombs to prevent them all from
+    # detonating on the same enemy
+    tickTimer(2);
+}
+
+let baseVel = <<initSpeed, -90.0>>;
+
+arc(baseVel, symmetry, angleInc, spawnBombs);

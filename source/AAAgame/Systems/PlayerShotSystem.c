@@ -47,7 +47,7 @@ static void addPlayerShot(
             &(scenePtr->ecsWorld),
             windQueryItrCurrentID(&itr)
         );
-        /* if player has scripts, just add it */
+        /* if player has scripts, add in slot 4 */
         if(windWorldHandleContainsComponent(Scripts,
             &(scenePtr->ecsWorld),
             handle
@@ -80,8 +80,7 @@ static void addPlayerShot(
                     &shotID
                 )
             );
-            windWorldHandleQueueAddComponent(
-                Scripts,
+            windWorldHandleQueueAddComponent(Scripts,
                 &(scenePtr->ecsWorld),
                 handle,
                 &scripts

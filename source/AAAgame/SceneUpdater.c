@@ -18,6 +18,7 @@
 #include "ClearSystem.h"
 #include "PlayerShotSystem.h"
 #include "PlayerStateSystem.h"
+#include "PlayerBombSystem.h"
 
 #include "DeathHandlerSystem.h"
 
@@ -47,6 +48,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     clearSystem(gamePtr, scenePtr);
     playerShotSystem(gamePtr, scenePtr);
     playerStateSystem(gamePtr, scenePtr);
+    playerBombSystem(gamePtr, scenePtr);
     //todo call player bomb system (?)
     //todo call player death detector system (?)
     //todo call continue system
