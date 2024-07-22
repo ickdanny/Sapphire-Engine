@@ -440,6 +440,24 @@
         ); \
     } while(false)
 
+/*
+ * Queues the addition of an entity to the specified
+ * scene and frees the component list
+ */
+#define queueAddEntityAndFreeList( \
+    LISTPTR, \
+    SCENEPTR \
+) \
+    do{ \
+        windWorldQueueAddEntity( \
+            &((SCENEPTR)->ecsWorld), \
+            (LISTPTR) \
+        ); \
+        arrayListFree(WindComponentDataPair, \
+            (LISTPTR) \
+        ); \
+    } while(false)
+
 //todo: utility func to queue entity instead of add
 
 #endif

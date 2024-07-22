@@ -1,0 +1,3 @@
+let limit = gameHeight() - 10.0;
+wait getY() > limit;
+die();

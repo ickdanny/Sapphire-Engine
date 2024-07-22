@@ -1,5 +1,6 @@
 let yOffset = 8.0;
 let shardSpeed = 550.0;
+let caltropSpeed = 333.0;
 
 let yOffsetVector = <<yOffset, -90.0>>;
 
@@ -7,7 +8,7 @@ func spawnShard(position, velocity, depthOffset){
     spawn("shard", position, velocity, depthOffset);
 }
 
-func spawnSingle(posOffset, angle){
+func spawnSingleShard(posOffset, angle){
     if(isPlayerFocused()){
         spawnShard(
             getPosition() + posOffset
@@ -26,18 +27,55 @@ func spawnSingle(posOffset, angle){
     }
 }
 
-func spawnPair(posOffset, angleRight, depthOffset){
+func spawnShardPair(posOffsetRight, angleRight){
     let position = getPosition();
     let mirrorAxis = position.x;
-    let velocity;
+    let posRight = position + posOffsetRight;
+    let velRight;
     if(isPlayerFocused()){
-        velocity = <<shardSpeed, -90.0>>;
+        velRight = <<shardSpeed, -90.0>>;
     }
     else{
-        velocity = <<shardSpeed, angleRight>>;
+        velRight = <<shardSpeed, angleRight>>;
     }
     mirror(
-        rightPos, velocity, mirrorAxis, spawnShard
+        posRight, velRight, mirrorAxis, spawnShard
+    );
+}
+
+func spawnCaltrop(position, velocity, depthOffset){
+    # todo: caltrop has a script to kill on wall
+    spawn(
+        "caltrop",
+        position,
+        velocity,
+        depthOffset,
+        "caltrop"
+    );
+}
+
+func spawnSingleCaltrop(posOffset){
+    spawnCaltrop(
+        getPosition() + posOffset
+            + yOffsetVector,
+        <<caltropSpeed, -90.0>>,
+        0
+    );
+}
+
+func spawnCaltropPair(posOffsetRight, angleRight){
+    let position = getPosition();
+    let mirrorAxis = position.x;
+    let posRight = position + posOffsetRight;
+    let velRight;
+    if(isPlayerFocused()){
+        velRight = <<shardSpeed, -90.0>>;
+    }
+    else{
+        velRight = <<shardSpeed, angleRight>>;
+    }
+    mirror(
+        posRight, velRight, mirrorAxis, spawnCaltrop
     );
 }
 
@@ -48,13 +86,15 @@ let zeroVec = <<0, 0>>;
 func func0(){
     # 5 spawns
     for(let i = 0; i < 5; i = i + 1){
-        spawnSingle(zeroVec, -90.0);
+        spawnSingleShard(zeroVec, -90.0);
         tickTimer(6);
     }
 }
 
 func func1(){
-    print "TODO: func1";
+    # 5 spawns + caltrop
+    spawnSingleCaltrop(zeroVec);
+    func0();
 }
 
 func func2(){
@@ -78,7 +118,8 @@ func func6(){
 }
 
 playerPowerSplit(
-    func0,
+    # func0,
+    func1,
     func1,
     func2,
     func3,

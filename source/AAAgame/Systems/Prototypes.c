@@ -53,11 +53,42 @@ DECLARE_PROTOTYPE(shard){
     );
     addRotateSpriteForward(componentListPtr);
     addDeathCommand(componentListPtr, death_script);
-    addDeathScripts(componentListPtr, (DeathScripts){
-        .scriptID1 = stringMakeC(
+    addDeathScripts(componentListPtr, ((DeathScripts){
+        .scriptID1 = stringMakeC("remove_ghost"),
+        .scriptID3 = stringMakeC(
             "spawn_explode_projectile"
         )
-    });
+    }));
+}
+
+DECLARE_PROTOTYPE(caltrop){
+    addVisible(componentListPtr);
+    addCollidable(componentListPtr);
+    addHitbox(
+        componentListPtr,
+        aabbFromRadius(caltropHitboxRadius)
+    );
+    addEnemyCollisionSource(
+        componentListPtr,
+        collision_death
+    );
+    addDamage(componentListPtr, caltropDamage);
+    addOutbound(componentListPtr, caltropOutbound);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "caltrop",
+        config_playerBulletDepth + depthOffset,
+        (Vector2D){0}
+    );
+    addDeathCommand(componentListPtr, death_script);
+    addDeathScripts(componentListPtr, ((DeathScripts){
+        .scriptID1 = stringMakeC("remove_ghost"),
+        .scriptID3 = stringMakeC(
+            "spawn_explode_projectile"
+        ),
+        .scriptID4 = stringMakeC("death_caltrop")
+    }));
 }
 
 /* map from char* (unowned) to PrototypeFunction */
@@ -99,6 +130,7 @@ static void init(){
             )
 
         addPrototypeFunction(shard);
+        addPrototypeFunction(caltrop);
         //todo add other prototype functions
 
         #undef addPrototypeFunction

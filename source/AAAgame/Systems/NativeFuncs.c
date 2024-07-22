@@ -1998,9 +1998,11 @@ static UNValue spawn(int argc, UNValue *argv){
 
         #define loadScriptIfStringIDValid(SLOT) \
             do{ \
-                if(!stringIsEmpty( \
-                    scriptID##SLOT##Ptr \
-                )){ \
+                if((scriptID##SLOT##Ptr) \
+                    && !stringIsEmpty( \
+                        scriptID##SLOT##Ptr \
+                    ) \
+                ){ \
                     scripts.vm##SLOT \
                         = vmPoolRequest(); \
                     UNObjectFunc *scriptPtr \
@@ -2033,10 +2035,9 @@ static UNValue spawn(int argc, UNValue *argv){
         }
     }
 
-    addEntityAndFreeList(
+    queueAddEntityAndFreeList(
         &componentList,
-        _scenePtr,
-        NULL
+        _scenePtr
     );
 
     return unBoolValue(false);

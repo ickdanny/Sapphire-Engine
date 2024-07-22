@@ -1311,7 +1311,7 @@ void windWorldQueueAddEntity(
         ++i
     ){
         dataPair = arrayListGet(WindComponentDataPair,
-            &(worldPtr->_addEntityQueue),
+            componentDataPairListPtr,
             i
         );
         componentMetadata = windComponentsGet(
@@ -1323,7 +1323,7 @@ void windWorldQueueAddEntity(
     }
     /* 
      * base ptr to the block with all components;
-     * allocate unless 
+     * allocate unless all markers
      */
     void *entireComponentDataBasePtr = NULL;
     if(entireComponentDataSize != 0){
@@ -1344,7 +1344,7 @@ void windWorldQueueAddEntity(
     ){
         /* make a value copy of the data pair */
         dataPair = arrayListGet(WindComponentDataPair,
-            &(worldPtr->_addEntityQueue),
+            componentDataPairListPtr,
             i
         );
         componentMetadata = windComponentsGet(
@@ -1362,12 +1362,12 @@ void windWorldQueueAddEntity(
                 dataPair.componentPtr,
                 componentMetadata._componentSize
             );
+            dataPair.componentPtr
+                = currentComponentPtr;
             currentComponentPtr = voidPtrAdd(
                 currentComponentPtr,
                 componentMetadata._componentSize
             );
-            dataPair.componentPtr
-                = currentComponentPtr;
         }
         /* push to the copy list */
         arrayListPushBack(WindComponentDataPair,
