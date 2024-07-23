@@ -4,6 +4,7 @@
 #include "WindECS.h"
 #include "ZMath.h"
 
+#include "Config.h"
 #include "MenuCommand.h"
 #include "GameBuilderCommand.h"
 #include "PlayerData.h"
@@ -147,6 +148,30 @@ typedef struct SceneMessages{
      * completing a stage, handled by the stage script
      */
     bool winFlag;
+
+    /*
+     * Signal to add lives to the player, handled by
+     * player life add system
+     */
+    int livesToAdd;
+
+    /*
+     * Signal to add bombs to the player, handled by
+     * player bomb add system
+     */
+    int bombsToAdd;
+
+    /*
+     * Used by the overlay system to hold handles to
+     * ui elements
+     */
+    struct{
+        WindEntity lifeHandles[config_maxLives];
+        int lifeIndex;
+        WindEntity bombHandles[config_maxLives];
+        int bombIndex;
+        WindEntity powerHandle;
+    } overlayData;
 
     /* 
      * List of player Collision handled by collision

@@ -75,6 +75,13 @@ void sceneMessagesClear(
     messagesPtr->clearFlag = false;
     messagesPtr->pauseFlag = false;
     messagesPtr->winFlag = false;
+    messagesPtr->livesToAdd = 0;
+    messagesPtr->bombsToAdd = 0;
+    memset(
+        &(messagesPtr->overlayData),
+        0,
+        sizeof(messagesPtr->overlayData)
+    );
     arrayListClear(Collision,
         &(messagesPtr->playerCollisionList)
     );

@@ -781,9 +781,9 @@ static WindEntity addPlayer(
         &componentList,
         collision_none
     );
-    //todo death command
-    //todo script list
-    //todo death spawn
+    //todo player death command
+    //todo player script list
+    //todo player death spawn
     /* add player animations */
     Animations animations = animationListMake();
     Animation leftAnimation = animationMake(true);
@@ -825,6 +825,152 @@ static WindEntity addPlayer(
         &toRet
     );
     return toRet;
+}
+
+/* initializes the entities for the overlay */
+static void addOverlayElements(
+    Game *gamePtr,
+    Scene *scenePtr,
+    int power
+){
+    #define initX 242.0f
+    #define initY (config_graphicsHeight - 28.0f)
+    #define xOffset 13.0f
+    #define yOffset -27.0f
+    static const Vector2D offset = {xOffset, 0.0f};
+    static const Point2D lifeInitPos = {initX, initY};
+    static const Point2D bombInitPos
+        = {initX, initY + yOffset};
+    static const Point2D powerPos
+        = {initX + 37.0f, initY + (2 * yOffset)};
+
+    /* add the lives */
+    Point2D pos = lifeInitPos;
+    for(int i = 0; i < config_maxLives; ++i){
+        declareList(componentList, 10);
+        /* do not make the entities visible */
+        addPosition(&componentList, pos);
+        addSpriteInstructionSimple(
+            &componentList,
+            gamePtr,
+            "overlay_spawn_life1",
+            config_foregroundDepth + 10,
+            (Vector2D){0}
+        );
+        Animations animations = animationListMake();
+        Animation animation = animationMake(false);
+        animationAddFrame(
+            &animation,
+            "overlay_spawn_life1"
+        );
+        animationAddFrame(
+            &animation,
+            "overlay_spawn_life2"
+        );
+        animationAddFrame(
+            &animation,
+            "overlay_spawn_life3"
+        );
+        animationAddFrame(&animation, "overlay_life");
+        arrayListPushBack(Animation,
+            &(animations.animations),
+            animation
+        );
+        animations.currentIndex = 0;
+        animations.idleIndex = 0;
+        animations._maxTick = 3;
+        addAnimations(&componentList, &animations);
+
+        addEntityAndFreeList(
+            &componentList,
+            scenePtr,
+            &(scenePtr->messages.overlayData
+                .lifeHandles[i])
+        );
+
+        pos = point2DAddVector2D(pos, offset);
+    }
+
+    /* add the bombs */
+    pos = bombInitPos;
+    for(int i = 0; i < config_maxBombs; ++i){
+        declareList(componentList, 10);
+        /* do not make the entities visible */
+        addPosition(&componentList, pos);
+        addSpriteInstructionSimple(
+            &componentList,
+            gamePtr,
+            "overlay_spawn_bomb1",
+            config_foregroundDepth + 10,
+            (Vector2D){0}
+        );
+        Animations animations = animationListMake();
+        Animation animation = animationMake(false);
+        animationAddFrame(
+            &animation,
+            "overlay_spawn_bomb1"
+        );
+        animationAddFrame(
+            &animation,
+            "overlay_spawn_bomb2"
+        );
+        animationAddFrame(
+            &animation,
+            "overlay_spawn_bomb3"
+        );
+        animationAddFrame(&animation, "overlay_bomb");
+        arrayListPushBack(Animation,
+            &(animations.animations),
+            animation
+        );
+        animations.currentIndex = 0;
+        animations.idleIndex = 0;
+        animations._maxTick = 3;
+        addAnimations(&componentList, &animations);
+
+        addEntityAndFreeList(
+            &componentList,
+            scenePtr,
+            &(scenePtr->messages.overlayData
+                .bombHandles[i])
+        );
+
+        pos = point2DAddVector2D(pos, offset);
+    }
+
+    /* add the power meter */
+    declareList(componentList, 10);
+    addVisible(&componentList);
+    addPosition(&componentList, powerPos);
+    addSpriteInstructionSimple(
+        &componentList,
+        gamePtr,
+        power == config_maxPower
+            ? "overlay_power_max"
+            : "overlay_power",
+        config_foregroundDepth + 10,
+        (Vector2D){0}
+    );
+    addSubImage(
+        &componentList,
+        ((SubImage){
+            0.0f,
+            0.0f,
+            80.0f,
+            13.0f
+        })
+    );
+
+    addEntityAndFreeList(
+        &componentList,
+        scenePtr,
+        &(scenePtr->messages.overlayData.powerHandle)
+    );
+
+    #undef initX
+    #undef initY
+    #undef xOffset
+    #undef yOffset
 }
 
 /* initializes the entities for the game */
@@ -933,6 +1079,12 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
     
     #undef backgroundWidth
     #undef backgroundHeight
+
+    addOverlayElements(
+        gamePtr,
+        scenePtr,
+        playerData.power
+    );
 
     //todo: init game
 }

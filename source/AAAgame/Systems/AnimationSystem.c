@@ -22,6 +22,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
+        bitsetSet(&accept, VisibleMarkerID);
         bitsetSet(&accept, SpriteInstructionID);
         bitsetSet(&accept, AnimationsID);
 

@@ -15,6 +15,8 @@
 #include "CollisionDetectionSystem.h"
 #include "CollisionHandlerSystem.h"
 #include "ClearSystem.h"
+#include "PlayerLifeAddSystem.h"
+#include "PlayerBombAddSystem.h"
 #include "PlayerShotSystem.h"
 #include "PlayerStateSystem.h"
 #include "PlayerBombSystem.h"
@@ -22,8 +24,8 @@
 #include "ContinueSystem.h"
 #include "PlayerRespawnSystem.h"
 #include "PlayerReactivateSystem.h"
+#include "OverlaySystem.h"
 #include "DeathHandlerSystem.h"
-
 #include "PauseSystem.h"
 #include "AnimationSystem.h"
 #include "RotateSpriteForwardSystem.h"
@@ -50,6 +52,8 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     collisionDetectionSystem(gamePtr, scenePtr);
     collisionHandlerSystem(gamePtr, scenePtr);
     clearSystem(gamePtr, scenePtr);
+    playerLifeAddSystem(gamePtr, scenePtr);
+    playerBombAddSystem(gamePtr, scenePtr);
     playerShotSystem(gamePtr, scenePtr);
     playerStateSystem(gamePtr, scenePtr);
     playerBombSystem(gamePtr, scenePtr);
@@ -57,8 +61,8 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     continueSystem(gamePtr, scenePtr);
     playerRespawnSystem(gamePtr, scenePtr);
     playerReactivateSystem(gamePtr, scenePtr);
+    overlaySystem(gamePtr, scenePtr);
     deathHandlerSystem(gamePtr, scenePtr);
-    //todo call overlay system
     pauseSystem(gamePtr, scenePtr);
     animationSystem(gamePtr, scenePtr);
     rotateSpriteForwardSystem(gamePtr, scenePtr);

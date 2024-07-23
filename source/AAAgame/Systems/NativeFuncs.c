@@ -1774,6 +1774,26 @@ static UNValue chance(int argc, UNValue *argv){
 /* SCENE SIGNALING */
 
 /*
+ * Adds a life to the player; calling multiple times
+ * on the same tick will have an extra effect
+ */
+static UNValue addLife(int argc, UNValue *argv){
+    assertArity(0, "addLife expects 0 args");
+    ++(_scenePtr->messages.livesToAdd);
+    return unBoolValue(false);
+}
+
+/*
+ * Adds a bomb to the player; calling multiple times
+ * on the same tick will have an extra effect
+ */
+static UNValue addBomb(int argc, UNValue *argv){
+    assertArity(0, "addBomb expects 0 args");
+    ++(_scenePtr->messages.bombsToAdd);
+    return unBoolValue(false);
+}
+
+/*
  * Flags a boss death; flagging multiple times on the
  * same tick has no extra effect
  */
@@ -2207,6 +2227,8 @@ static void init(){
         addNativeFunc(chance);
 
         /* scene signaling */
+        addNativeFunc(addLife);
+        addNativeFunc(addBomb);
         addNativeFunc(flagBossDeath);
         addNativeFunc(flagBulletClear);
         addNativeFunc(flagWin);
