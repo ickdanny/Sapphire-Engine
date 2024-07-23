@@ -29,7 +29,6 @@ static void init(){
 #define runVM(VMPTRNAME) \
     do{ \
         if(VMPTRNAME){ \
-            pgWarning("running " #VMPTRNAME); \
             UNInterpretResult result \
                 = unVirtualMachineResume( \
                     VMPTRNAME \
@@ -38,10 +37,8 @@ static void init(){
                 case un_success: \
                     vmPoolReclaim(VMPTRNAME); \
                     VMPTRNAME = NULL; \
-                    pgWarning("success"); \
                     break; \
                 case un_yielded: \
-                    pgWarning("yielded"); \
                     break; \
                 case un_runtimeError: \
                     pgError( \
@@ -94,7 +91,6 @@ void scriptSystem(Game *gamePtr, Scene *scenePtr){
             && !scriptsPtr->vm3
             && !scriptsPtr->vm4
         ){
-            pgWarning("removing scripts");
             windWorldHandleQueueRemoveComponent(
                 Scripts,
                 &(scenePtr->ecsWorld),

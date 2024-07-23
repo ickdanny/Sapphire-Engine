@@ -24,6 +24,10 @@ void playerRespawnSystem(
             playerHandle,
             NULL
         );
+        /*
+         * note that pickup collisions are reinstated
+         * in the reactivate system
+         */
 
         /* reset player's position to spawn */
         Position position = {

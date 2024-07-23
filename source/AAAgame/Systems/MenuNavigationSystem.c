@@ -81,7 +81,7 @@ void handleNavigateFarCommand(
             &(scenePtr->ecsWorld),
             currentElement
         );
-    WindEntity nextElement = {0};
+    WindEntity nextElement = currentElement;
     /*
      * assume the neighbor element is valid, since
      * otherwise the element would not have a nav

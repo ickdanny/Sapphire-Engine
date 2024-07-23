@@ -20,6 +20,13 @@
 #define bombExplodeHitboxRadius 27.0f
 #define bombExplodeDamage 2000
 
+/* PICKUP PROTOTYPE CONFIG */
+#define smallPickupHitboxRadius 8.0f
+#define largePickupHitboxRadius 12.0f
+#define pickupOutbound -100.0f
+#define smallPowerGain 1
+#define largePowerGain 5
+
 typedef void (*PrototypeFunction)(
     Game*,
     Scene*,
@@ -242,6 +249,51 @@ DECLARE_PROTOTYPE(explode_bomb){
     addAnimations(componentListPtr, &animations);
 }
 
+/* PICKUP PROTOTYPES */
+DECLARE_PROTOTYPE(power_small){
+    addVisible(componentListPtr);
+    addCollidable(componentListPtr);
+    addHitbox(
+        componentListPtr,
+        aabbFromRadius(smallPickupHitboxRadius)
+    );
+    addPickupCollisionSource(
+        componentListPtr,
+        collision_pickup
+    );
+    addPowerGain(componentListPtr, smallPowerGain);
+    addOutbound(componentListPtr, pickupOutbound);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "pickup_powerSmall",
+        config_pickupDepth + depthOffset,
+        (Vector2D){0}
+    );
+}
+
+DECLARE_PROTOTYPE(power_large){
+    addVisible(componentListPtr);
+    addCollidable(componentListPtr);
+    addHitbox(
+        componentListPtr,
+        aabbFromRadius(largePickupHitboxRadius)
+    );
+    addPickupCollisionSource(
+        componentListPtr,
+        collision_pickup
+    );
+    addPowerGain(componentListPtr, largePowerGain);
+    addOutbound(componentListPtr, pickupOutbound);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "pickup_powerLarge",
+        config_pickupDepth + depthOffset,
+        (Vector2D){0}
+    );
+}
+
 /* MISCELLANEOUS PROTOTYPES */
 
 DECLARE_PROTOTYPE(explode_projectile){
@@ -326,10 +378,12 @@ static void init(){
         addPrototypeFunction(bomb);
         addPrototypeFunction(explode_bomb);
 
+        /* pickup prototypes */
+        addPrototypeFunction(power_small);
+        addPrototypeFunction(power_large);
+
         /* miscellaneous prototypes */
         addPrototypeFunction(explode_projectile);
-
-        //todo add other prototype functions
 
         #undef addPrototypeFunction
 

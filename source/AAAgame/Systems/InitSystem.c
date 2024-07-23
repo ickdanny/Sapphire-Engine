@@ -781,9 +781,11 @@ static WindEntity addPlayer(
         &componentList,
         collision_none
     );
-    //todo player death command
-    //todo player script list
-    //todo player death spawn
+    addDeathCommand(&componentList, death_player);
+    addDeathScripts(&componentList, ((DeathScripts){
+        .scriptID1 = stringMakeC("remove_ghost"),
+        .scriptID3 = stringMakeC("spawn_player_death")
+    }));
     /* add player animations */
     Animations animations = animationListMake();
     Animation leftAnimation = animationMake(true);
@@ -827,10 +829,30 @@ static WindEntity addPlayer(
     return toRet;
 }
 
+/* gets the init power based on the stage */
+static int getInitPower(int stage){
+    switch(stage){
+        case 1:
+            return 0;
+        case 2:
+            return config_maxPower / 2;
+        case 3:
+        case 4:
+            return config_maxPower;
+        default:
+            pgError(
+                "Unexpected default stage; "
+                SRC_LOCATION
+            );
+    }
+}
+
 /* initializes the entities for the overlay */
 static void addOverlayElements(
     Game *gamePtr,
     Scene *scenePtr,
+    int currentLives,
+    int currentBombs,
     int power
 ){
     #define initX 242.0f
@@ -848,38 +870,17 @@ static void addOverlayElements(
     Point2D pos = lifeInitPos;
     for(int i = 0; i < config_maxLives; ++i){
         declareList(componentList, 10);
-        /* do not make the entities visible */
+        if(i < currentLives){
+            addVisible(&componentList);
+        }
         addPosition(&componentList, pos);
         addSpriteInstructionSimple(
             &componentList,
             gamePtr,
-            "overlay_spawn_life1",
+            "overlay_life",
             config_foregroundDepth + 10,
             (Vector2D){0}
         );
-        Animations animations = animationListMake();
-        Animation animation = animationMake(false);
-        animationAddFrame(
-            &animation,
-            "overlay_spawn_life1"
-        );
-        animationAddFrame(
-            &animation,
-            "overlay_spawn_life2"
-        );
-        animationAddFrame(
-            &animation,
-            "overlay_spawn_life3"
-        );
-        animationAddFrame(&animation, "overlay_life");
-        arrayListPushBack(Animation,
-            &(animations.animations),
-            animation
-        );
-        animations.currentIndex = 0;
-        animations.idleIndex = 0;
-        animations._maxTick = 3;
-        addAnimations(&componentList, &animations);
 
         addEntityAndFreeList(
             &componentList,
@@ -895,38 +896,17 @@ static void addOverlayElements(
     pos = bombInitPos;
     for(int i = 0; i < config_maxBombs; ++i){
         declareList(componentList, 10);
-        /* do not make the entities visible */
+        if(i < currentBombs){
+            addVisible(&componentList);
+        }
         addPosition(&componentList, pos);
         addSpriteInstructionSimple(
             &componentList,
             gamePtr,
-            "overlay_spawn_bomb1",
+            "overlay_bomb",
             config_foregroundDepth + 10,
             (Vector2D){0}
         );
-        Animations animations = animationListMake();
-        Animation animation = animationMake(false);
-        animationAddFrame(
-            &animation,
-            "overlay_spawn_bomb1"
-        );
-        animationAddFrame(
-            &animation,
-            "overlay_spawn_bomb2"
-        );
-        animationAddFrame(
-            &animation,
-            "overlay_spawn_bomb3"
-        );
-        animationAddFrame(&animation, "overlay_bomb");
-        arrayListPushBack(Animation,
-            &(animations.animations),
-            animation
-        );
-        animations.currentIndex = 0;
-        animations.idleIndex = 0;
-        animations._maxTick = 3;
-        addAnimations(&componentList, &animations);
 
         addEntityAndFreeList(
             &componentList,
@@ -967,12 +947,10 @@ static void addOverlayElements(
         &(scenePtr->messages.overlayData.powerHandle)
     );
 
-    /*
-     * -1 is used as the index to indicate none
-     * visible
-     */
-    scenePtr->messages.overlayData.bombIndex = -1;
-    scenePtr->messages.overlayData.lifeIndex = -1;
+    scenePtr->messages.overlayData.lifeIndex
+        = currentLives - 1;
+    scenePtr->messages.overlayData.bombIndex
+        = currentBombs - 1;
 
     #undef initX
     #undef initY
@@ -1009,7 +987,9 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
         playerData.lives = config_initLives;
         playerData.bombs = config_initBombs;
         playerData.continues = config_initContinues;
-        //todo get init power
+        playerData.power = getInitPower(
+            gamePtr->messages.gameState.stage
+        );
         playerData.stateMachine.state
             = player_normal;
         playerData.stateMachine.timer = -1;
@@ -1090,10 +1070,10 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
     addOverlayElements(
         gamePtr,
         scenePtr,
+        playerData.lives,
+        playerData.bombs,
         playerData.power
     );
-
-    //todo: init game
 }
 
 /* initializes the entities for the pause menu */
@@ -1182,10 +1162,8 @@ static void initPause(Game *gamePtr, Scene *scenePtr){
 
     arrayListFree(WindEntity, &buttonHandles);
 
-    //todo: this or nav far down?
     scenePtr->messages.backMenuCommand
-        = menu_backTo;
-    scenePtr->messages.backSceneID = scene_game;
+        = menu_navFarDown;
 }
 
 /* initializes the entities for the continue menu */

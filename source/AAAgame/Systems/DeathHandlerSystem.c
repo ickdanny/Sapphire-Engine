@@ -139,7 +139,7 @@ static void handlePlayerDeath(
     Scene *scenePtr,
     WindEntity playerHandle
 ){
-    /* remove spawn component and pickup collision */
+    /* remove script component and pickup collision */
     windWorldHandleRemoveComponent(Scripts,
         &(scenePtr->ecsWorld),
         playerHandle
@@ -150,7 +150,7 @@ static void handlePlayerDeath(
         playerHandle
     );
 
-    /* spawn blocker + pickups */
+    /* create ghost for death spawn */
     handleDeathScript(
         gamePtr,
         scenePtr,

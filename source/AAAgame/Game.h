@@ -75,10 +75,9 @@ typedef struct GameMessages{
      */
     GameState gameState;
 
-    //todo: really confusing comment
     /*
      * set and cleared by continue system and script
-     * system, cleared by init system
+     * system, also used and cleared by init system
      */
     struct{
         PlayerData data;
