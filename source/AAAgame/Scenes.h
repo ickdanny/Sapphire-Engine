@@ -19,7 +19,7 @@ typedef enum SceneID{
     scene_game,
     scene_dialogue,
     scene_pause,
-    scene_continues,
+    scene_continue,
     scene_credits,
     scene_numScenes,
 } SceneID;

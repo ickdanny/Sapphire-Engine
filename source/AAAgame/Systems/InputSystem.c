@@ -195,7 +195,7 @@ void inputSystem(Game *gamePtr, Scene *scenePtr){
         case scene_music:
         case scene_options:
         case scene_pause:
-        case scene_continues:
+        case scene_continue:
             parseMenuInput(gamePtr, scenePtr);
             break;
         case scene_game:

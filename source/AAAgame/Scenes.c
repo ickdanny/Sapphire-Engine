@@ -260,7 +260,7 @@ Scenes scenesMake(WindComponents *componentsPtr){
     defineScene(scene_pause,
         5,      true,   renderTransparent
     );
-    defineScene(scene_continues,
+    defineScene(scene_continue,
         10,     true,   renderTransparent
     );
     defineScene(scene_credits,

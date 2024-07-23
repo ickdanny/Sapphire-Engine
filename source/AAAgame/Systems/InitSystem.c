@@ -1029,6 +1029,112 @@ static void initPause(Game *gamePtr, Scene *scenePtr){
     scenePtr->messages.backSceneID = scene_game;
 }
 
+/* initializes the entities for the continue menu */
+static void initContinue(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    /* add the continue menu background */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_continue",
+        0,
+        gameCenter
+    );
+
+    /* add the buttons for the continue menu */
+    Point2D initPos = {gameCenter.x, 115.0f};
+    Vector2D lineOffset = {0.0f, -30.0f};
+    Vector2D selOffset = {0.0f, 1.0f};
+
+    ArrayList buttonHandles = arrayListMake(WindEntity,
+        10
+    );
+    /* the accept button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_acceptUnsel",
+            "button_acceptSel",
+            menu_backTo,
+            (MenuCommandData){
+                .sceneData.sceneID = scene_game
+            },
+            0,
+            initPos,
+            lineOffset,
+            0,
+            selOffset,
+            true
+        )
+    );
+    /* the decline button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_declineUnsel",
+            "button_declineSel",
+            menu_gameOver,
+            (MenuCommandData){0},
+            0,
+            initPos,
+            lineOffset,
+            1,
+            selOffset,
+            false
+        )
+    );
+
+    linkElements(scenePtr, &buttonHandles, topDown);
+    setInitSelectedElement(
+        scenePtr,
+        arrayListFront(WindEntity, &buttonHandles)
+    );
+
+    arrayListFree(WindEntity, &buttonHandles);
+
+    /* get player data from continue system */
+    assertTrue(
+        gamePtr->messages.playerData.isPresent,
+        "error: expect player data to be present; "
+        SRC_LOCATION
+    );
+    PlayerData playerData
+        = gamePtr->messages.playerData.data;
+    gamePtr->messages.playerData.data
+        = (PlayerData){0};
+    gamePtr->messages.playerData.isPresent = false;
+    
+    float iconY = 80.0f;
+    float xShift = 15.0f;
+    if(playerData.continues == 2){
+        addBackground(
+            gamePtr,
+            scenePtr,
+            "overlay_continue",
+            100,
+            (Point2D){gameCenter.x + xShift, iconY}
+        );
+    }
+    if(playerData.continues >= 1){
+        addBackground(
+            gamePtr,
+            scenePtr,
+            "overlay_continue",
+            100,
+            (Point2D){gameCenter.x - xShift, iconY}
+        );
+    }
+
+    scenePtr->messages.backMenuCommand
+        = menu_navFarDown;
+}
+
 /* initializes each scene */
 void initSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.initFlag){
@@ -1070,7 +1176,10 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
         case scene_pause:
             initPause(gamePtr, scenePtr);
             break;
-    /*scene_continues,
+        case scene_continue:
+            initContinue(gamePtr, scenePtr);
+            break;
+    /*
     scene_credits,
     */
         default:

@@ -57,7 +57,7 @@ static void enterContinueMenu(
     /* signal scene push */
     arrayListPushBack(SceneID,
         &(gamePtr->messages.sceneEntryList),
-        scene_continues
+        scene_continue
     );
     /* pause game */
     scenePtr->messages.pauseFlag = true;

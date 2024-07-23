@@ -54,7 +54,6 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     playerStateSystem(gamePtr, scenePtr);
     playerBombSystem(gamePtr, scenePtr);
     playerDeathSystem(gamePtr, scenePtr);
-    //todo: need to init the continue scene
     continueSystem(gamePtr, scenePtr);
     playerRespawnSystem(gamePtr, scenePtr);
     playerReactivateSystem(gamePtr, scenePtr);
