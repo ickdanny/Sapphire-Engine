@@ -27,6 +27,26 @@
 #define smallPowerGain 1
 #define largePowerGain 5
 
+/* ENEMY PROTOTYPE CONFIG */
+/* set health in each script */
+#define enemySpawnHealth 9999999
+#define enemyOutbound -30.0f
+#define machineHitboxRadius 9.0f
+//todo: other hitboxes for other enemy types
+#define bossHitbox (aabbFromXY(7.0f, 13.0f))
+#define bossAnimationMaxTick 5
+#define trapSpin -2.345f
+#define starSpin 1.3f
+
+/* BULLET PROTOTYPE CONFIG */
+#define smallHitboxRadius 2.5f
+#define mediumHitboxRadius 3.5f
+#define largeHitboxRadius 7.0f
+#define sharpHitboxRadius 1.5f
+#define laserHitboxRadius 1.8f
+#define starHitboxRadius 1.7f
+#define bulletOutbound -30.0f
+
 typedef void (*PrototypeFunction)(
     Game*,
     Scene*,
@@ -250,6 +270,7 @@ DECLARE_PROTOTYPE(explode_bomb){
 }
 
 /* PICKUP PROTOTYPES */
+
 DECLARE_PROTOTYPE(power_small){
     addVisible(componentListPtr);
     addCollidable(componentListPtr);
@@ -294,10 +315,167 @@ DECLARE_PROTOTYPE(power_large){
     );
 }
 
+/* ENEMY PROTOTYPES */
+
+//todo:
+
+/* BULLET PROTOTYPES */
+
+/* adds the basic components for a bullet */
+#define addBulletBaseComponents(HITBOX, SPRITEID) \
+    do{ \
+        addVisible(componentListPtr); \
+        addCollidable(componentListPtr); \
+        addHitbox(componentListPtr, HITBOX); \
+        addPlayerCollisionSource( \
+            componentListPtr, \
+            collision_death \
+        ); \
+        addBulletCollisionTarget( \
+            componentListPtr, \
+            collision_death \
+        ); \
+        addClearable(componentListPtr); \
+        addDamage(componentListPtr, 1); \
+        addSpriteInstructionSimple( \
+            componentListPtr, \
+            gamePtr, \
+            #SPRITEID, \
+            config_pickupDepth + depthOffset, \
+            (Vector2D){0} \
+        ); \
+        addOutbound( \
+            componentListPtr, \
+            bulletOutbound \
+        ); \
+        addDeathCommand( \
+            componentListPtr, \
+            death_script \
+        ); \
+        addDeathScripts( \
+            componentListPtr, \
+            ((DeathScripts){ \
+                .scriptID1 = stringMakeC( \
+                    "remove_ghost" \
+                ), \
+                .scriptID3 = stringMakeC( \
+                    "spawn_explode_projectile" \
+                ) \
+            }) \
+        ); \
+    } while(false);
+
+#define DECLARE_BULLET_PROTOTYPE( \
+    NAME, \
+    HITBOX, \
+    SPRITEID \
+) \
+    DECLARE_PROTOTYPE(NAME){ \
+        addBulletBaseComponents(HITBOX, SPRITEID); \
+    } \
+
+#define DECLARE_STAR_PROTOTYPE( \
+    NAME, \
+    HITBOX, \
+    SPRITEID \
+) \
+    DECLARE_PROTOTYPE(NAME){ \
+        addBulletBaseComponents(HITBOX, SPRITEID); \
+        addSpriteSpin(componentListPtr, starSpin); \
+    } \
+
+#define DECLARE_ALL_COLORS( \
+    NAMEPREFIX, \
+    HITBOX, \
+    SPRITEIDPREFIX, \
+    DECLAREMACRO \
+) \
+    DECLAREMACRO( \
+        NAMEPREFIX##black, \
+        HITBOX, \
+        SPRITEIDPREFIX##black \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##blue, \
+        HITBOX, \
+        SPRITEIDPREFIX##blue \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##brown, \
+        HITBOX, \
+        SPRITEIDPREFIX##brown \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##clear, \
+        HITBOX, \
+        SPRITEIDPREFIX##clear \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##dgreen, \
+        HITBOX, \
+        SPRITEIDPREFIX##dgreen \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##dpurple, \
+        HITBOX, \
+        SPRITEIDPREFIX##dpurple \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##gray, \
+        HITBOX, \
+        SPRITEIDPREFIX##gray \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##lblue, \
+        HITBOX, \
+        SPRITEIDPREFIX##lblue \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##lgreen, \
+        HITBOX, \
+        SPRITEIDPREFIX##lgreen \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##lpurple, \
+        HITBOX, \
+        SPRITEIDPREFIX##lpurple \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##lyellow, \
+        HITBOX, \
+        SPRITEIDPREFIX##lyellow \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##orange, \
+        HITBOX, \
+        SPRITEIDPREFIX##orange \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##purple, \
+        HITBOX, \
+        SPRITEIDPREFIX##purple \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##red, \
+        HITBOX, \
+        SPRITEIDPREFIX##red \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##white, \
+        HITBOX, \
+        SPRITEIDPREFIX##white \
+    ) \
+    DECLAREMACRO( \
+        NAMEPREFIX##yellow, \
+        HITBOX, \
+        SPRITEIDPREFIX##yellow \
+    )
+
+//todo: declare all bullets
+
 /* MISCELLANEOUS PROTOTYPES */
 
 DECLARE_PROTOTYPE(explode_projectile){
-    pgWarning("spawning explode projectile");
     addVisible(componentListPtr);
     addSpriteInstructionSimple(
         componentListPtr,
@@ -327,6 +505,72 @@ DECLARE_PROTOTYPE(explode_projectile){
     animations.currentIndex = 0;
     animations.idleIndex = 0;
     animations._maxTick = 2;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(explode_enemy){
+    addVisible(componentListPtr);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "explode_enemy1",
+        config_effectDepth + depthOffset,
+        (Vector2D){0}
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(false);
+    animationAddFrame(
+        &animation,
+        "explode_enemy1"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_enemy2"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_enemy3"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = 3;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(explode_boss){
+    addVisible(componentListPtr);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "explode_boss1",
+        config_effectDepth + depthOffset,
+        (Vector2D){0}
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(false);
+    animationAddFrame(
+        &animation,
+        "explode_boss1"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_boss2"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_boss3"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = 4;
     addAnimations(componentListPtr, &animations);
 }
 
@@ -382,8 +626,16 @@ static void init(){
         addPrototypeFunction(power_small);
         addPrototypeFunction(power_large);
 
+        /* enemy prototypes */
+        //todo
+
+        /* bullet prototypes */
+        //todo: need a color macro
+
         /* miscellaneous prototypes */
         addPrototypeFunction(explode_projectile);
+        addPrototypeFunction(explode_enemy);
+        addPrototypeFunction(explode_boss);
 
         #undef addPrototypeFunction
 
