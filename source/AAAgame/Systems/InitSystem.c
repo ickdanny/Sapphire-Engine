@@ -967,6 +967,13 @@ static void addOverlayElements(
         &(scenePtr->messages.overlayData.powerHandle)
     );
 
+    /*
+     * -1 is used as the index to indicate none
+     * visible
+     */
+    scenePtr->messages.overlayData.bombIndex = -1;
+    scenePtr->messages.overlayData.lifeIndex = -1;
+
     #undef initX
     #undef initY
     #undef xOffset

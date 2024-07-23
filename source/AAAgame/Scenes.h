@@ -167,8 +167,17 @@ typedef struct SceneMessages{
      */
     struct{
         WindEntity lifeHandles[config_maxLives];
+        /*
+         * index of last visible life element; -1 if
+         * no elements currently visible
+         */
         int lifeIndex;
         WindEntity bombHandles[config_maxLives];
+
+        /*
+         * index of last visible bomb element; -1 if
+         * no elements currently visible
+         */
         int bombIndex;
         WindEntity powerHandle;
     } overlayData;
