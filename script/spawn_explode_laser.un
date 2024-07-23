@@ -1,0 +1,7 @@
+spawn(
+    "explode_projectile",
+    getPosition(),
+    getVelocity(),
+    0,
+    "remove_explode_projectile"
+);

@@ -317,7 +317,7 @@ DECLARE_PROTOTYPE(power_large){
 
 /* ENEMY PROTOTYPES */
 
-//todo:
+//todo: enemy prototypes
 
 /* BULLET PROTOTYPES */
 
@@ -371,8 +371,99 @@ DECLARE_PROTOTYPE(power_large){
     SPRITEID \
 ) \
     DECLARE_PROTOTYPE(NAME){ \
-        addBulletBaseComponents(HITBOX, SPRITEID); \
+        addBulletBaseComponents( \
+            HITBOX, \
+            SPRITEID \
+        ); \
     } \
+
+#define DECLARE_POINTED_BULLET_PROTOTYPE( \
+    NAME, \
+    HITBOX, \
+    SPRITEID \
+) \
+    DECLARE_PROTOTYPE(NAME){ \
+        addBulletBaseComponents( \
+            HITBOX, \
+            SPRITEID \
+        ); \
+        addRotateSpriteForward(componentListPtr); \
+    } \
+
+#define DECLARE_LASER_PROTOTYPE( \
+    NAME, \
+    HITBOX, \
+    SPRITEID \
+) \
+    DECLARE_PROTOTYPE(NAME){ \
+        addVisible(componentListPtr); \
+        /* lasers not immediately collidable */ \
+        addHitbox(componentListPtr, HITBOX); \
+        /* lasers do not die upon hit */ \
+        addPlayerCollisionSource( \
+            componentListPtr, \
+            collision_none \
+        ); \
+        addBulletCollisionTarget( \
+            componentListPtr, \
+            collision_none \
+        ); \
+        addClearable(componentListPtr); \
+        addDamage(componentListPtr, 1); \
+        addSpriteInstructionSimple( \
+            componentListPtr, \
+            gamePtr, \
+            "spawn_laser1", \
+            config_pickupDepth + depthOffset, \
+            (Vector2D){0} \
+        ); \
+        addOutbound( \
+            componentListPtr, \
+            bulletOutbound \
+        ); \
+        addDeathCommand( \
+            componentListPtr, \
+            death_script \
+        ); \
+        addDeathScripts( \
+            componentListPtr, \
+            ((DeathScripts){ \
+                .scriptID1 = stringMakeC( \
+                    "remove_ghost" \
+                ), \
+                .scriptID3 = stringMakeC( \
+                    "spawn_explode_laser" \
+                ) \
+            }) \
+        ); \
+        addRotateSpriteForward(componentListPtr); \
+        Animations animations = animationListMake(); \
+        Animation animation = animationMake(false); \
+        animationAddFrame( \
+            &animation, \
+            "spawn_laser1" \
+        ); \
+        animationAddFrame( \
+            &animation, \
+            "spawn_laser2" \
+        ); \
+        animationAddFrame( \
+            &animation, \
+            "spawn_laser3" \
+        ); \
+        animationAddFrame( \
+            &animation, \
+            #SPRITEID \
+        ); \
+        arrayListPushBack(Animation, \
+            &(animations.animations), \
+            animation \
+        ); \
+        animations.currentIndex = 0; \
+        animations.idleIndex = 0; \
+        animations._maxTick = 15; \
+        addAnimations(componentListPtr, &animations); \
+    }
 
 #define DECLARE_STAR_PROTOTYPE( \
     NAME, \
@@ -380,7 +471,10 @@ DECLARE_PROTOTYPE(power_large){
     SPRITEID \
 ) \
     DECLARE_PROTOTYPE(NAME){ \
-        addBulletBaseComponents(HITBOX, SPRITEID); \
+        addBulletBaseComponents( \
+            HITBOX, \
+            SPRITEID \
+        ); \
         addSpriteSpin(componentListPtr, starSpin); \
     } \
 
@@ -391,87 +485,127 @@ DECLARE_PROTOTYPE(power_large){
     DECLAREMACRO \
 ) \
     DECLAREMACRO( \
-        NAMEPREFIX##black, \
+        NAMEPREFIX##_black, \
         HITBOX, \
-        SPRITEIDPREFIX##black \
+        SPRITEIDPREFIX##_black \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##blue, \
+        NAMEPREFIX##_blue, \
         HITBOX, \
-        SPRITEIDPREFIX##blue \
+        SPRITEIDPREFIX##_blue \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##brown, \
+        NAMEPREFIX##_brown, \
         HITBOX, \
-        SPRITEIDPREFIX##brown \
+        SPRITEIDPREFIX##_brown \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##clear, \
+        NAMEPREFIX##_clear, \
         HITBOX, \
-        SPRITEIDPREFIX##clear \
+        SPRITEIDPREFIX##_clear \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##dgreen, \
+        NAMEPREFIX##_dgreen, \
         HITBOX, \
-        SPRITEIDPREFIX##dgreen \
+        SPRITEIDPREFIX##_dgreen \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##dpurple, \
+        NAMEPREFIX##_dpurple, \
         HITBOX, \
-        SPRITEIDPREFIX##dpurple \
+        SPRITEIDPREFIX##_dpurple \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##gray, \
+        NAMEPREFIX##_gray, \
         HITBOX, \
-        SPRITEIDPREFIX##gray \
+        SPRITEIDPREFIX##_gray \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##lblue, \
+        NAMEPREFIX##_lblue, \
         HITBOX, \
-        SPRITEIDPREFIX##lblue \
+        SPRITEIDPREFIX##_lblue \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##lgreen, \
+        NAMEPREFIX##_lgreen, \
         HITBOX, \
-        SPRITEIDPREFIX##lgreen \
+        SPRITEIDPREFIX##_lgreen \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##lpurple, \
+        NAMEPREFIX##_lpurple, \
         HITBOX, \
-        SPRITEIDPREFIX##lpurple \
+        SPRITEIDPREFIX##_lpurple \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##lyellow, \
+        NAMEPREFIX##_lyellow, \
         HITBOX, \
-        SPRITEIDPREFIX##lyellow \
+        SPRITEIDPREFIX##_lyellow \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##orange, \
+        NAMEPREFIX##_orange, \
         HITBOX, \
-        SPRITEIDPREFIX##orange \
+        SPRITEIDPREFIX##_orange \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##purple, \
+        NAMEPREFIX##_purple, \
         HITBOX, \
-        SPRITEIDPREFIX##purple \
+        SPRITEIDPREFIX##_purple \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##red, \
+        NAMEPREFIX##_red, \
         HITBOX, \
-        SPRITEIDPREFIX##red \
+        SPRITEIDPREFIX##_red \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##white, \
+        NAMEPREFIX##_white, \
         HITBOX, \
-        SPRITEIDPREFIX##white \
+        SPRITEIDPREFIX##_white \
     ) \
     DECLAREMACRO( \
-        NAMEPREFIX##yellow, \
+        NAMEPREFIX##_yellow, \
         HITBOX, \
-        SPRITEIDPREFIX##yellow \
+        SPRITEIDPREFIX##_yellow \
     )
 
-//todo: declare all bullets
+DECLARE_ALL_COLORS(
+    small,
+    aabbFromRadius(smallHitboxRadius),
+    small,
+    DECLARE_BULLET_PROTOTYPE
+)
+
+DECLARE_ALL_COLORS(
+    medium,
+    aabbFromRadius(mediumHitboxRadius),
+    medium,
+    DECLARE_BULLET_PROTOTYPE
+)
+
+DECLARE_ALL_COLORS(
+    large,
+    aabbFromRadius(largeHitboxRadius),
+    large,
+    DECLARE_BULLET_PROTOTYPE
+)
+
+DECLARE_ALL_COLORS(
+    sharp,
+    aabbFromRadius(sharpHitboxRadius),
+    sharp,
+    DECLARE_POINTED_BULLET_PROTOTYPE
+)
+
+DECLARE_ALL_COLORS(
+    laser,
+    aabbFromRadius(laserHitboxRadius),
+    laser,
+    DECLARE_LASER_PROTOTYPE
+)
+
+DECLARE_ALL_COLORS(
+    star,
+    aabbFromRadius(starHitboxRadius),
+    star,
+    DECLARE_STAR_PROTOTYPE
+)
 
 /* MISCELLANEOUS PROTOTYPES */
 
@@ -574,6 +708,40 @@ DECLARE_PROTOTYPE(explode_boss){
     addAnimations(componentListPtr, &animations);
 }
 
+DECLARE_PROTOTYPE(explode_laser){
+    addVisible(componentListPtr);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "explode_laser1",
+        config_effectDepth + depthOffset,
+        (Vector2D){0}
+    );
+    addRotateSpriteForward(componentListPtr);
+    Animations animations = animationListMake();
+    Animation animation = animationMake(false);
+    animationAddFrame(
+        &animation,
+        "explode_laser1"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_laser2"
+    );
+    animationAddFrame(
+        &animation,
+        "explode_laser3"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = 2;
+    addAnimations(componentListPtr, &animations);
+}
+
 /* map from char* (unowned) to PrototypeFunction */
 static HashMap prototypeFunctionMap;
 static bool initialized = false;
@@ -630,12 +798,72 @@ static void init(){
         //todo
 
         /* bullet prototypes */
-        //todo: need a color macro
+        #define addAllColors(NAMEPREFIX) \
+            do{ \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_black \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_blue \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_brown \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_clear \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_dgreen \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_dpurple \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_gray \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_lblue \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_lgreen \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_lpurple \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_lyellow \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_orange \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_purple \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_red \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_white \
+                ); \
+                addPrototypeFunction( \
+                    NAMEPREFIX##_yellow \
+                ); \
+            } while(false)
+
+        addAllColors(small);
+        addAllColors(medium);
+        addAllColors(large);
+        addAllColors(sharp);
+        addAllColors(laser);
+        addAllColors(star);
+
+        #undef addAllColors
 
         /* miscellaneous prototypes */
         addPrototypeFunction(explode_projectile);
         addPrototypeFunction(explode_enemy);
         addPrototypeFunction(explode_boss);
+        addPrototypeFunction(explode_laser);
 
         #undef addPrototypeFunction
 

@@ -113,6 +113,24 @@ static void handleDeathScript(
             );
         }
 
+        /*
+         * if the entity had a velocity, add the angle
+         * to the ghost but not the magnitude
+         */
+        if(windWorldHandleContainsComponent(Velocity,
+            &(scenePtr->ecsWorld),
+            handle
+        )){
+            Velocity velocity
+                = windWorldHandleGet(
+                    Velocity,
+                    &(scenePtr->ecsWorld),
+                    handle
+                );
+            velocity.magnitude = 0;
+            addVelocity(&componentList, velocity);
+        }
+
         /* spawn the ghost */
         addEntityAndFreeList(
             &componentList,
