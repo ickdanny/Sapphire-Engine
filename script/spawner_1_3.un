@@ -1,28 +1,29 @@
-# spawns rain of medium stars
+# spawns large stars with demarcation
 
-let secs = 14.0;
+let secs = 9.0;
 let secInc = 1.0 / updatesPerSecond();
 let secsBeforeNewStar = 0.8;
 
 # spawns become more frequent over time
 let secsBeforeNewStarDecrement = 0.02;
 
-let speedLow = 40.0;
-let speedHigh = 60.0;
+let speedLow = 50.0;
+let speedHigh = 70.0;
 
 let angleBase = 90.0;
-let angleRange = 5.0;
+let angleRange = 2.0;
 
-let leftRange = 0;
-let rightRange = gameWidth();
+let rangeInside = 20;
+let leftRange = rangeInside;
+let rightRange = gameWidth() - rangeInside;
 
-func spawnMediumStar(pos, vel, depthOffset){
+func spawnLargeStar(pos, vel, depthOffset){
     spawn(
-        "star_medium",
+        "star_large",
         pos,
         vel,
         depthOffset,
-        "enemy_1_2"
+        "enemy_1_3" # todo: this script slow and shoot
     );
 }
 
@@ -42,7 +43,7 @@ while(secTotal < secs){
             rightRange
         ));
 
-        spawnMediumStar(
+        spawnLargeStar(
             spawnPos,
             spawnVel,
             spawnCount

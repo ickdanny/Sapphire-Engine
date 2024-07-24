@@ -114,6 +114,9 @@ WindEntity _windEntitiesCreate(
      */
     WindEntityIDType entityID
         = entitiesPtr->_nextCreatedEntityID;
+    if(entityID >= entitiesPtr->_entityMetadata.size){
+        pgError("Entity ID over max; " SRC_LOCATION);
+    }
     bool prevBit = bitsetSet(
         &(entitiesPtr->_currentEntityIDs),
         entityID

@@ -1,16 +1,31 @@
 # spawns rain of small stars
 
-let secs = 150.0;
+let secs = 14.3;
 let secInc = 1.0 / updatesPerSecond();
-let secsBeforeNewStar = diff(0.3, 0.15, 0.1);
+let secsBeforeNewStar = diff(0.2, 0.1, 0.06);
 
-let speedLow = 60.0;
-let speedHigh = 80.0;
+let speedLow = 40.0;
+let speedHigh = 60.0;
 
-let angleBase = 105.0;
+let angleBase = diff(95.0, 105.0, 115.0);
 let angleRange = 10.0;
 
-let posRange = gameWidth() + 40.0;
+let posRange = 20.0;
+let topRange = gameWidth() + posRange;
+let sideRange = gameHeight() + posRange;
+
+# figure out probability of spawning on top vs on side
+let topDot = abs(dot(
+    <<1, angleBase + 90>>, # proj of cross section
+    <<1, 0>>
+));
+let sideDot = abs(dot(
+    <<1, angleBase + 90>>, # proj of cross section
+    <<1, 90>>
+));
+
+let probabilityDenominator = topDot + sideDot;
+let topChance = topDot / probabilityDenominator;
 
 func spawnSmallStar(pos, vel, depthOffset){
     spawn(
@@ -31,9 +46,17 @@ while(secTotal < secs){
         spawnVel.r = random(speedLow, speedHigh);
         spawnVel.t = angleBase
             + random(-angleRange, angleRange);
-        spawnPos = getTopSpawnLeft(
-            random(0, posRange)
-        );
+        
+        if(chance(topChance)){
+            spawnPos = getTopSpawnLeft(
+                random(0, topRange)
+            );
+        }
+        else{
+            spawnPos = getRightSpawn(
+                random(0, sideRange)
+            );
+        }
 
         spawnSmallStar(
             spawnPos,

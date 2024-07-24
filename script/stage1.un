@@ -1,6 +1,16 @@
-# secTimer(14);
-addScript("spawner_1_1", 3); # wave 1: falling stars
-addScript("spawner_1_2", 4); # >
+# wave 1: falling stars
+addScript("spawner_1_1", 3);
+
+secTimer(14.55);
+flagBulletClear();
+
+# wave 2: medium stars with rings
+addScript("spawner_1_2", 4);
+
+secTimer(15.0);
+
+# wave 3: large stars with demarcation
+addScript("spawner_1_3", 3);
 
 wait isWin();
 tickTimer(timeBeforePostDialogue());

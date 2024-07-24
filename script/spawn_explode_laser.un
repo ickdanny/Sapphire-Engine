@@ -1,7 +1,7 @@
 spawn(
-    "explode_projectile",
+    "explode_laser",
     getPosition(),
     getVelocity(),
     0,
-    "remove_explode_projectile"
+    "remove_explode_laser"
 );

@@ -1,4 +1,0 @@
-let health = 1;
-
-setHealth(health);
-addDeathScript("spawn_pickup_small", 4);

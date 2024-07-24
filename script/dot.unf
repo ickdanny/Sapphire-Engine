@@ -1,0 +1,9 @@
+# calculates vector dot product
+
+(a, b){
+    let theta = smallerAngleDiff(a.t, b.t);
+    let thetaRads = toRadians(theta);
+    
+    # |a||b|cos(theta)
+    return a.r * b.r * cos(thetaRads);
+}

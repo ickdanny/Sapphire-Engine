@@ -87,12 +87,7 @@
 #define config_playerHitboxRadius 1.5f
 
 #define config_playerHitbox \
-    ((AABB){ \
-        -config_playerHitboxRadius, \
-        config_playerHitboxRadius, \
-        -config_playerHitboxRadius, \
-        config_playerHitboxRadius \
-    })
+    aabbMakeRadius(config_playerHitboxRadius)
 
 /* Speed of the player in pixels per second */
 #define config_playerSpeed 166.0f

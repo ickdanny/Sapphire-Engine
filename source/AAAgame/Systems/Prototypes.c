@@ -56,7 +56,7 @@
 #define bossAnimationMaxTick 5
 
 #define trapSpin -2.345f
-#define starSpin 1.3f
+#define starSpin 2.3f
 
 /* BULLET PROTOTYPE CONFIG */
 #define smallHitboxRadius 2.5f
@@ -391,7 +391,14 @@ DECLARE_PROTOTYPE(star_medium){
         star_medium,
         spawn_explode_enemy
     );
-    addSpriteSpin(componentListPtr, starSpin);
+    float spin = 0;
+    if(zmtRandBool(&scenePtr->messages.prng)){
+        spin = starSpin;
+    }
+    else{
+        spin = -starSpin;
+    }
+    addSpriteSpin(componentListPtr, spin);
 }
 
 DECLARE_PROTOTYPE(star_large){
@@ -400,7 +407,14 @@ DECLARE_PROTOTYPE(star_large){
         star_large,
         spawn_explode_enemy
     );
-    addSpriteSpin(componentListPtr, starSpin);
+    float spin = 0;
+    if(zmtRandBool(&scenePtr->messages.prng)){
+        spin = starSpin;
+    }
+    else{
+        spin = -starSpin;
+    }
+    addSpriteSpin(componentListPtr, spin);
 }
 
 DECLARE_PROTOTYPE(bird_blue){
@@ -1080,7 +1094,14 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
             SPRITEID, \
             BASEDEPTH \
         ); \
-        addSpriteSpin(componentListPtr, starSpin); \
+        float spin = 0; \
+        if(zmtRandBool(&scenePtr->messages.prng)){ \
+            spin = starSpin; \
+        } \
+        else{ \
+            spin = -starSpin; \
+        } \
+        addSpriteSpin(componentListPtr, spin); \
     } \
 
 #define DECLARE_ALL_COLORS( \
@@ -1266,7 +1287,7 @@ DECLARE_PROTOTYPE(explode_projectile){
     );
     animations.currentIndex = 0;
     animations.idleIndex = 0;
-    animations._maxTick = 2;
+    animations._maxTick = 3;
     addAnimations(componentListPtr, &animations);
 }
 
@@ -1366,7 +1387,7 @@ DECLARE_PROTOTYPE(explode_laser){
     );
     animations.currentIndex = 0;
     animations.idleIndex = 0;
-    animations._maxTick = 2;
+    animations._maxTick = 3;
     addAnimations(componentListPtr, &animations);
 }
 
