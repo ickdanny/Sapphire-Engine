@@ -31,10 +31,30 @@
 /* set health in each script */
 #define enemySpawnHealth 9999999
 #define enemyOutbound -30.0f
+#define mediumStarHitboxRadius 7.0f
+#define largeStarHitboxRadius 10.0f
+#define birdHitboxRadius 6.0f
 #define machineHitboxRadius 9.0f
-//todo: other hitboxes for other enemy types
+#define fireflyHitboxRadius 8.5f
+#define beeHitboxRadius 8.5f
+#define plantHitbox (aabbFromXY(8.0f, 10.0f))
+#define blobHitboxRadius 11.0f
+#define automatonHitbox (aabbFromXY(3.0f, 7.0f))
+#define wispHitboxRadius 7.5f
+#define crystalHitbox (aabbFromXY(5.0f, 9.5f))
 #define bossHitbox (aabbFromXY(7.0f, 13.0f))
+
+#define birdAnimationMaxTick 3
+#define machineAnimationMaxTick 3
+#define fireflyAnimationMaxTick 2
+#define beeAnimationMaxTick 2
+#define plantAnimationMaxTick 5
+#define blobAnimationMaxTick 5
+#define automatonAnimationMaxTick 5
+#define wispAnimationMaxTick 5
+#define crystalAnimationMaxTick 5
 #define bossAnimationMaxTick 5
+
 #define trapSpin -2.345f
 #define starSpin 1.3f
 
@@ -317,7 +337,581 @@ DECLARE_PROTOTYPE(power_large){
 
 /* ENEMY PROTOTYPES */
 
-//todo: enemy prototypes
+/* adds the basic components for an enemy */
+#define addEnemyBaseComponents( \
+    HITBOX, \
+    SPRITEID, \
+    DEATHSCRIPT3ID \
+) \
+    do{ \
+        addVisible(componentListPtr); \
+        addCollidable(componentListPtr); \
+        addHitbox(componentListPtr, HITBOX); \
+        addPlayerCollisionSource( \
+            componentListPtr, \
+            collision_none \
+        ); \
+        addEnemyCollisionTarget( \
+            componentListPtr, \
+            collision_damage \
+        ); \
+        addDamage(componentListPtr, 1); \
+        addHealth( \
+            componentListPtr, \
+            enemySpawnHealth \
+        ); \
+        addSpriteInstructionSimple( \
+            componentListPtr, \
+            gamePtr, \
+            #SPRITEID, \
+            config_enemyDepth + depthOffset, \
+            (Vector2D){0} \
+        ); \
+        addOutbound(componentListPtr, enemyOutbound); \
+        addDeathCommand( \
+            componentListPtr, \
+            death_script \
+        ); \
+        addDeathScripts( \
+            componentListPtr, \
+            ((DeathScripts){ \
+                .scriptID1 = stringMakeC( \
+                    "remove_ghost" \
+                ), \
+                .scriptID3 = stringMakeC( \
+                    #DEATHSCRIPT3ID \
+                ) \
+            }) \
+        ); \
+    } while(false)
+
+DECLARE_PROTOTYPE(star_medium){
+    addEnemyBaseComponents(
+        aabbFromRadius(mediumStarHitboxRadius),
+        star_medium,
+        spawn_explode_enemy
+    );
+    addSpriteSpin(componentListPtr, starSpin);
+}
+
+DECLARE_PROTOTYPE(star_large){
+    addEnemyBaseComponents(
+        aabbFromRadius(largeStarHitboxRadius),
+        star_large,
+        spawn_explode_enemy
+    );
+    addSpriteSpin(componentListPtr, starSpin);
+}
+
+DECLARE_PROTOTYPE(bird_blue){
+    addEnemyBaseComponents(
+        aabbFromRadius(birdHitboxRadius),
+        bird_blue1,
+        spawn_explode_enemy
+    );
+    addRotateSpriteForward(componentListPtr);
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "bird_blue1"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_blue2"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_blue3"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_blue4"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_blue5"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_blue6"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = birdAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(bird_purple){
+    addEnemyBaseComponents(
+        aabbFromRadius(birdHitboxRadius),
+        bird_purple1,
+        spawn_explode_enemy
+    );
+    addRotateSpriteForward(componentListPtr);
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "bird_purple1"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_purple2"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_purple3"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_purple4"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_purple5"
+    );
+    animationAddFrame(
+        &animation,
+        "bird_purple6"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = birdAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(machine){
+    addEnemyBaseComponents(
+        aabbFromRadius(machineHitboxRadius),
+        machine1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "machine1"
+    );
+    animationAddFrame(
+        &animation,
+        "machine2"
+    );
+    animationAddFrame(
+        &animation,
+        "machine3"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = machineAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(firefly_left){
+    addEnemyBaseComponents(
+        aabbFromRadius(fireflyHitboxRadius),
+        firefly_left1,
+        spawn_explode_enemy
+    );
+    addRotateSpriteForward(componentListPtr);
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "firefly_left1"
+    );
+    animationAddFrame(
+        &animation,
+        "firefly_left2"
+    );
+    animationAddFrame(
+        &animation,
+        "firefly_left3"
+    );
+    animationAddFrame(
+        &animation,
+        "firefly_left4"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = fireflyAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(firefly_right){
+    addEnemyBaseComponents(
+        aabbFromRadius(fireflyHitboxRadius),
+        firefly_right1,
+        spawn_explode_enemy
+    );
+    addRotateSpriteForward(componentListPtr);
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "firefly_right1"
+    );
+    animationAddFrame(
+        &animation,
+        "firefly_right2"
+    );
+    animationAddFrame(
+        &animation,
+        "firefly_right3"
+    );
+    animationAddFrame(
+        &animation,
+        "firefly_right4"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = fireflyAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(bee){
+    addEnemyBaseComponents(
+        aabbFromRadius(beeHitboxRadius),
+        bee1,
+        spawn_explode_enemy
+    );
+    addRotateSpriteForward(componentListPtr);
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "bee1"
+    );
+    animationAddFrame(
+        &animation,
+        "bee2"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = beeAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(plant){
+    addEnemyBaseComponents(
+        plantHitbox,
+        plant1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "plant1"
+    );
+    animationAddFrame(
+        &animation,
+        "plant2"
+    );
+    animationAddFrame(
+        &animation,
+        "plant3"
+    );
+    animationAddFrame(
+        &animation,
+        "plant4"
+    );
+    animationAddFrame(
+        &animation,
+        "plant5"
+    );
+    animationAddFrame(
+        &animation,
+        "plant6"
+    );
+    animationAddFrame(
+        &animation,
+        "plant7"
+    );
+    animationAddFrame(
+        &animation,
+        "plant8"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = plantAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(blob){
+    addEnemyBaseComponents(
+        aabbFromRadius(blobHitboxRadius),
+        blob1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "blob1"
+    );
+    animationAddFrame(
+        &animation,
+        "blob2"
+    );
+    animationAddFrame(
+        &animation,
+        "blob3"
+    );
+    animationAddFrame(
+        &animation,
+        "blob4"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = blobAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(automaton_blue){
+    addEnemyBaseComponents(
+        automatonHitbox,
+        automaton_blue1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "automaton_blue1"
+    );
+    animationAddFrame(
+        &animation,
+        "automaton_blue2"
+    );
+    animationAddFrame(
+        &animation,
+        "automaton_blue3"
+    );
+    animationAddFrame(
+        &animation,
+        "automaton_blue4"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = automatonAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(automaton_red){
+    addEnemyBaseComponents(
+        automatonHitbox,
+        automaton_red1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "automaton_red1"
+    );
+    animationAddFrame(
+        &animation,
+        "automaton_red2"
+    );
+    animationAddFrame(
+        &animation,
+        "automaton_red3"
+    );
+    animationAddFrame(
+        &animation,
+        "automaton_red4"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = automatonAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(wisp){
+    addEnemyBaseComponents(
+        aabbFromRadius(wispHitboxRadius),
+        wisp1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "wisp1"
+    );
+    animationAddFrame(
+        &animation,
+        "wisp2"
+    );
+    animationAddFrame(
+        &animation,
+        "wisp3"
+    );
+    animationAddFrame(
+        &animation,
+        "wisp4"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = wispAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(crystal){
+    addEnemyBaseComponents(
+        crystalHitbox,
+        crystal1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "crystal1"
+    );
+    animationAddFrame(
+        &animation,
+        "crystal2"
+    );
+    animationAddFrame(
+        &animation,
+        "crystal3"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = crystalAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+/* adds the basic components for a boss */
+#define addBossBaseComponents( \
+    SPRITEPREFIX \
+) \
+    do{ \
+        addVisible(componentListPtr); \
+        /* not collidable at first */ \
+        addHitbox(componentListPtr, bossHitbox); \
+        addPlayerCollisionSource( \
+            componentListPtr, \
+            collision_none \
+        ); \
+        addEnemyCollisionTarget( \
+            componentListPtr, \
+            collision_damage \
+        ); \
+        addDamage(componentListPtr, 1); \
+        addHealth( \
+            componentListPtr, \
+            enemySpawnHealth \
+        ); \
+        addSpriteInstructionSimple( \
+            componentListPtr, \
+            gamePtr, \
+            #SPRITEPREFIX "_idle1", \
+            config_enemyDepth + depthOffset, \
+            (Vector2D){0} \
+        ); \
+        Animations animations = animationListMake(); \
+        Animation animation = animationMake(true); \
+        animationAddFrame( \
+            &animation, \
+            #SPRITEPREFIX "_idle1" \
+        ); \
+        animationAddFrame( \
+            &animation, \
+            #SPRITEPREFIX "_idle2" \
+        ); \
+        animationAddFrame( \
+            &animation, \
+            #SPRITEPREFIX "_idle3" \
+        ); \
+        animationAddFrame( \
+            &animation, \
+            #SPRITEPREFIX "_idle4" \
+        ); \
+        arrayListPushBack(Animation, \
+            &(animations.animations), \
+            animation \
+        ); \
+        animations.currentIndex = 0; \
+        animations.idleIndex = 0; \
+        animations._maxTick = bossAnimationMaxTick; \
+        addAnimations(componentListPtr, &animations); \
+        addDeathCommand( \
+            componentListPtr, \
+            death_boss \
+        ); \
+        addDeathScripts( \
+            componentListPtr, \
+            ((DeathScripts){ \
+                .scriptID1 = stringMakeC( \
+                    "remove_ghost" \
+                ), \
+                .scriptID3 = stringMakeC( \
+                    "clear_bullets"\
+                ) \
+            }) \
+        ); \
+    } while(false)
+
+#define DECLARE_BOSS_PROTOTYPE(NAME, SPRITEPREFIX) \
+    DECLARE_PROTOTYPE(NAME){ \
+        addBossBaseComponents(SPRITEPREFIX); \
+    } \
+
+DECLARE_BOSS_PROTOTYPE(boss1, b1)
+DECLARE_BOSS_PROTOTYPE(boss2, b2)
+DECLARE_BOSS_PROTOTYPE(boss3, b3)
+DECLARE_BOSS_PROTOTYPE(boss4, b4)
 
 /* BULLET PROTOTYPES */
 
@@ -795,7 +1389,24 @@ static void init(){
         addPrototypeFunction(power_large);
 
         /* enemy prototypes */
-        //todo
+        addPrototypeFunction(star_medium);
+        addPrototypeFunction(star_large);
+        addPrototypeFunction(bird_blue);
+        addPrototypeFunction(bird_purple);
+        addPrototypeFunction(machine);
+        addPrototypeFunction(firefly_left);
+        addPrototypeFunction(firefly_right);
+        addPrototypeFunction(bee);
+        addPrototypeFunction(plant);
+        addPrototypeFunction(blob);
+        addPrototypeFunction(automaton_blue);
+        addPrototypeFunction(automaton_red);
+        addPrototypeFunction(wisp);
+        addPrototypeFunction(crystal);
+        addPrototypeFunction(boss1);
+        addPrototypeFunction(boss2);
+        addPrototypeFunction(boss3);
+        addPrototypeFunction(boss4);
 
         /* bullet prototypes */
         #define addAllColors(NAMEPREFIX) \
