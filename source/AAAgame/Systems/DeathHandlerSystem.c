@@ -83,15 +83,7 @@ static void handleDeathScript(
 
         addScripts(&componentList, scripts);
 
-        /*
-         * clear the death scripts object to avoid
-         * having the destructor reclaim the VMs
-         */
-        memset(
-            deathScriptsPtr,
-            0,
-            sizeof(*deathScriptsPtr)
-        );
+        /* do not clear the death scripts object */
 
         /*
          * if the entity had a position, add the
@@ -244,6 +236,10 @@ void deathHandlerSystem(
             deathsPtr,
             i
         );
+        /*
+         * skip over entities that are somehow already
+         * dead
+         */
         if(!windWorldIsHandleAlive(
             &(scenePtr->ecsWorld),
             handle

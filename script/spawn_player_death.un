@@ -1,4 +1,4 @@
-clearBullets();
+flagBulletClear();
 
 let pickupInbound = 15.0;
 let yHigh = 50.0;
@@ -10,7 +10,8 @@ func randomPoint(){
         pickupInbound,
         gameWidth() - pickupInbound
     );
-    let y = random(pickupInbound, yHigh);
+    let y = gameHeight()
+        - random(pickupInbound, yHigh);
     return [x, y] + gameOffset();
 }
 

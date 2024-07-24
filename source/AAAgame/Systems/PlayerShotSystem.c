@@ -64,14 +64,17 @@ static void addPlayerShot(
             case player_dead:
             case player_respawning:
             case player_gameOver:
-                /* bail out */
-                continue;
+                /*
+                 * bail out and go to next loop
+                 * iteration
+                 */
+                goto loopInc;
             default:
                 pgError(
                     "unexpected player state; "
                     SRC_LOCATION
                 );
-                continue;
+                goto loopInc;
         }
 
         /* if player has scripts, add in slot 4 */
@@ -113,6 +116,7 @@ static void addPlayerShot(
                 &scripts
             );
         }
+loopInc:
         windQueryItrAdvance(&itr);
     }
 

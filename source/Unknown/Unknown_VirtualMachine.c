@@ -6,6 +6,9 @@
 #define stringMapInitCapacity 50
 #define globalsMapInitCapacity 20
 
+/* define for verbose output */
+/* #define VM_VERBOSE */
+
 /*
  * Constructs and returns a new UNVirtualMachine by
  * value; the native function set pointer is nullable,
@@ -683,7 +686,7 @@ static UNInterpretResult unVirtualMachineRun(
 
     while(true){
         /* debug printing */
-        #ifdef _DEBUG
+        #ifdef VM_VERBOSE
         printf("Stack:");
         for(UNValue *slotPtr = vmPtr->stack;
             slotPtr < vmPtr->stackPtr;

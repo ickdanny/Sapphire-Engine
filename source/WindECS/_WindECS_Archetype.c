@@ -129,12 +129,6 @@ void _windArchetypeClear(_WindArchetype *archetypePtr){
             archetypePtr->_componentsPtr
         );
 
-    //todo: temp
-    printf("clearing archetype %p\n", archetypePtr);
-    static char buffer[100] = {0};
-    printBitset(&archetypePtr->_componentSet, buffer, 100);
-    printf("set: %s\n", buffer);
-
     /* free each sparse set using RTTI */
     for(WindComponentIDType i = 0;
         i < numComponents;
@@ -439,12 +433,14 @@ void _windArchetypeMoveEntity(
             } /* END component in new archetype */
             /*
              * if component not in new archetype,
-             * call destructor on it
+             * call destructor on it if needed
              */
             else{
-                componentMetadata._destructor(
-                    componentPtr
-                );
+                if(componentMetadata._destructor){
+                    componentMetadata._destructor(
+                        componentPtr
+                    );
+                }
             } /* END component not in new archetype */
             /* remove component from old storage */
             _sparseSetRemove(

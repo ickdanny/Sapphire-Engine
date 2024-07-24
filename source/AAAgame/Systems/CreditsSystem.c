@@ -1,6 +1,6 @@
 #include "CreditsSystem.h"
 
-//todo: figure out credits timer depending on track
+//todo: credits timer depending on track
 #define waitTicks (60 * 43)
 
 /*

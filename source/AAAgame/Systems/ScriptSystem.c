@@ -68,7 +68,6 @@ void scriptSystem(Game *gamePtr, Scene *scenePtr){
             &(scenePtr->ecsWorld),
             windQueryItrCurrentID(&itr)
         );
-        printf("entity: %d\n", handle.entityID);
 
         setEntityForNativeFuncs(handle);
 

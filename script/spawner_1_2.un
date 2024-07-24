@@ -1,0 +1,11 @@
+# spawns medium stars during rain of small stars
+
+func spawnMediumStar(pos, vel, depthOffset){
+    spawn(
+        "star_medium",
+        pos,
+        vel,
+        depthOffset,
+        "enemy_1_1"
+    );
+}

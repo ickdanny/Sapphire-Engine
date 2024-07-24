@@ -1,9 +1,27 @@
 #include "Trifecta_Concurrency.h"
 
+#include "PGUtil.h"
+
 #ifdef __APPLE__
 
 #include <sys/errno.h>
 #include <signal.h>
+
+/*
+ * Initializes the current thread; should be called by
+ * runnable functions
+ */
+void initThread(){
+    /* set the pthread thread as cancellable */
+    pthread_setcancelstate(
+        PTHREAD_CANCEL_ENABLE,
+        NULL
+    );
+    pthread_setcanceltype(
+        PTHREAD_CANCEL_ASYNCHRONOUS,
+        NULL
+    );
+}
 
 /* 
  * Creates a new thread and returns its ID if
@@ -27,7 +45,7 @@ CreateReturn threadCreate(
 
 /* Kills the specified thread */
 void threadKill(Thread toKill){
-    pthread_kill(toKill, SIGTERM);
+   pthread_cancel(toKill);
 }
 
 /* Attempts to join the specified thread */

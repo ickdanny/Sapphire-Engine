@@ -29,6 +29,12 @@ static float _quadTreeElementSpeedRatio(
     float trueArea = aabbArea(
         &(elementPtr->trueHitbox)
     );
+    if(trueArea == 0.0f){
+        pgError(
+            "bad hitbox with 0 area; "
+            SRC_LOCATION
+        );
+    }
     return twoFrameArea / trueArea;
 }
 
@@ -669,7 +675,7 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
         if(!arrayListIsEmpty(&collisionList)){ \
             WindEntity target = windWorldMakeHandle( \
                 &(scenePtr->ecsWorld), \
-                windQueryItrCurrentID(&sourceItr) \
+                windQueryItrCurrentID(&targetItr) \
             ); \
             for(size_t i = 0; \
                 i < collisionList.size; \
@@ -699,6 +705,7 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
         windQueryItrAdvance(&targetItr); \
     } \
     arrayListFree(WindEntity, &collisionList); \
+    quadTreeFree(&quadTree); \
 }
 
 COLLISION_TYPE_DECLARE(player, Player)

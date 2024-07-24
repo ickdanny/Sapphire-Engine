@@ -205,8 +205,6 @@ typedef struct SceneMessages{
      * detector system
      */
     ArrayList pickupCollisionList;
-
-    //todo scene messages struct
 } SceneMessages;
 
 /*

@@ -22,21 +22,6 @@
 
 #include <unistd.h>
 
-//todo: what is all this junk at the top of main?
-void printInt(int *toPrint){
-    printf("%d\n", *toPrint);
-}
-
-void printString(const String *toPrint){
-    printf("%s\n", toPrint->_ptr);
-}
-
-void printWideString(const WideString *toPrint){
-    printf("%ls\n", toPrint->_ptr);
-}
-
-#define intToLong(i) ((long)i)
-
 /* A struct holding all the elements of the engine */
 typedef struct Engine{
     Settings settings;

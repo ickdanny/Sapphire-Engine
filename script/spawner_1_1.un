@@ -1,0 +1,51 @@
+# spawns rain of small stars
+
+let secs = 150.0;
+let secInc = 1.0 / updatesPerSecond();
+let secsBeforeNewStar = diff(0.3, 0.15, 0.1);
+
+let speedLow = 60.0;
+let speedHigh = 80.0;
+
+let angleBase = 105.0;
+let angleRange = 10.0;
+
+let posRange = gameWidth() + 40.0;
+
+func spawnSmallStar(pos, vel, depthOffset){
+    spawn(
+        "star_lyellow",
+        pos,
+        vel,
+        depthOffset
+    );
+}
+
+let spawnCount = 0;
+let secTotal = 0.0;
+let secBetweenSpawns = 0.0;
+let spawnPos = [0, 0];
+let spawnVel = <<0, 0>>;
+while(secTotal < secs){
+    if(secBetweenSpawns > secsBeforeNewStar){
+        spawnVel.r = random(speedLow, speedHigh);
+        spawnVel.t = angleBase
+            + random(-angleRange, angleRange);
+        spawnPos = getTopSpawnLeft(
+            random(0, posRange)
+        );
+
+        spawnSmallStar(
+            spawnPos,
+            spawnVel,
+            spawnCount
+        );
+
+        spawnCount = spawnCount + 1;
+        secBetweenSpawns = secBetweenSpawns
+            - secsBeforeNewStar;
+    }
+    secTotal = secTotal + secInc;
+    secBetweenSpawns = secBetweenSpawns + secInc;
+    yield;
+}

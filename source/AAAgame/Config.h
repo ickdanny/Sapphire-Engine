@@ -88,9 +88,9 @@
 
 #define config_playerHitbox \
     ((AABB){ \
+        -config_playerHitboxRadius, \
         config_playerHitboxRadius, \
-        config_playerHitboxRadius, \
-        config_playerHitboxRadius, \
+        -config_playerHitboxRadius, \
         config_playerHitboxRadius \
     })
 
@@ -147,7 +147,7 @@
  * The initial number of lives given to players at the
  * start of gameplay
  */
-#define config_initLives 3
+#define config_initLives 1 /*3*/ //todo: temp low init lives
 
 /*
  * The initial number of bombs given to players at the

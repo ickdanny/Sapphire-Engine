@@ -37,12 +37,12 @@
 #define machineHitboxRadius 9.0f
 #define fireflyHitboxRadius 8.5f
 #define beeHitboxRadius 8.5f
-#define plantHitbox (aabbFromXY(8.0f, 10.0f))
+#define plantHitbox (aabbMakeXY(8.0f, 10.0f))
 #define blobHitboxRadius 11.0f
-#define automatonHitbox (aabbFromXY(3.0f, 7.0f))
+#define automatonHitbox (aabbMakeXY(3.0f, 7.0f))
 #define wispHitboxRadius 7.5f
-#define crystalHitbox (aabbFromXY(5.0f, 9.5f))
-#define bossHitbox (aabbFromXY(7.0f, 13.0f))
+#define crystalHitbox (aabbMakeXY(5.0f, 9.5f))
+#define bossHitbox (aabbMakeXY(7.0f, 13.0f))
 
 #define birdAnimationMaxTick 3
 #define machineAnimationMaxTick 3
@@ -64,7 +64,7 @@
 #define largeHitboxRadius 7.0f
 #define sharpHitboxRadius 1.5f
 #define laserHitboxRadius 1.8f
-#define starHitboxRadius 1.7f
+#define starHitboxRadius 2.0f
 #define bulletOutbound -30.0f
 
 typedef void (*PrototypeFunction)(
@@ -89,7 +89,7 @@ DECLARE_PROTOTYPE(shard){
     addCollidable(componentListPtr);
     addHitbox(
         componentListPtr,
-        aabbFromRadius(shardHitboxRadius)
+        aabbMakeRadius(shardHitboxRadius)
     );
     addEnemyCollisionSource(
         componentListPtr,
@@ -119,7 +119,7 @@ DECLARE_PROTOTYPE(caltrop){
     addCollidable(componentListPtr);
     addHitbox(
         componentListPtr,
-        aabbFromRadius(caltropHitboxRadius)
+        aabbMakeRadius(caltropHitboxRadius)
     );
     addEnemyCollisionSource(
         componentListPtr,
@@ -150,7 +150,7 @@ DECLARE_PROTOTYPE(caltrop){
         addCollidable(componentListPtr); \
         addHitbox( \
             componentListPtr, \
-            aabbFromRadius(spikeHitboxRadius) \
+            aabbMakeRadius(spikeHitboxRadius) \
         ); \
         addEnemyCollisionSource( \
             componentListPtr, \
@@ -192,7 +192,7 @@ DECLARE_PROTOTYPE(bomb){
     addCollidable(componentListPtr);
     addHitbox(
         componentListPtr,
-        aabbFromRadius(bombHitboxRadius)
+        aabbMakeRadius(bombHitboxRadius)
     );
     /* bomb explodes on enemies */
     addEnemyCollisionSource(
@@ -258,7 +258,7 @@ DECLARE_PROTOTYPE(explode_bomb){
     addCollidable(componentListPtr);
     addHitbox(
         componentListPtr,
-        aabbFromRadius(bombExplodeHitboxRadius)
+        aabbMakeRadius(bombExplodeHitboxRadius)
     );
     addBulletCollisionSource(
         componentListPtr,
@@ -296,7 +296,7 @@ DECLARE_PROTOTYPE(power_small){
     addCollidable(componentListPtr);
     addHitbox(
         componentListPtr,
-        aabbFromRadius(smallPickupHitboxRadius)
+        aabbMakeRadius(smallPickupHitboxRadius)
     );
     addPickupCollisionSource(
         componentListPtr,
@@ -318,7 +318,7 @@ DECLARE_PROTOTYPE(power_large){
     addCollidable(componentListPtr);
     addHitbox(
         componentListPtr,
-        aabbFromRadius(largePickupHitboxRadius)
+        aabbMakeRadius(largePickupHitboxRadius)
     );
     addPickupCollisionSource(
         componentListPtr,
@@ -387,7 +387,7 @@ DECLARE_PROTOTYPE(power_large){
 
 DECLARE_PROTOTYPE(star_medium){
     addEnemyBaseComponents(
-        aabbFromRadius(mediumStarHitboxRadius),
+        aabbMakeRadius(mediumStarHitboxRadius),
         star_medium,
         spawn_explode_enemy
     );
@@ -396,7 +396,7 @@ DECLARE_PROTOTYPE(star_medium){
 
 DECLARE_PROTOTYPE(star_large){
     addEnemyBaseComponents(
-        aabbFromRadius(largeStarHitboxRadius),
+        aabbMakeRadius(largeStarHitboxRadius),
         star_large,
         spawn_explode_enemy
     );
@@ -405,7 +405,7 @@ DECLARE_PROTOTYPE(star_large){
 
 DECLARE_PROTOTYPE(bird_blue){
     addEnemyBaseComponents(
-        aabbFromRadius(birdHitboxRadius),
+        aabbMakeRadius(birdHitboxRadius),
         bird_blue1,
         spawn_explode_enemy
     );
@@ -448,7 +448,7 @@ DECLARE_PROTOTYPE(bird_blue){
 
 DECLARE_PROTOTYPE(bird_purple){
     addEnemyBaseComponents(
-        aabbFromRadius(birdHitboxRadius),
+        aabbMakeRadius(birdHitboxRadius),
         bird_purple1,
         spawn_explode_enemy
     );
@@ -491,7 +491,7 @@ DECLARE_PROTOTYPE(bird_purple){
 
 DECLARE_PROTOTYPE(machine){
     addEnemyBaseComponents(
-        aabbFromRadius(machineHitboxRadius),
+        aabbMakeRadius(machineHitboxRadius),
         machine1,
         spawn_explode_enemy
     );
@@ -521,7 +521,7 @@ DECLARE_PROTOTYPE(machine){
 
 DECLARE_PROTOTYPE(firefly_left){
     addEnemyBaseComponents(
-        aabbFromRadius(fireflyHitboxRadius),
+        aabbMakeRadius(fireflyHitboxRadius),
         firefly_left1,
         spawn_explode_enemy
     );
@@ -556,7 +556,7 @@ DECLARE_PROTOTYPE(firefly_left){
 
 DECLARE_PROTOTYPE(firefly_right){
     addEnemyBaseComponents(
-        aabbFromRadius(fireflyHitboxRadius),
+        aabbMakeRadius(fireflyHitboxRadius),
         firefly_right1,
         spawn_explode_enemy
     );
@@ -591,7 +591,7 @@ DECLARE_PROTOTYPE(firefly_right){
 
 DECLARE_PROTOTYPE(bee){
     addEnemyBaseComponents(
-        aabbFromRadius(beeHitboxRadius),
+        aabbMakeRadius(beeHitboxRadius),
         bee1,
         spawn_explode_enemy
     );
@@ -668,7 +668,7 @@ DECLARE_PROTOTYPE(plant){
 
 DECLARE_PROTOTYPE(blob){
     addEnemyBaseComponents(
-        aabbFromRadius(blobHitboxRadius),
+        aabbMakeRadius(blobHitboxRadius),
         blob1,
         spawn_explode_enemy
     );
@@ -770,7 +770,7 @@ DECLARE_PROTOTYPE(automaton_red){
 
 DECLARE_PROTOTYPE(wisp){
     addEnemyBaseComponents(
-        aabbFromRadius(wispHitboxRadius),
+        aabbMakeRadius(wispHitboxRadius),
         wisp1,
         spawn_explode_enemy
     );
@@ -916,7 +916,11 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
 /* BULLET PROTOTYPES */
 
 /* adds the basic components for a bullet */
-#define addBulletBaseComponents(HITBOX, SPRITEID) \
+#define addBulletBaseComponents( \
+    HITBOX, \
+    SPRITEID, \
+    BASEDEPTH \
+) \
     do{ \
         addVisible(componentListPtr); \
         addCollidable(componentListPtr); \
@@ -935,7 +939,7 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
             componentListPtr, \
             gamePtr, \
             #SPRITEID, \
-            config_pickupDepth + depthOffset, \
+            BASEDEPTH + depthOffset, \
             (Vector2D){0} \
         ); \
         addOutbound( \
@@ -962,24 +966,28 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
 #define DECLARE_BULLET_PROTOTYPE( \
     NAME, \
     HITBOX, \
-    SPRITEID \
+    SPRITEID, \
+    BASEDEPTH \
 ) \
     DECLARE_PROTOTYPE(NAME){ \
         addBulletBaseComponents( \
             HITBOX, \
-            SPRITEID \
+            SPRITEID, \
+            BASEDEPTH \
         ); \
     } \
 
 #define DECLARE_POINTED_BULLET_PROTOTYPE( \
     NAME, \
     HITBOX, \
-    SPRITEID \
+    SPRITEID, \
+    BASEDEPTH \
 ) \
     DECLARE_PROTOTYPE(NAME){ \
         addBulletBaseComponents( \
             HITBOX, \
-            SPRITEID \
+            SPRITEID, \
+            BASEDEPTH \
         ); \
         addRotateSpriteForward(componentListPtr); \
     } \
@@ -987,7 +995,8 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
 #define DECLARE_LASER_PROTOTYPE( \
     NAME, \
     HITBOX, \
-    SPRITEID \
+    SPRITEID, \
+    BASEDEPTH \
 ) \
     DECLARE_PROTOTYPE(NAME){ \
         addVisible(componentListPtr); \
@@ -1008,7 +1017,7 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
             componentListPtr, \
             gamePtr, \
             "spawn_laser1", \
-            config_pickupDepth + depthOffset, \
+            BASEDEPTH + depthOffset, \
             (Vector2D){0} \
         ); \
         addOutbound( \
@@ -1062,12 +1071,14 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
 #define DECLARE_STAR_PROTOTYPE( \
     NAME, \
     HITBOX, \
-    SPRITEID \
+    SPRITEID, \
+    BASEDEPTH \
 ) \
     DECLARE_PROTOTYPE(NAME){ \
         addBulletBaseComponents( \
             HITBOX, \
-            SPRITEID \
+            SPRITEID, \
+            BASEDEPTH \
         ); \
         addSpriteSpin(componentListPtr, starSpin); \
     } \
@@ -1076,128 +1087,151 @@ DECLARE_BOSS_PROTOTYPE(boss4, b4)
     NAMEPREFIX, \
     HITBOX, \
     SPRITEIDPREFIX, \
+    BASEDEPTH, \
     DECLAREMACRO \
 ) \
     DECLAREMACRO( \
         NAMEPREFIX##_black, \
         HITBOX, \
-        SPRITEIDPREFIX##_black \
+        SPRITEIDPREFIX##_black, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_blue, \
         HITBOX, \
-        SPRITEIDPREFIX##_blue \
+        SPRITEIDPREFIX##_blue, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_brown, \
         HITBOX, \
-        SPRITEIDPREFIX##_brown \
+        SPRITEIDPREFIX##_brown, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_clear, \
         HITBOX, \
-        SPRITEIDPREFIX##_clear \
+        SPRITEIDPREFIX##_clear, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_dgreen, \
         HITBOX, \
-        SPRITEIDPREFIX##_dgreen \
+        SPRITEIDPREFIX##_dgreen, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_dpurple, \
         HITBOX, \
-        SPRITEIDPREFIX##_dpurple \
+        SPRITEIDPREFIX##_dpurple, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_gray, \
         HITBOX, \
-        SPRITEIDPREFIX##_gray \
+        SPRITEIDPREFIX##_gray, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_lblue, \
         HITBOX, \
-        SPRITEIDPREFIX##_lblue \
+        SPRITEIDPREFIX##_lblue, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_lgreen, \
         HITBOX, \
-        SPRITEIDPREFIX##_lgreen \
+        SPRITEIDPREFIX##_lgreen, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_lpurple, \
         HITBOX, \
-        SPRITEIDPREFIX##_lpurple \
+        SPRITEIDPREFIX##_lpurple, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_lyellow, \
         HITBOX, \
-        SPRITEIDPREFIX##_lyellow \
+        SPRITEIDPREFIX##_lyellow, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_orange, \
         HITBOX, \
-        SPRITEIDPREFIX##_orange \
+        SPRITEIDPREFIX##_orange, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_purple, \
         HITBOX, \
-        SPRITEIDPREFIX##_purple \
+        SPRITEIDPREFIX##_purple, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_red, \
         HITBOX, \
-        SPRITEIDPREFIX##_red \
+        SPRITEIDPREFIX##_red, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_white, \
         HITBOX, \
-        SPRITEIDPREFIX##_white \
+        SPRITEIDPREFIX##_white, \
+        BASEDEPTH \
     ) \
     DECLAREMACRO( \
         NAMEPREFIX##_yellow, \
         HITBOX, \
-        SPRITEIDPREFIX##_yellow \
+        SPRITEIDPREFIX##_yellow, \
+        BASEDEPTH \
     )
 
 DECLARE_ALL_COLORS(
     small,
-    aabbFromRadius(smallHitboxRadius),
+    aabbMakeRadius(smallHitboxRadius),
     small,
+    config_enemyBulletDepth3,
     DECLARE_BULLET_PROTOTYPE
 )
 
 DECLARE_ALL_COLORS(
     medium,
-    aabbFromRadius(mediumHitboxRadius),
+    aabbMakeRadius(mediumHitboxRadius),
     medium,
+    config_enemyBulletDepth2,
     DECLARE_BULLET_PROTOTYPE
 )
 
 DECLARE_ALL_COLORS(
     large,
-    aabbFromRadius(largeHitboxRadius),
+    aabbMakeRadius(largeHitboxRadius),
     large,
+    config_enemyBulletDepth0,
     DECLARE_BULLET_PROTOTYPE
 )
 
 DECLARE_ALL_COLORS(
     sharp,
-    aabbFromRadius(sharpHitboxRadius),
+    aabbMakeRadius(sharpHitboxRadius),
     sharp,
+    config_enemyBulletDepth4,
     DECLARE_POINTED_BULLET_PROTOTYPE
 )
 
 DECLARE_ALL_COLORS(
     laser,
-    aabbFromRadius(laserHitboxRadius),
+    aabbMakeRadius(laserHitboxRadius),
     laser,
+    config_enemyBulletDepth1,
     DECLARE_LASER_PROTOTYPE
 )
 
 DECLARE_ALL_COLORS(
     star,
-    aabbFromRadius(starHitboxRadius),
+    aabbMakeRadius(starHitboxRadius),
     star,
+    config_enemyBulletDepth3,
     DECLARE_STAR_PROTOTYPE
 )
 

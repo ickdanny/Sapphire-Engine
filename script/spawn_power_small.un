@@ -1,0 +1,7 @@
+spawn(
+    "power_small",
+    getPosition(),
+    <<initPickupSpeed(), -90.0>>,
+    0,
+    "pickup_fall"
+);

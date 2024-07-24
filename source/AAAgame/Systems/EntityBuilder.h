@@ -458,6 +458,4 @@
         ); \
     } while(false)
 
-//todo: utility func to queue entity instead of add
-
 #endif

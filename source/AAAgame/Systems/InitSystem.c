@@ -958,6 +958,86 @@ static void addOverlayElements(
     #undef yOffset
 }
 
+/* initializes the stage script for the game */
+static void addStageScript(
+    Game *gamePtr,
+    Scene *scenePtr,
+    int stage
+){
+    declareList(componentList, 1);
+    Scripts scripts = {0};
+    String scriptID = {0};
+    switch(stage){
+        case 1:
+            scriptID = stringMakeC("stage1");
+            break;
+        case 2:
+            scriptID = stringMakeC("stage2");
+            break;
+        case 3:
+            scriptID = stringMakeC("stage3");
+            break;
+        case 4:
+            scriptID = stringMakeC("stage4");
+            break;
+        default:
+            pgError(
+                "unexpected default stage; "
+                SRC_LOCATION
+            );
+            break;
+    }
+    scripts.vm1 = vmPoolRequest();
+    unVirtualMachineLoad(
+        scripts.vm1,
+        resourcesGetScript(
+            gamePtr->resourcesPtr,
+            &scriptID
+        )
+    );
+    addScripts(&componentList, scripts);
+    addEntityAndFreeList(
+        &componentList,
+        scenePtr,
+        NULL
+    );
+    stringFree(&scriptID);
+}
+
+/*
+ * signals the game to begin playback of the stage
+ * track
+ */
+static void startStageTrack(
+    Game *gamePtr,
+    Scene *scenePtr,
+    int stage
+){
+    String *trackIDPtr
+        = &(gamePtr->messages.startMusicString);
+    stringClear(trackIDPtr);
+    switch(stage){
+        case 1:
+            stringAppendC(trackIDPtr, "02");
+            break;
+        case 2:
+            stringAppendC(trackIDPtr, "04");
+            break;
+        case 3:
+            stringAppendC(trackIDPtr, "06");
+            break;
+        case 4:
+            stringAppendC(trackIDPtr, "08");
+            break;
+        default:
+            pgError(
+                "unexpected default stage; "
+                SRC_LOCATION
+            );
+            break;
+    }
+}
+
 /* initializes the entities for the game */
 static void initGame(Game *gamePtr, Scene *scenePtr){
     const GameState gameState
@@ -1073,6 +1153,14 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
         playerData.lives,
         playerData.bombs,
         playerData.power
+    );
+
+    addStageScript(gamePtr, scenePtr, gameState.stage);
+
+    startStageTrack(
+        gamePtr,
+        scenePtr,
+        gameState.stage
     );
 }
 
@@ -1247,7 +1335,7 @@ static void initContinue(
         = (PlayerData){0};
     gamePtr->messages.playerData.isPresent = false;
     
-    float iconY = 80.0f;
+    float iconY = 150.0f;
     float xShift = 15.0f;
     if(playerData.continues == 2){
         addBackground(
@@ -1296,8 +1384,7 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
         case scene_stage:
             initStageMenu(gamePtr, scenePtr);
             break;
-        //todo: init other scenes
-        
+        //todo: init music scene
         //scene_music,
         case scene_options:
             initOptionsMenu(gamePtr, scenePtr);
@@ -1309,7 +1396,7 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
             initGame(gamePtr, scenePtr);
             break;
         /*
-    scene_dialogue,*/
+    scene_dialogue,*/ //todo: init dialogue scene
         case scene_pause:
             initPause(gamePtr, scenePtr);
             break;
@@ -1317,7 +1404,7 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
             initContinue(gamePtr, scenePtr);
             break;
     /*
-    scene_credits,
+    scene_credits, //todo: init credits scene
     */
         default:
             pgError(

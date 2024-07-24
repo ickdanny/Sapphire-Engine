@@ -1,0 +1,10 @@
+# secTimer(14);
+addScript("spawner_1_1", 3); # wave 1: falling stars
+addScript("spawner_1_2", 4); # >
+
+wait isWin();
+tickTimer(timeBeforePostDialogue());
+
+startDialogue("b1_post");
+wait isDialogueOver();
+endStage();

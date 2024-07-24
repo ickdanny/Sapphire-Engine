@@ -17,7 +17,7 @@ void aabbCopyInto(
 }
 
 /* Constructs an AABB of the given radius */
-AABB aabbFromRadius(float radius){
+AABB aabbMakeRadius(float radius){
     AABB toRet = {0};
     toRet.xLow = -radius;
     toRet.xHigh = radius;
@@ -27,7 +27,7 @@ AABB aabbFromRadius(float radius){
 }
 
 /* Constructs a symmetrical AABB from given x and y */
-AABB aabbFromXY(float x, float y){
+AABB aabbMakeXY(float x, float y){
     AABB toRet = {0};
     toRet.xLow = -x;
     toRet.xHigh = x;
@@ -37,7 +37,7 @@ AABB aabbFromXY(float x, float y){
 }
 
 /* Constructs an AABB from the given dimensions */
-AABB aabbFromDimensions(
+AABB aabbMakeDimensions(
     float xLow, 
     float xHigh, 
     float yLow, 

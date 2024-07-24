@@ -247,11 +247,6 @@ void *_arrayListGetPtr(
     );
     #endif
 
-    //todo: temp
-    if(index >= arrayListPtr->size){
-        printf("uh oh");
-    }
-
     assertTrue(
         index < arrayListPtr->size,
         "bad index; " SRC_LOCATION

@@ -8,7 +8,6 @@
  * value
  */
 SceneMessages sceneMessagesMake(){
-    //todo scene messages make
     SceneMessages toRet = {0};
     toRet.menuNavigationCommands = arrayListMake(
         MenuNavigationCommand,
@@ -94,7 +93,6 @@ void sceneMessagesClear(
     arrayListClear(Collision,
         &(messagesPtr->pickupCollisionList)
     );
-    //todo scene messages clear
 }
 
 /*
@@ -104,7 +102,6 @@ void sceneMessagesClear(
 void sceneMessagesFree(
     SceneMessages *messagesPtr
 ){
-    //todo scene message free
     arrayListFree(MenuNavigationCommand,
         &(messagesPtr->menuNavigationCommands)
     );

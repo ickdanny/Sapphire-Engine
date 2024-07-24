@@ -295,6 +295,7 @@ static void midiSequencerPlayback(
  * be used by threadCreate()
  */
 static void* midiSeqeuncerPlaybackWrapper(void * arg){
+    initThread();
     midiSequencerPlayback((MidiSequencer*)arg);
     return NULL;
 }

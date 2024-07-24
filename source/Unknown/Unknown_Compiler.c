@@ -4,6 +4,9 @@
 
 #define maxParams 255
 
+/* define for verbose compiler output for debugging */
+/* #define COMPILER_VERBOSE */
+
 /*
  * Represents the precedence hiearchy of the grammar 
  * of Unknown from lowest to highest
@@ -457,7 +460,7 @@ static UNObjectFunc *unCompilerEnd(
     UNObjectFunc *toRet 
         = compilerPtr->currentFuncCompilerPtr->funcPtr;
     
-    #ifdef _DEBUG
+    #ifdef COMPILER_VERBOSE
     if(!(compilerPtr->hadError)){
         if(toRet->namePtr != NULL){
             unObjectPrint(

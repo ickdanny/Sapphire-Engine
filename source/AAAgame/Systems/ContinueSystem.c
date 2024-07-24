@@ -89,9 +89,7 @@ static void returnFromContinueMenu(Scene *scenePtr){
         &(scenePtr->ecsWorld),
         playerHandle
     );
-    if(playerDataPtr->continues > 0){
-        --(playerDataPtr->continues);
-    }
+    /* continue decrement occurs during respawning */
 }
 
 /* Handles entering and exiting the continue menu */

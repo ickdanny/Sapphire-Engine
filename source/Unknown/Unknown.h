@@ -12,7 +12,4 @@
 #include "Unknown_Value.h"
 #include "Unknown_VirtualMachine.h"
 
-//todo: test function
-void unTest();
-
 #endif

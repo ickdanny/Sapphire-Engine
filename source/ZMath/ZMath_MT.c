@@ -491,7 +491,7 @@ float zmtFloatDie(ZMT *zmtPtr, float low, float high){
         pgError("low bound > high bound float die!");
     }
     /* check if range is 0 */
-    if(low == low){
+    if(low == high){
         return low;
     }
     float range = high - low;
@@ -529,7 +529,7 @@ float zmtDoubleDie(
         pgError("low bound > high bound double die!");
     }
     /* check if range is 0 */
-    if(low == low){
+    if(low == high){
         return low;
     }
     double range = high - low;

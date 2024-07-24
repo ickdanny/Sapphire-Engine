@@ -17,6 +17,12 @@ typedef pthread_t Thread;
  */
 typedef void*(*RunnableFuncPtr)(void*);
 
+/*
+ * Initializes the current thread; should be called by
+ * runnable functions
+ */
+void initThread();
+
 /* 
  * The tuple returned by threadCreate() with a bool
  * indicating success and a Thread for the newly

@@ -8,7 +8,6 @@ void playerRespawnSystem(
     if(scenePtr->messages.playerStateEntry.state
         == player_respawning
     ){
-        pgWarning("player respawn system");
         WindEntity playerHandle
             = scenePtr->messages.playerStateEntry
                 .playerHandle;
@@ -46,6 +45,14 @@ void playerRespawnSystem(
         }
         else{
             /* only occurs upon continue */
+            if(playerDataPtr->continues <= 0){
+                pgError(
+                    "expect player to have continues "
+                    "if respawning with no lives; "
+                    SRC_LOCATION
+                );
+            }
+            --(playerDataPtr->continues);
             playerDataPtr->lives
                 = config_continueLives;
         }
