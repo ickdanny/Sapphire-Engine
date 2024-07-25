@@ -1,0 +1,79 @@
+# spawn large stars hanging
+
+let speedLow = 50;
+let speedHigh = 170;
+
+let baseAngle = 90;
+let angleRange = 3.3;
+
+let xRange = 10.0;
+
+let numWaves = 4;
+let secsBetweenWaves = 2.8;
+
+func spawnStar(pos, vel, depthOffset, spawnID){
+    spawn(
+        "star_large",
+        pos,
+        vel,
+        depthOffset,
+        spawnID
+    );
+}
+
+# split spawns into four quadrants
+let xOffset = gameWidth() / 5;
+let x0 = xOffset;
+let x1 = x0 + xOffset;
+let x2 = x1 + xOffset;
+let x3 = x2 + xOffset;
+
+func generateVelocity(){
+    return <<
+        random(speedLow, speedHigh),
+        baseAngle + random(-angleRange, angleRange)
+    >>;
+}
+
+func generatePosition(x){
+    return getTopSpawnLeft(
+        x + random(-xRange, xRange)
+    );
+}
+
+func spawnFourStars(spawnID){
+    spawnStar(
+        generatePosition(x0),
+        generateVelocity(),
+        0,
+        spawnID
+    );
+    spawnStar(
+        generatePosition(x1),
+        generateVelocity(),
+        0,
+        spawnID
+    );
+    spawnStar(
+        generatePosition(x2),
+        generateVelocity(),
+        0,
+        spawnID
+    );
+    spawnStar(
+        generatePosition(x3),
+        generateVelocity(),
+        0,
+        spawnID
+    );
+}
+
+for(let i = 0; i < numWaves; i = i + 1){
+    spawnFourStars("enemy_1_4_a");
+    secTimer(secsBetweenWaves);
+}
+
+for(let i = 0; i < numWaves; i = i + 1){
+    spawnFourStars("enemy_1_4_b");
+    secTimer(secsBetweenWaves);
+}

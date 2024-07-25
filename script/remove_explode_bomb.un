@@ -1,2 +1,3 @@
+removeCollidable(); # makes the explode do 1 tick dmg
 tickTimer(10);
 removeEntity();

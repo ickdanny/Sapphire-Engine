@@ -1,5 +1,5 @@
 (targetAngle, increment){
-    let currentAngle = entityAngle();
+    let currentAngle = getAngle();
 
     while(currentAngle != targetAngle){
         currentAngle = currentAngle + increment;

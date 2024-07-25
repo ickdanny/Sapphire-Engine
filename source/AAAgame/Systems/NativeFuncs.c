@@ -404,8 +404,8 @@ static UNValue setSpriteInstruction(
     assertArity(
         5,
         "usage: setSpriteInstruction("
-        "string id, int depth, vector offset, float "
-        "rotation, float scale)"
+        "string id, int depth, vector offset, number "
+        "rotation, number scale)"
     );
 
     /* build the sprite instruction */
@@ -424,8 +424,14 @@ static UNValue setSpriteInstruction(
     spriteInstr.offset = polarToVector(
         unAsVector(argv[2])
     );
-    spriteInstr.rotation = unAsFloat(argv[3]);
-    spriteInstr.scale = unAsFloat(argv[4]);
+    spriteInstr.rotation = getValueAsNumber(
+        argv[3],
+        "rotation should be a number; " SRC_LOCATION
+    );
+    spriteInstr.scale = getValueAsNumber(
+        argv[4],
+        "scale should be a number; " SRC_LOCATION
+    );
 
     /* queue a set command */
     windWorldHandleQueueSetComponent(SpriteInstruction,
@@ -456,7 +462,10 @@ static UNValue setDepth(int argc, UNValue *argv){
 /* Sets the rotation of the entity sprite */
 static UNValue setRotation(int argc, UNValue *argv){
     assertArity(1, "setRotation expects 1 float arg");
-    float rotation = unAsFloat(*argv);
+    float rotation = getValueAsNumber(
+        *argv,
+        "set rotation expects a number; " SRC_LOCATION
+    );
 
     SpriteInstruction *spriteInstrPtr = NULL;
     fillComponentPtr(SpriteInstruction,
@@ -472,7 +481,10 @@ static UNValue setRotation(int argc, UNValue *argv){
 /* Sets the scale of the entity sprite */
 static UNValue setScale(int argc, UNValue *argv){
     assertArity(1, "setScale expects 1 float arg");
-    float scale = unAsFloat(*argv);
+    float scale = getValueAsNumber(
+        *argv,
+        "set scale expects a number; " SRC_LOCATION
+    );
 
     SpriteInstruction *spriteInstrPtr = NULL;
     fillComponentPtr(SpriteInstruction,
@@ -753,7 +765,10 @@ static UNValue removeClearable(
 /* Sets the entity inbound to the specified value */
 static UNValue setInbound(int argc, UNValue *argv){
     assertArity(1, "setInbound expects float arg");
-    float inbound = unAsFloat(*argv);
+    float inbound = getValueAsNumber(
+        *argv,
+        "set inbound expects a number; " SRC_LOCATION
+    );
     setComponent(Inbound, &inbound);
     return unBoolValue(false);
 }
@@ -768,7 +783,10 @@ static UNValue removeInbound(int argc, UNValue *argv){
 /* Sets the entity outbound to the specified value */
 static UNValue setOutbound(int argc, UNValue *argv){
     assertArity(1, "setOutbound expects float arg");
-    float outbound = unAsFloat(*argv);
+    float outbound = getValueAsNumber(
+        *argv,
+        "set outbound expects a number; " SRC_LOCATION
+    );
     setComponent(Outbound, &outbound);
     return unBoolValue(false);
 }
@@ -820,7 +838,10 @@ static UNValue removeVelocity(int argc, UNValue *argv){
 /* Sets the entity speed to the specified value */
 static UNValue setSpeed(int argc, UNValue *argv){
     assertArity(1, "setSpeed expects float arg");
-    float speed = unAsFloat(*argv);
+    float speed = getValueAsNumber(
+        *argv,
+        "set speed expects a number; " SRC_LOCATION
+    );
 
     Velocity *velocityPtr = NULL;
     fillComponentPtr(Velocity,
@@ -837,7 +858,10 @@ static UNValue setSpeed(int argc, UNValue *argv){
 /* Sets the entity angle to the specified value */
 static UNValue setAngle(int argc, UNValue *argv){
     assertArity(1, "setAngle expects float arg");
-    float angle = unAsFloat(*argv);
+    float angle = getValueAsNumber(
+        *argv,
+        "set angle expects a number; " SRC_LOCATION
+    );
 
     Velocity *velocityPtr = NULL;
     fillComponentPtr(Velocity,
@@ -856,7 +880,10 @@ static UNValue setAngle(int argc, UNValue *argv){
  */
 static UNValue setSpin(int argc, UNValue *argv){
     assertArity(1, "setSpin expects float arg");
-    SpriteSpin spin = unAsFloat(*argv);
+    SpriteSpin spin = getValueAsNumber(
+        *argv,
+        "set spin expects a number; " SRC_LOCATION
+    );
     setComponent(SpriteSpin, &spin);
     return unBoolValue(false);
 }
@@ -1241,6 +1268,88 @@ static UNValue addDeathScript(int argc, UNValue *argv){
 
     /* should never be reached */
     return unBoolValue(false);
+}
+
+/*
+ * Removes the specified death script from the entity
+ * of the specified slot (int slot); returns true if
+ * successful, false otherwise
+ */
+static UNValue removeDeathScript(
+    int argc,
+    UNValue *argv
+){
+    assertArity(1, "usage: removeDeathScript(slot)");
+
+    int slot = unAsInt(*argv);
+    if(slot < 1 || slot > 4){
+        pgError(
+            "invalid death script slot; "
+            SRC_LOCATION
+        );
+    }
+
+    /*
+     * if death script component not present, return
+     * false
+     */
+    if(!windWorldHandleContainsComponent(DeathScripts,
+        &(_scenePtr->ecsWorld),
+        _handle
+    )){
+        return unBoolValue(false);
+    }
+
+    DeathScripts *deathScriptsPtr = NULL;
+    fillComponentPtr(DeathScripts,
+        deathScriptsPtr,
+        "error: failed to get death scripts; "
+        SRC_LOCATION
+    );
+
+    /*
+     * try to remove death script; return true if the
+     * requested slot was present, false otherwise
+     */
+    #define removeDeathScript(SLOT) \
+        do{ \
+            if(deathScriptsPtr->scriptID##SLOT \
+                ._ptr \
+            ){ \
+                stringFree( \
+                    &(deathScriptsPtr \
+                        ->scriptID##SLOT) \
+                ); \
+                return unBoolValue(true); \
+            } \
+            else{ \
+                return unBoolValue(false); \
+            } \
+        } while(false)
+
+    switch(slot){
+        case 1:
+            removeDeathScript(1);
+            break;
+        case 2:
+            removeDeathScript(2);
+            break;
+        case 3:
+            removeDeathScript(3);
+            break;
+        case 4:
+            removeDeathScript(4);
+            break;
+        default:
+            pgError(
+                "unexpected default death script "
+                "slot; "
+                SRC_LOCATION
+            );
+            break;
+    }
+
+    #undef removeDeathScript
 }
 
 /* MATH */
@@ -1752,6 +1861,10 @@ static UNValue chance(int argc, UNValue *argv){
 
     ZMT *prngPtr = &(_scenePtr->messages.prng);
 
+    assertTrue(
+        unIsFloat(*argv),
+        "chance expects a float; " SRC_LOCATION
+    );
     float chance = unAsFloat(*argv);
 
     if(chance < 0.0f || chance > 1.0f){
@@ -2200,6 +2313,7 @@ static void init(){
         addNativeFunc(removeScript);
         addNativeFunc(removeSpawns);
         addNativeFunc(addDeathScript);
+        addNativeFunc(removeDeathScript);
 
         /* math */
         addNativeFunc(flipX);

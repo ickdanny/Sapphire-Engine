@@ -1,0 +1,23 @@
+let health = 1000;
+
+let finalSpeed = 0.85 * getSpeed();
+
+let slowTicksLow = 60;
+let slowTicksHigh = 70;
+let waitTicksLow = 45;
+let waitTicksHigh = 55;
+let speedTicksLow = 90;
+let speedTicksHigh = 100;
+
+setHealth(health);
+addDeathScript("spawn_power_small", 4);
+
+let slowTicks = random(slowTicksLow, slowTicksHigh);
+let waitTicks = random(waitTicksLow, waitTicksHigh);
+let speedTicks = random(speedTicksLow, speedTicksHigh);
+
+shiftSpeedPeriod(0, slowTicks);
+addScript("danmaku_enemy_1_4_a", 3);
+wait !isSpawning();
+tickTimer(waitTicks);
+shiftSpeedPeriod(finalSpeed, speedTicks);

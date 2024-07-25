@@ -47,7 +47,13 @@ typedef struct TilingInstruction{
 /* Component 6: TileScroll */
 typedef Vector2D TileScroll;
 
-/* TODO: Component 7: TextInstruction with string and int rightBound */
+/* Component 7: TextInstruction */
+typedef struct TextInstruction{
+    WideString text;
+    int rightBound;
+} TextInstruction;
+
+void textInstructionDestructor(void *voidPtr);
 
 /* Component 8: Rotate sprite forward marker */
 
@@ -192,6 +198,7 @@ typedef enum ComponentID{
     SubImageID,
     TilingInstructionID,
     TileScrollID,
+    TextInstructionID,
     RotateSpriteForwardMarkerID,
     SpriteSpinID,
     AnimationsID,

@@ -1,5 +1,18 @@
 #include "Components.h"
 
+void textInstructionDestructor(void *voidPtr){
+    TextInstruction *textInstructionPtr = voidPtr;
+
+    if(textInstructionPtr->text._ptr){
+        wideStringFree(&(textInstructionPtr->text));
+    }
+    memset(
+        textInstructionPtr,
+        0,
+        sizeof(*textInstructionPtr)
+    );
+}
+
 void animationsDestructor(void *voidPtr){
     animationListFree((AnimationList*)voidPtr);
 }
@@ -66,6 +79,10 @@ WindComponents *componentsMake(){
     insertComponent(SubImage, NULL);
     insertComponent(TilingInstruction, NULL);
     insertComponent(TileScroll, NULL);
+    insertComponent(
+        TextInstruction,
+        textInstructionDestructor
+    );
     insertMarker(RotateSpriteForwardMarker);
     insertComponent(SpriteSpin, NULL);
     insertComponent(Animations, animationsDestructor);

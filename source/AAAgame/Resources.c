@@ -361,11 +361,17 @@ UNObjectFunc *resourcesGetScript(
     Resources *resourcesPtr,
     String *stringPtr
 ){
-    return *hashMapGetPtr(String, UNObjectFunc*,
+    UNObjectFunc **returnedPtr = hashMapGetPtr(
+        String,
+        UNObjectFunc*,
         &(resourcesPtr->scriptResourcesPtr
             ->_scriptMap),
         stringPtr
     );
+    if(!returnedPtr){
+        return NULL;
+    }
+    return *returnedPtr;
 }
 
 //todo get other resources (e.g. dialogue)

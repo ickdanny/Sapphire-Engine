@@ -23,7 +23,7 @@ func spawnLargeStar(pos, vel, depthOffset){
         pos,
         vel,
         depthOffset,
-        "enemy_1_3" # todo: this script slow and shoot
+        "enemy_1_3"
     );
 }
 

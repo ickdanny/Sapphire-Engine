@@ -1,0 +1,41 @@
+let arcSym = diff(1, 2, 3);
+let arcInc = diff(0.0, 40.0, 30.0);
+let ringSym = 3;
+let speed = 92;
+let angleRange = 1.0;
+
+let angleVel = 5.0;
+let angleAccel = 1.0;
+
+let ticksBetweenSpawns = diff(28, 20, 10);
+
+let maxSecs = 2.0;
+let maxTick = maxSecs * updatesPerSecond();
+
+let pos = getPosition();
+
+func spawnStar(vel, depthOffset){
+    vel.t = vel.t + random(-angleRange, angleRange);
+    spawn(
+        "star_lyellow",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_enemy_1_4_b"
+    );
+}
+
+func spawnArc(baseVel, _ignored){
+    arc(baseVel, arcSym, arcInc, spawnStar);
+}
+
+let velocity = <<speed, randomAngle()>>;
+for(let tick = 0;
+    tick < maxTick;
+    tick = tick + ticksBetweenSpawns
+){
+    ring(velocity, ringSym, spawnArc);
+    tickTimer(ticksBetweenSpawns);
+    velocity.t = velocity.t + angleVel;
+    angleVel = angleVel + angleAccel;
+}

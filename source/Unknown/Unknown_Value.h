@@ -111,7 +111,7 @@ static inline bool unAsBool(UNValue value){
         return value.as.boolean;
     }
     else{
-        pgError("bad access for bool");
+        pgError("bad access for bool; " SRC_LOCATION);
         return false;
     }
 }
@@ -125,7 +125,10 @@ static inline int unAsInt(UNValue value){
         return value.as.integer;
     }
     else{
-        pgError("bad access for integer");
+        pgError(
+            "bad access for integer;"
+            SRC_LOCATION
+        );
         return 0;
     }
 }
@@ -139,7 +142,7 @@ static inline float unAsFloat(UNValue value){
         return value.as.floating;
     }
     else{
-        pgError("bad access for float");
+        pgError("bad access for float; " SRC_LOCATION);
         return 0;
     }
 }
@@ -153,7 +156,10 @@ static inline Polar unAsVector(UNValue value){
         return value.as.vector;
     }
     else{
-        pgError("bad access for vector");
+        pgError(
+            "bad access for vector; "
+            SRC_LOCATION
+        );
         return (Polar){0};
     }
 }
@@ -167,7 +173,7 @@ static inline Point2D unAsPoint(UNValue value){
         return value.as.point;
     }
     else{
-        pgError("bad access for point");
+        pgError("bad access for point; " SRC_LOCATION);
         return (Point2D){0};
     }
 }
@@ -181,7 +187,9 @@ static inline UNObject *unAsObject(UNValue value){
         return value.as.object;
     }
     else{
-        pgError("bad access for object");
+        pgError(
+            "bad access for object; " SRC_LOCATION
+        );
         return 0;
     }
 }

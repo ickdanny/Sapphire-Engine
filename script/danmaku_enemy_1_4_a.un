@@ -1,0 +1,57 @@
+# shoots columns of medium then rings of stars
+
+let columnFullTimeTicks = 32;
+let columnFullSpawns = diff(2, 4, 8);
+let columnSpeed = diff(100, 130, 160);
+
+let ringSymmetry = diff(20, 30, 40);
+let ringSpeed = 34.4;
+let ringAngleRange = 1.0;
+
+let columnTicksBetweenSpawns
+    = columnFullTimeTicks / columnFullSpawns;
+
+let position = getPosition();
+
+func spawnStar(velocity, depthOffset){
+    velocity.t = velocity.t + random(
+        -ringAngleRange,
+        ringAngleRange
+    );
+    spawn(
+        "star_lyellow",
+        position,
+        velocity,
+        depthOffset
+    );
+}
+
+func spawnMedium(velocity, depthOffset){
+    spawn(
+        "medium_yellow",
+        position,
+        velocity,
+        depthOffset
+    );
+}
+
+func spawnMediumColumn(){
+    let numSpawns = columnFullSpawns;
+    let angle = getAngleToPlayer();
+
+    let velocity = <<columnSpeed, angle>>;
+
+    for(let i = 0; i < numSpawns; i = i + 1){
+        spawnMedium(velocity, i);
+        tickTimer(columnTicksBetweenSpawns);
+    }
+}
+
+func spawnRing(){
+    let angle = randomAngle();
+    let baseVel = <<ringSpeed, angle>>;
+    ring(baseVel, ringSymmetry, spawnStar);
+}
+
+spawnMediumColumn();
+spawnRing();

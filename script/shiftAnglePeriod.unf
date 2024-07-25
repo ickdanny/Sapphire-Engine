@@ -1,6 +1,6 @@
 (targetAngle, ticks){
-    let currentAngle = entityAngle();
-    let angleDiff = smallerDifference(
+    let currentAngle = getAngle();
+    let angleDiff = smallerAngleDiff(
         targetAngle,
         currentAngle
     );

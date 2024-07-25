@@ -1,0 +1,10 @@
+# script for the life wisp enemy
+
+let initSlowTicks = 25;
+let initWaitSecs = .70;
+
+
+
+
+shiftSpeedPeriod(0.0, initSlowTicks);
+secTimer(initWaitSecs);

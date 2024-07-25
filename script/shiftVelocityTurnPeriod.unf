@@ -1,9 +1,9 @@
 (targetSpeed, targetAngle, ticks){
     let currentSpeed = getSpeed();
-    let currentAngle = entityAngle();
+    let currentAngle = getAngle();
 
     let speedDiff = targetSpeed - currentSpeed;
-    let angleDiff = smallerDifference(
+    let angleDiff = smallerAngleDiff(
         targetAngle,
         currentAngle
     );

@@ -1,0 +1,24 @@
+# bird swoop script
+
+let health = 1;
+
+let slowTicksLow = 40;
+let slowTicksHigh = 100;
+let speedTicks = 40;
+
+let initAngle = getAngle();
+let finalAngle = flipX(initAngle);
+let finalSpeed = getSpeed();
+
+let slowTicks = random(slowTicksLow, slowTicksHigh);
+
+setHealth(health);
+addDeathScript("spawn_power_small_2", 4);
+
+shiftSpeedPeriod(0.0, slowTicks);
+addScript("danmaku_enemy_1_5", 3);
+shiftVelocityTurnPeriod(
+    finalSpeed,
+    finalAngle,
+    speedTicks
+);

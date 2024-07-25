@@ -763,6 +763,8 @@ static WindEntity addPlayer(
         &componentList,
         config_playerHitbox
     );
+    /* add damage for pickup wisps */
+    addDamage(&componentList, 9999999);
     addVelocity(&componentList, (Velocity){0});
     addSpriteInstructionSimple(
         &componentList,
@@ -1178,7 +1180,7 @@ static void initPause(Game *gamePtr, Scene *scenePtr){
     /* add the buttons for the pause menu */
     Point2D initPos = {
         gameCenter.x,
-        155.0f
+        149.0f
     };
     Vector2D lineOffset = {0.0f, -30.0f};
     Vector2D selOffset = {0.0f, 1.0f};

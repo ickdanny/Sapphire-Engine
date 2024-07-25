@@ -1756,6 +1756,16 @@ void unVirtualMachineLoad(
     UNVirtualMachine *vmPtr,
     UNObjectFunc *funcObjectProgramPtr
 ){
+    assertNotNull(
+        vmPtr,
+        "null vm passed to load; "
+        SRC_LOCATION
+    );
+    assertNotNull(
+        funcObjectProgramPtr,
+        "null func object passed to load; "
+        SRC_LOCATION
+    );
     unVirtualMachineReset(vmPtr);
 
     /*
