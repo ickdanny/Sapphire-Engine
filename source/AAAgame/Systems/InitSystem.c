@@ -1271,7 +1271,7 @@ static void initContinue(
     );
 
     /* add the buttons for the continue menu */
-    Point2D initPos = {gameCenter.x, 115.0f};
+    Point2D initPos = {gameCenter.x, 130.0f};
     Vector2D lineOffset = {0.0f, -30.0f};
     Vector2D selOffset = {0.0f, 1.0f};
 
@@ -1337,7 +1337,7 @@ static void initContinue(
         = (PlayerData){0};
     gamePtr->messages.playerData.isPresent = false;
     
-    float iconY = 150.0f;
+    float iconY = 166.0f;
     float xShift = 15.0f;
     if(playerData.continues == 2){
         addBackground(
