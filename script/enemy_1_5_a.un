@@ -1,6 +1,6 @@
 # life bird swoop script
 
-let health = 1000;
+let health = 2000;
 
 let slowTicks = 70;
 let speedTicks = 40;

@@ -1,3 +1,5 @@
+# spiraling arcs
+
 let arcSym = diff(1, 2, 3);
 let arcInc = diff(0.0, 40.0, 30.0);
 let ringSym = 3;
@@ -6,6 +8,11 @@ let angleRange = 1.0;
 
 let angleVel = 5.0;
 let angleAccel = 1.0;
+
+if(chance(0.5)){
+    angleVel = -angleVel;
+    angleAccel = -angleAccel;
+}
 
 let ticksBetweenSpawns = diff(28, 20, 10);
 

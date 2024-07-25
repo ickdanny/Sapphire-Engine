@@ -43,7 +43,7 @@
 #define wispHitboxRadius 7.5f
 #define crystalHitbox (aabbMakeXY(5.0f, 9.5f))
 #define bossHitbox (aabbMakeXY(7.0f, 13.0f))
-#define pickupWispHitboxRadius 12.0f
+#define pickupWispHitboxRadius 10.0f
 
 #define birdAnimationMaxTick 3
 #define machineAnimationMaxTick 3
@@ -934,7 +934,6 @@ DECLARE_BOSS_PROTOTYPE(boss3, b3)
 DECLARE_BOSS_PROTOTYPE(boss4, b4)
 
 
-//todo: pickup wisps
 DECLARE_PROTOTYPE(life_wisp){
     addVisible(componentListPtr);
     addCollidable(componentListPtr);
@@ -947,7 +946,7 @@ DECLARE_PROTOTYPE(life_wisp){
         collision_damage
     );
     /* take damage from player on collision */
-    addPickupCollisionTarget(
+    addPickupCollisionSource(
         componentListPtr,
         collision_damage
     );
@@ -995,7 +994,73 @@ DECLARE_PROTOTYPE(life_wisp){
             ),
             .scriptID2 = stringMakeC("add_life"),
             .scriptID3 = stringMakeC(
-                "spawn_explode_enemy"
+                "spawn_explode_bomb"
+            )
+        })
+    );
+}
+
+DECLARE_PROTOTYPE(bomb_wisp){
+    addVisible(componentListPtr);
+    addCollidable(componentListPtr);
+    addHitbox(
+        componentListPtr,
+        aabbMakeRadius(pickupWispHitboxRadius)
+    );
+    addEnemyCollisionTarget(
+        componentListPtr,
+        collision_damage
+    );
+    /* take damage from player on collision */
+    addPickupCollisionSource(
+        componentListPtr,
+        collision_damage
+    );
+    addHealth(componentListPtr, enemySpawnHealth);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "bomb_wisp1",
+        config_enemyDepth + depthOffset,
+        ((Vector2D){0})
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(&animation, "bomb_wisp1");
+    animationAddFrame(&animation, "bomb_wisp2");
+    animationAddFrame(&animation, "bomb_wisp3");
+    animationAddFrame(&animation, "bomb_wisp4");
+    animationAddFrame(&animation, "bomb_wisp5");
+    animationAddFrame(&animation, "bomb_wisp6");
+    animationAddFrame(&animation, "bomb_wisp7");
+    animationAddFrame(&animation, "bomb_wisp8");
+    animationAddFrame(&animation, "bomb_wisp9");
+    animationAddFrame(&animation, "bomb_wisp10");
+    animationAddFrame(&animation, "bomb_wisp11");
+    animationAddFrame(&animation, "bomb_wisp12");
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = pickupWispAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+
+    addOutbound(componentListPtr, enemyOutbound);
+    addDeathCommand(
+        componentListPtr,
+        death_script
+    );
+    addDeathScripts(
+        componentListPtr,
+        ((DeathScripts){
+            .scriptID1 = stringMakeC(
+                "remove_ghost"
+            ),
+            .scriptID2 = stringMakeC("add_bomb"),
+            .scriptID3 = stringMakeC(
+                "spawn_explode_bomb"
             )
         })
     );
@@ -1536,6 +1601,8 @@ static void init(){
         addPrototypeFunction(boss2);
         addPrototypeFunction(boss3);
         addPrototypeFunction(boss4);
+        addPrototypeFunction(life_wisp);
+        addPrototypeFunction(bomb_wisp);
 
         /* bullet prototypes */
         #define addAllColors(NAMEPREFIX) \

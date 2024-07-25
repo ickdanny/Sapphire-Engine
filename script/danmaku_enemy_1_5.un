@@ -1,15 +1,16 @@
 # bird dropping danmaku
 
 let angleRange = 10.0;
-let speed = 35.0;
+let speed = 5.0;
 
 func spawnBullet(vel, depthOffset){
     spawn(
         "medium_clear",
         getPosition(),
         vel,
-        depthOffset
-    )
+        depthOffset,
+        "bullet_enemy_1_5"
+    );
 }
 
 let angle = 90.0 + random(-angleRange, angleRange);

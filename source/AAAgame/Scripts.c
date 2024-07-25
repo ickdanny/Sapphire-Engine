@@ -1,4 +1,5 @@
 #include "Scripts.h"
+#include "Config.h"
 
 /*
  * Used to form a singly linked list of virtual
@@ -29,7 +30,7 @@ static bool initialized = false;
 static UNNativeFuncSet *_nativeFuncSetPtr = NULL;
 static UNUserFuncSet *_userFuncSetPtr = NULL;
 
-#define initBlockSize 1000
+#define initBlockSize config_gameMaxEntities
 #define growBlockSize 100
 
 /*

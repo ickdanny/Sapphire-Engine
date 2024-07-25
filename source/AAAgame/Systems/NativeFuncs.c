@@ -23,8 +23,9 @@ static WindEntity _handle;
 #define _bossXLow (_bossInbound + config_gameOffsetX)
 #define _bossXHigh (config_gameWidth - _bossInbound \
     + config_gameOffsetX)
-#define _bossYLow (_bossInbound + config_gameOffsetY)
-#define _bossYHigh (config_gameHeight * 0.72f \
+#define _bossYLow (config_gameHeight * 0.72f \
+    + config_gameOffsetY)
+#define _bossYHigh (config_gameHeight - _bossInbound \
     + config_gameOffsetY)
 #define _trapLifetime 36
 #define _timeBeforePostDialogue 55

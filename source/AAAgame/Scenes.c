@@ -256,7 +256,9 @@ Scenes scenesMake(WindComponents *componentsPtr){
         5,      false,  renderTransparent
     );
     defineScene(scene_game,
-        1000,   true,   notTransparent
+        config_gameMaxEntities,
+        true,
+        notTransparent
     );
     defineScene(scene_dialogue,
         5,      true,   fullyTransparent

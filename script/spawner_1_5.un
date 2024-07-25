@@ -1,12 +1,12 @@
 # spawns swooping birds from the sides
 
-let maxSecs = 11.0;
+let maxSecs = 10.0;
 
 let secsBetweenSpawns = 0.35;
 let secInc = 1.0 / updatesPerSecond();
 
-let speedLow = 50;
-let speedHigh = 60;
+let speedLow = 80;
+let speedHigh = 150;
 
 # angles for the left spawn; right should flipY
 let angleLow = 5.0;
@@ -39,20 +39,20 @@ func spawnBird(pos, vel, depthOffset){
 
 spawnLifeBird(
     getLeftSpawn(180.0),
-    <<speedLow, 15.0>>,
+    <<(speedLow + speedHigh) / 2, 15.0>>,
     0
 );
 
-func spawnRandBird(int depthOffset){
+func spawnRandBird(depthOffset){
     let speed = random(speedLow, speedHigh);
     let angle = random(angleLow, angleHigh);
     let spawnY = random(spawnYLow, spawnYHigh);
     let pos;
     if(chance(0.5)){
-        angle = flipY(angle);
         pos = getLeftSpawn(spawnY);
     }
     else{
+        angle = flipY(angle);
         pos = getRightSpawn(spawnY);
     }
     spawnBird(pos, <<speed, angle>>, depthOffset);
@@ -70,5 +70,6 @@ for(let secs = 0.0;
         spawnRandBird(numSpawns);
         numSpawns = numSpawns + 1;
     }
+    secsSinceLastSpawn = secsSinceLastSpawn + secInc;
     yield;
 }

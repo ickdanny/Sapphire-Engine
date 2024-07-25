@@ -141,6 +141,8 @@ WindEntity _windEntitiesCreate(
         &(entitiesPtr->_entityMetadata),
         entityID
     )._generation;
+
+    ++(entitiesPtr->_numEntities);
     return toRet;
 }
 
@@ -177,6 +179,8 @@ void _windEntitiesReclaim(
         "entity must be alive for reclaim; "
         SRC_LOCATION
     );
+
+    --(entitiesPtr->_numEntities);
 }
 
 /*

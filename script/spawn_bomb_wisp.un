@@ -1,0 +1,9 @@
+let initSpeed = 5.0;
+
+spawn(
+    "bomb_wisp",
+    getPosition(),
+    <<initSpeed, randomAngle()>>,
+    0,
+    "bomb_wisp"
+);

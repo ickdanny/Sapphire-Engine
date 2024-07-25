@@ -1,0 +1,51 @@
+# spawn large stars hanging in curtain shape
+
+let speed1 = 50;
+let speed2 = 70;
+let speed3 = 100;
+let speed4 = 150;
+
+let speedRange = 5.0;
+
+let x1 = gameWidth() / 2.0 - 15.0;
+let x2 = gameWidth() / 2.0 - 35.0;
+let x3 = gameWidth() / 2.0 - 55.0;
+let x4 = gameWidth() / 2.0 - 75.0;
+
+let baseAngle = 90;
+let angleRange = 2.3;
+
+func spawnStar(pos, vel, depthOffset){
+    spawn(
+        "star_large",
+        pos,
+        vel,
+        depthOffset,
+        "enemy_1_7"
+    );
+}
+
+func generateVelocity(baseSpeed){
+    return <<
+        baseSpeed + random(-speedRange, speedRange),
+        baseAngle + random(-angleRange, angleRange)
+    >>;
+}
+
+func spawnPair(leftX, baseSpeed){
+    spawnStar(
+        getTopSpawnLeft(leftX),
+        generateVelocity(baseSpeed),
+        0
+    );
+    spawnStar(
+        getTopSpawnRight(leftX),
+        generateVelocity(baseSpeed),
+        0
+    );
+}
+
+spawnPair(x1, speed1);
+spawnPair(x2, speed2);
+spawnPair(x3, speed3);
+spawnPair(x4, speed4);

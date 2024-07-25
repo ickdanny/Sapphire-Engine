@@ -25,6 +25,9 @@
 /* The maximum number of updates between frames */
 #define config_maxUpdatesPerFrame 5
 
+/* The maximum number of entities for the game */
+#define config_gameMaxEntities 3000
+
 /* Width of the playable area (maps to pixels) */
 #define config_gameWidth 170.0f
 

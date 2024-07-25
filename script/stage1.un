@@ -19,9 +19,19 @@ addScript("spawner_1_4", 4);
 
 secTimer(32.0);
 
-# wave 5: bird Vs from sides, including one with life
+# wave 5: birds from sides, including one with life
 #   wisp death spawn
 addScript("spawner_1_5", 3);
+
+secTimer(12.0);
+
+# wave 6: medium stars again
+addScript("spawner_1_6", 4);
+
+secTimer(8.5);
+
+# wave 7: curtain of large stars
+addScript("spawner_1_7", 3);
 
 wait isWin();
 tickTimer(timeBeforePostDialogue());
