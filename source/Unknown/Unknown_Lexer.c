@@ -93,11 +93,11 @@ UNLexer unLexerMake(const char *fileName){
  * false otherwise
  */
 #define unLexerIsAtEnd(LEXERPTR) \
-    (*(LEXERPTR->currentPtr) == '\0')
+    (*((LEXERPTR)->currentPtr) == '\0')
 
 /*
- * Advances the specified lexer to the next token and
- * returns the it
+ * Advances the specified lexer to the next 
+ * character and returns the it
  */
 #define unLexerAdvance(LEXERPTR) \
     (*((LEXERPTR)->currentPtr++))

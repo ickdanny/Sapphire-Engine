@@ -10,7 +10,7 @@ let speedTicksLow = 90;
 let speedTicksHigh = 100;
 
 setHealth(health);
-addDeathScript("spawn_power_small", 4);
+addDeathScript("spawn_power_small_2", 4);
 
 let slowTicks = random(slowTicksLow, slowTicksHigh);
 let waitTicks = random(waitTicksLow, waitTicksHigh);

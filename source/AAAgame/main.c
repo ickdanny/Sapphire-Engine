@@ -104,9 +104,15 @@ int main(){
     );
     resourcesLoadDirectory(
         &(engine.resources),
+        "res/dialogue"
+    );
+    resourcesLoadDirectory(
+        &(engine.resources),
         "res/script"
     );
-    //todo: load more directories as needed
+
+    //todo: what about loading the symbol map?
+    //manually create with symbol_char in image?
 
     /* init MIDI */
     engine.midiHub = midiHubMake(

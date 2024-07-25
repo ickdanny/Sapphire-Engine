@@ -5,6 +5,7 @@
 #include "Trifecta.h"
 #include "MokyoMidi.h"
 #include "Unknown.h"
+#include "Dialogue.h"
 
 /* Stores file resources for scripts */
 typedef struct ScriptResources{
@@ -37,9 +38,10 @@ typedef struct Resources{
     HashMap *_imageMapPtr;
     /* ptr to map of MidiSequence */
     HashMap *_midiMapPtr;
+    /* ptr to map of Dialogue */
+    HashMap *_dialogueMapPtr;
     /* ptr to script resources */
     ScriptResources *scriptResourcesPtr;
-    //todo other fields for other resources
 } Resources;
 
 /*
@@ -78,6 +80,16 @@ MidiSequence *resourcesGetMidi(
 );
 
 /*
+ * Returns a pointer to the dialogue resource specified
+ * by the given String or NULL if no such dialogue
+ * exists
+ */
+Dialogue *resourcesGetDialogue(
+    Resources *resourcesPtr,
+    String *stringPtr
+);
+
+/*
  * Returns a pointer to the script resource specified
  * by the given String or NULL if no such script
  * exists
@@ -86,8 +98,6 @@ UNObjectFunc *resourcesGetScript(
     Resources *resourcesPtr,
     String *stringPtr
 );
-
-//todo get other resources (e.g. dialogue)
 
 /*
  * Frees the memory associated with the specified

@@ -1350,6 +1350,8 @@ static UNValue removeDeathScript(
             break;
     }
 
+    return unBoolValue(false);
+
     #undef removeDeathScript
 }
 
@@ -2106,6 +2108,7 @@ static UNValue spawn(int argc, UNValue *argv){
                 = &(unObjectAsString(argv[4])->string);
             /* fallthrough */
         default:
+            break;
             /* do nothing */
     }
 

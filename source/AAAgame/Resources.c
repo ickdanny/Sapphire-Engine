@@ -2,6 +2,7 @@
 
 #define initImageCapacity 200
 #define initMidiCapacity 20
+#define initDialogueCapacity 20
 #define initScriptCapacity 200
 
 /*
@@ -162,6 +163,31 @@ static void loadMidiIntoResources(
     );
 }
 
+/* Dialogue loading callback */
+static void loadDialogueIntoResources(
+    const char *fileName,
+    void *dialogueMapVoidPtr
+){
+    HashMap *dialogueMapPtr = dialogueMapVoidPtr;
+
+    Dialogue dialogue = parseDialogueFile(fileName);
+    String stringID = isolateFileName(fileName);
+    if(hashMapHasKeyPtr(String, Dialogue,
+        dialogueMapPtr,
+        &stringID
+    )){
+        pgWarning(fileName);
+        pgError(
+            "try to load multiple of same dialogue"
+        );
+    }
+    hashMapPutPtr(String, Dialogue,
+        dialogueMapPtr,
+        &stringID,
+        &dialogue
+    );
+}
+
 /* Script loading callback (.un) */
 static void loadScriptIntoResources(
     const char *fileName,
@@ -247,6 +273,10 @@ Resources resourcesMake(){
         1,
         sizeof(*(toRet._midiMapPtr))
     );
+    toRet._dialogueMapPtr = pgAlloc(
+        1,
+        sizeof(*(toRet._dialogueMapPtr))
+    );
     toRet.scriptResourcesPtr = pgAlloc(
         1,
         sizeof(*(toRet.scriptResourcesPtr))
@@ -260,6 +290,12 @@ Resources resourcesMake(){
     (*toRet._midiMapPtr) = hashMapMake(
         String, MidiSequence,
         initMidiCapacity,
+        constructureStringHash,
+        constructureStringEquals
+    );
+    (*toRet._dialogueMapPtr) = hashMapMake(
+        String, Dialogue,
+        initDialogueCapacity,
         constructureStringHash,
         constructureStringEquals
     );
@@ -278,6 +314,11 @@ Resources resourcesMake(){
         loadMidiIntoResources,
         toRet._midiMapPtr
     );
+    BLResourceType dialogueType = blResourceTypeMake(
+        "dlg",
+        loadDialogueIntoResources,
+        toRet._dialogueMapPtr
+    );
     BLResourceType scriptType = blResourceTypeMake(
         "un",
         loadScriptIntoResources,
@@ -295,6 +336,10 @@ Resources resourcesMake(){
     blResourceLoaderRegisterType(
         &(toRet._loader),
         &midiType
+    );
+     blResourceLoaderRegisterType(
+        &(toRet._loader),
+        &dialogueType
     );
     blResourceLoaderRegisterType(
         &(toRet._loader),
@@ -353,6 +398,21 @@ MidiSequence *resourcesGetMidi(
 }
 
 /*
+ * Returns a pointer to the dialogue resource specified
+ * by the given String or NULL if no such dialogue
+ * exists
+ */
+Dialogue *resourcesGetDialogue(
+    Resources *resourcesPtr,
+    String *stringPtr
+){
+    return hashMapGetPtr(String, Dialogue,
+        resourcesPtr->_dialogueMapPtr,
+        stringPtr
+    );
+}
+
+/*
  * Returns a pointer to the script resource specified
  * by the given String or NULL if no such script
  * exists
@@ -373,8 +433,6 @@ UNObjectFunc *resourcesGetScript(
     }
     return *returnedPtr;
 }
-
-//todo get other resources (e.g. dialogue)
 
 /*
  * Frees the memory associated with the specified
@@ -412,8 +470,19 @@ void resourcesFree(Resources *resourcesPtr){
     );
     pgFree(resourcesPtr->_midiMapPtr);
 
-    //todo free other resource types
-
+    /* free dialogue map */
+    hashMapApply(String, Dialogue,
+        resourcesPtr->_dialogueMapPtr,
+        dialogueFree
+    );
+    hashMapKeyApply(String, Dialogue,
+        resourcesPtr->_dialogueMapPtr,
+        stringFree
+    );
+    hashMapFree(String, Dialogue,
+        resourcesPtr->_dialogueMapPtr
+    );
+    pgFree(resourcesPtr->_dialogueMapPtr);
 
     /* free script resources */
     scriptResourcesFree(

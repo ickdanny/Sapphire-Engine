@@ -652,7 +652,7 @@ static void initOptionsMenu(
     /* add the buttons for the main menu */
     Point2D initPos = {
         config_graphicsWidth / 2,
-        165.0f
+        160.0f
     };
     Vector2D lineOffset = {0.0f, -40.0f};
     Vector2D selOffset = {0.0f, 1.0f};
@@ -846,6 +846,7 @@ static int getInitPower(int stage){
                 "Unexpected default stage; "
                 SRC_LOCATION
             );
+            return 0;
     }
 }
 
@@ -1167,7 +1168,10 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
 }
 
 /* initializes the entities for the pause menu */
-static void initPause(Game *gamePtr, Scene *scenePtr){
+static void initPauseMenu(
+    Game *gamePtr,
+    Scene *scenePtr
+){
     /* add the pause menu background */
     addBackground(
         gamePtr,
@@ -1257,7 +1261,7 @@ static void initPause(Game *gamePtr, Scene *scenePtr){
 }
 
 /* initializes the entities for the continue menu */
-static void initContinue(
+static void initContinueMenu(
     Game *gamePtr,
     Scene *scenePtr
 ){
@@ -1400,10 +1404,10 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
         /*
     scene_dialogue,*/ //todo: init dialogue scene
         case scene_pause:
-            initPause(gamePtr, scenePtr);
+            initPauseMenu(gamePtr, scenePtr);
             break;
         case scene_continue:
-            initContinue(gamePtr, scenePtr);
+            initContinueMenu(gamePtr, scenePtr);
             break;
     /*
     scene_credits, //todo: init credits scene
