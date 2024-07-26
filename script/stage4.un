@@ -1,0 +1,5 @@
+print "TODO: STAGE 4 SCRIPT";
+
+wait isWin();
+tickTimer(300);
+endStage();

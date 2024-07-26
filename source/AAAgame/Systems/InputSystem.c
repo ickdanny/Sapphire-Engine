@@ -18,6 +18,13 @@
             KEY \
         ) == tf_stateDown))
 
+/* locks the specified key */
+#define lock(GAMEPTR, KEY) \
+    tfKeyTableLock( \
+        (GAMEPTR)->keyTablePtr, \
+        KEY \
+    )
+
 /* parses input for a menu scene */
 void parseMenuInput(
     Game *gamePtr,
@@ -161,26 +168,20 @@ void parseDialogueInput(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    //todo parse dialogue input
-    /*
-    auto& readDialogueFlagChannel{
-			scene.getChannel(SceneTopics::readDialogueFlag)
-		};
-		readDialogueFlagChannel.clear();
+    scenePtr->messages.readDialogueFlag = false;
+    if(pressed(gamePtr, tf_z)
+        || pressed(gamePtr, tf_slash)
+        || down(gamePtr, tf_control)
+    ){
+        scenePtr->messages.readDialogueFlag = true;
+    }
 
-		if (isJustPressed(KeyValues::k_z) 
-			|| isJustPressed(KeyValues::k_slash)
-			|| isBeingPressed(KeyValues::k_control)) {
-			readDialogueFlagChannel.addMessage();
-		}
-
-		keyInputTablePointer->lock(KeyValues::k_z);
-		keyInputTablePointer->lock(KeyValues::k_slash);
-		keyInputTablePointer->lock(KeyValues::k_x);
-		keyInputTablePointer->lock(KeyValues::k_period);
-		keyInputTablePointer->lock(KeyValues::k_control);
-		keyInputTablePointer->lock(KeyValues::k_escape);	//simplify things; no pause
-        */
+    lock(gamePtr, tf_z);
+    lock(gamePtr, tf_slash);
+    lock(gamePtr, tf_x);
+    lock(gamePtr, tf_period);
+    lock(gamePtr, tf_control);
+    lock(gamePtr, tf_escape);
 }
 
 /*

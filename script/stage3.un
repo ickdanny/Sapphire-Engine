@@ -1,0 +1,8 @@
+print "TODO: STAGE 3 SCRIPT";
+
+wait isWin();
+tickTimer(timeBeforePostDialogue());
+
+startDialogue("b3_post");
+wait isDialogueOver();
+endStage();

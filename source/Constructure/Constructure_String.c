@@ -266,6 +266,7 @@ void PREFIX##CopyInto( \
         srcPtr->_ptr,  \
         destPtr->_capacity * sizeof(CHARTYPE) \
     ); \
+    destPtr->length = srcPtr->length; \
 } \
 \
 /* \

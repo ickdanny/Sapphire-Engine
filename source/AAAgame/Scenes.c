@@ -57,6 +57,11 @@ void sceneMessagesClear(
     messagesPtr->gameBuilderCommand = gb_none;
     messagesPtr->timer1 = -1;
     messagesPtr->readDialogueFlag = false;
+    memset(
+        &(messagesPtr->dialogueData),
+        0,
+        sizeof(messagesPtr->dialogueData)
+    );
     zmtFree(&(messagesPtr->prng));
     arrayListClear(GameCommand,
         &(messagesPtr->gameCommands)

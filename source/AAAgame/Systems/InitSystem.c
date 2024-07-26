@@ -1167,6 +1167,82 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
     );
 }
 
+/* initializes the entities for the dialogue menu */
+static void initDialogue(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    #define portraitY (config_graphicsHeight - 158.0)
+    #define portraitLeftX 37.0f
+    #define portraitRightX 280.0f
+
+    #define textPos ((Point2D){ \
+        80.0f, \
+        config_graphicsHeight - 172.0f \
+    })
+
+    /* add the background entity */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_dialogue",
+        0,
+        ((Point2D){
+            config_graphicsWidth / 2.0f,
+            40.0f
+        })
+    );
+
+    /* add the left portrait entity */
+    declareList(leftList, 3);
+    addVisible(&leftList);
+    addPosition(
+        &leftList,
+        ((Point2D){
+            portraitLeftX,
+            portraitY
+        })
+    );
+    addEntityAndFreeList(
+        &leftList,
+        scenePtr,
+        &(scenePtr->messages.dialogueData
+            .leftImageHandle)
+    );
+
+    /* add the right portrait entity */
+    declareList(rightList, 3);
+    addVisible(&rightList);
+    addPosition(
+        &rightList,
+        ((Point2D){
+            portraitRightX,
+            portraitY
+        })
+    );
+    addEntityAndFreeList(
+        &rightList,
+        scenePtr,
+        &(scenePtr->messages.dialogueData
+            .rightImageHandle)
+    );
+
+    /* add the text entity */
+    declareList(textList, 3);
+    addVisible(&textList);
+    addPosition(&textList, textPos);
+    addEntityAndFreeList(
+        &textList,
+        scenePtr,
+        &(scenePtr->messages.dialogueData.textHandle)
+    );
+
+    #undef portraitY
+    #undef portraitLeftX
+    #undef portraitRightX
+    #undef textPos
+}
+
 /* initializes the entities for the pause menu */
 static void initPauseMenu(
     Game *gamePtr,
@@ -1401,8 +1477,9 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
         case scene_game:
             initGame(gamePtr, scenePtr);
             break;
-        /*
-    scene_dialogue,*/ //todo: init dialogue scene
+        case scene_dialogue:
+            initDialogue(gamePtr, scenePtr);
+            break;
         case scene_pause:
             initPauseMenu(gamePtr, scenePtr);
             break;

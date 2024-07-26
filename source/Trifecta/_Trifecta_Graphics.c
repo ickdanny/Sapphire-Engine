@@ -286,11 +286,13 @@ void _tfGraphicsDrawSprite(
 ){
     assertNotNull(
         spriteInstrPtr,
-        "error null sprite instruction"
+        "error null sprite instruction; "
+        SRC_LOCATION
     );
     assertNotNull(
         spriteInstrPtr->spritePtr,
-        "error null sprite"
+        "error null sprite; "
+        SRC_LOCATION
     );
 
     /* draw nothing if scale is 0 */

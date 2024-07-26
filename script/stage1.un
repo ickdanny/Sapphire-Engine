@@ -1,37 +1,48 @@
-# wave 1: falling stars
-addScript("spawner_1_1", 3);
+# # wave 1: falling stars
+# addScript("spawner_1_1", 3);
+# 
+# secTimer(14.55);
+# flagBulletClear();
+# 
+# # wave 2: medium stars with rings
+# addScript("spawner_1_2", 4);
+# 
+# secTimer(15.0);
+# 
+# # wave 3: large stars with demarcation
+# addScript("spawner_1_3", 3);
+# 
+# secTimer(10.5);
+# 
+# # wave 4: large stars hanging
+# addScript("spawner_1_4", 4);
+# 
+# secTimer(32.0);
+# 
+# # wave 5: birds from sides, including one with life
+# #   wisp death spawn
+# addScript("spawner_1_5", 3);
+# 
+# secTimer(12.0);
+# 
+# # wave 6: medium stars again
+# addScript("spawner_1_6", 4);
+# 
+# secTimer(8.5);
+# 
+# # wave 7: curtain of large stars
+# addScript("spawner_1_7", 3);
+# 
+# secTimer(14.0);
 
-secTimer(14.55);
 flagBulletClear();
-
-# wave 2: medium stars with rings
-addScript("spawner_1_2", 4);
-
-secTimer(15.0);
-
-# wave 3: large stars with demarcation
-addScript("spawner_1_3", 3);
-
-secTimer(10.5);
-
-# wave 4: large stars hanging
-addScript("spawner_1_4", 4);
-
-secTimer(32.0);
-
-# wave 5: birds from sides, including one with life
-#   wisp death spawn
-addScript("spawner_1_5", 3);
-
-secTimer(12.0);
-
-# wave 6: medium stars again
-addScript("spawner_1_6", 4);
-
-secTimer(8.5);
-
-# wave 7: curtain of large stars
-addScript("spawner_1_7", 3);
+spawn(
+    "boss1",
+    getRightSpawn(-20.0),
+    <<0.0, 0.0>>,
+    0,
+    "boss1_master"
+);
 
 wait isWin();
 tickTimer(timeBeforePostDialogue());

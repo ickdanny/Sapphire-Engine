@@ -111,9 +111,6 @@ int main(){
         "res/script"
     );
 
-    //todo: what about loading the symbol map?
-    //manually create with symbol_char in image?
-
     /* init MIDI */
     engine.midiHub = midiHubMake(
         engine.settings.muted

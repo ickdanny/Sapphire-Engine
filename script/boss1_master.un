@@ -1,0 +1,26 @@
+# Kitty Vestra
+
+gotoDecelerating(bossMidpoint(), 300.0);
+flagBulletClear();
+
+# use side effect to clear boss deaths channel in case
+isBossDead();
+
+startDialogue("b1_pre");
+
+wait isDialogueOver();
+setCollidable();
+
+#todo: boss 1 attacks
+
+secTimer(0.5);
+
+flagWin();
+spawn(
+    "explode_boss",
+    getPosition(),
+    <<0, 0>>,
+    0,
+    "remove_explode_boss"
+);
+removeEntity();

@@ -21,7 +21,7 @@ bool wcharEquals(
 }
 
 #define _keyType wchar_t
-#define _valueType TFSpriteInstruction*
+#define _valueType TFSpriteInstruction
 
 /* Constructs and returns a TFGlyphMap by value */
 TFGlyphMap tfGlyphMapMake(
@@ -50,13 +50,13 @@ const TFSpriteInstruction *tfGlyphMapGet(
     wchar_t character
 ){
     /* if present, return associated sprite */
-    if(hashMapHasKey(_keyType, _valueType,
+    if(hashMapHasKeyPtr(_keyType, _valueType,
         &(glyphMapPtr->_glyphMap),
-        character
+        &character
     )){
-        return hashMapGet(_keyType, _valueType,
+        return hashMapGetPtr(_keyType, _valueType,
             &(glyphMapPtr->_glyphMap),
-            character
+            &character
         );
     }
     /* otherwise return NULL */
@@ -75,9 +75,13 @@ void tfGlyphMapPut(
     wchar_t character,
     TFSpriteInstruction *spriteInstrPtr
 ){
-    hashMapPut(_keyType, _valueType,
+    /*
+     * use put ptr here because macro expand on
+     * _keyType produced a string check type error
+     */
+    hashMapPutPtr(_keyType, _valueType,
         &(glyphMapPtr->_glyphMap),
-        character,
+        &character,
         spriteInstrPtr
     );
 }

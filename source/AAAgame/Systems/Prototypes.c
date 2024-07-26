@@ -917,7 +917,7 @@ DECLARE_PROTOTYPE(crystal){
                     "remove_ghost" \
                 ), \
                 .scriptID3 = stringMakeC( \
-                    "clear_bullets"\
+                    "clear_bullets" \
                 ) \
             }) \
         ); \

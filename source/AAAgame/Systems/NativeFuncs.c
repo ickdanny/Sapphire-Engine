@@ -16,9 +16,9 @@ static WindEntity _handle;
 /* the actual native funcs */
 
 #define _angleEpsilon 0.05f
-#define _pointEpsilon 0.1f
+#define _pointEpsilon 0.5f
 #define _enemySpawnDist 20.0f
-#define _bossY 160.0f
+#define _bossY 180.0f
 #define _bossInbound 30.0f
 #define _bossXLow (_bossInbound + config_gameOffsetX)
 #define _bossXHigh (config_gameWidth - _bossInbound \
@@ -2045,13 +2045,17 @@ static UNValue endStage(int argc, UNValue *argv){
  * Displays the dialogue with the specified string ID
  */
 static UNValue startDialogue(int argc, UNValue *argv){
-    assertArity(0, "startDialogue expects string arg");
+    assertArity(1, "startDialogue expects string arg");
     String *stringPtr
         = &(unObjectAsString(*argv)->string);
-    //todo show the dialogue
-    pgError(
-        "dialogue not yet implemented;"
-        SRC_LOCATION
+    
+    arrayListPushBack(SceneID,
+        &(_gamePtr->messages.sceneEntryList),
+        scene_dialogue
+    );
+    stringCopyInto(
+        &(_gamePtr->messages.startDialogueString),
+        stringPtr
     );
 
     return unBoolValue(false);

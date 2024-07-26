@@ -409,8 +409,6 @@
 #define addDeathScripts(LISTPTR, DEATHSCRIPTS) \
     addComponent(LISTPTR, DeathScripts, DEATHSCRIPTS)
 
-//todo: add other components
-
 /*
  * Adds an entity to the specified scene and frees
  * the component list, storing the returned WindEntity

@@ -7,7 +7,7 @@
 #include "ButtonSpriteSystem.h"
 #include "GameBuilderSystem.h"
 #include "LoadingScreenSystem.h"
-
+#include "DialogueSystem.h"
 #include "ScriptSystem.h"
 #include "PlayerMovementSystem.h"
 #include "VelocitySystem.h"
@@ -44,7 +44,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     buttonSpriteSystem(gamePtr, scenePtr);
     gameBuilderSystem(gamePtr, scenePtr);
     loadingScreenSystem(gamePtr, scenePtr);
-    //todo call dialogue system
+    dialogueSystem(gamePtr, scenePtr);
     scriptSystem(gamePtr, scenePtr);
     playerMovementSystem(gamePtr, scenePtr);
     velocitySystem(gamePtr, scenePtr);

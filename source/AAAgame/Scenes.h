@@ -8,6 +8,7 @@
 #include "MenuCommand.h"
 #include "GameBuilderCommand.h"
 #include "PlayerData.h"
+#include "Dialogue.h"
 
 /* used to identify the different kinds of scenes */
 typedef enum SceneID{
@@ -92,6 +93,18 @@ typedef struct SceneMessages{
      * parser system
      */
     bool readDialogueFlag;
+
+    /* data for the dialogue system */
+    struct{
+        /* ptr to the current dialogue */
+        Dialogue *dialoguePtr;
+        /* index of the next dialogue instruction */
+        int nextDialogueIndex;
+
+        WindEntity leftImageHandle;
+        WindEntity rightImageHandle;
+        WindEntity textHandle;
+    } dialogueData;
 
     /* A PRNG set by init system if needed */
     ZMT prng;
