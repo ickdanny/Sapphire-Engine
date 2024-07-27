@@ -1,0 +1,23 @@
+let health = 6000;
+
+let initWaitSecs = 0.3;
+let slowTicks = 40;
+let slowSpeed = 10;
+let finalAngleBase = 270;
+let finalAngleRange = 30;
+let turnTicks = 120;
+let finalSpeed = 58;
+let speedTicks = 77;
+
+let finalAngle = finalAngleBase
+    + random(-finalAngleRange, finalAngleRange);
+
+setHealth(health);
+addDeathScript("spawn_power_small", 4);
+
+secTimer(initWaitSecs);
+shiftSpeedPeriod(slowSpeed, slowTicks);
+addScript("danmaku_enemy_2_1", 3);
+shiftAnglePeriod(finalAngle, turnTicks);
+removeSpawns();
+shiftSpeedPeriod(finalSpeed, speedTicks);

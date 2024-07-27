@@ -1,0 +1,9 @@
+# returns true if the two specified vectors are equal
+# under the point epsilon, false otherwise
+
+(vector1, vector2){
+    let p1 = [0,0] + vector1;
+    let p2 = [0,0] + vector2;
+    let dist = pointDist(p1, p2);
+    return dist < pointEpsilon();
+}

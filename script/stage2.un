@@ -1,4 +1,14 @@
-print "TODO: STAGE 2 SCRIPT";
+# stage 2 script: Bioluminescent Garden
+
+# secTimer(1.5);
+# 
+# # wave 1: pollen robots
+# addScript("spawner_2_1", 3);
+# 
+# secTimer(18.5);
+# 
+# wave 2: fireflies
+addScript("spawner_2_2", 4);
 
 wait isWin();
 tickTimer(timeBeforePostDialogue());

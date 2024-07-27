@@ -547,7 +547,6 @@ DECLARE_PROTOTYPE(firefly_left){
         firefly_left1,
         spawn_explode_enemy
     );
-    addRotateSpriteForward(componentListPtr);
     Animations animations = animationListMake();
     Animation animation = animationMake(true);
     animationAddFrame(
@@ -582,7 +581,6 @@ DECLARE_PROTOTYPE(firefly_right){
         firefly_right1,
         spawn_explode_enemy
     );
-    addRotateSpriteForward(componentListPtr);
     Animations animations = animationListMake();
     Animation animation = animationMake(true);
     animationAddFrame(

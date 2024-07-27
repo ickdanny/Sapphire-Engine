@@ -1,0 +1,23 @@
+let health = 1000;
+
+let finalAngleBase = getAngle();
+let finalAngleRange = 15.0;
+let initWaitSecsLow = 1.4;
+let initWaitSecsHigh = 1.8;
+let turnTicksLow = 30;
+let turnTicksHigh = 40;
+
+let initWaitSecs
+    = random(initWaitSecsLow, initWaitSecsHigh);
+let finalAngle = finalAngleBase + random(
+    -finalAngleRange,
+    finalAngleRange
+);
+let turnTicks = random(turnTicksLow, turnTicksHigh);
+
+setHealth(1000);
+addScript("danmaku_enemy_2_2", 3);
+addDeathScript("spawn_power_small_2", 4);
+
+secTimer(initWaitSecs);
+shiftAnglePeriod(finalAngle, turnTicks);

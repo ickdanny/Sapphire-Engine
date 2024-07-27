@@ -1,18 +1,36 @@
 (direction, acceleration, dragCoefficient){
+    if(dragCoefficient < 0.0){
+        print dragCoefficient;
+        error("error: negative drag coefficient");
+    }
+    if(dragCoefficient > 0.05){
+        print dragCoefficient;
+        error(
+            "drag coefficient too high; you will "
+                + "not like the results"
+        );
+    }
+
     let velocity;
     let speed;
     let drag;
     let accelVector = <<acceleration, direction>>;
 
-    while(true){
+    let running = true;
+    while(running){
         velocity = getVelocity();
-        velocity = velocity + accelVector;
-        speed = velocity.r;
+        let newVelocity = velocity + accelVector;
+        speed = newVelocity.r;
 
-        #technically should have a 0.5 term
-        drag = speed * speed * dragCoefficient;
-        velocity.r = speed = drag;
-        setVelocity(velocity);
+        drag = 0.5 * speed * speed * dragCoefficient;
+        newVelocity.r = speed - drag;
+        setVelocity(newVelocity);
+
+        if(vectorEquals(velocity, newVelocity)){
+            running = false;
+        }
+
+        velocity = newVelocity;
         yield;
     }
 }

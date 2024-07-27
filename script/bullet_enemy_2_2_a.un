@@ -1,0 +1,13 @@
+# slows down, then spawns an arc of columns
+
+let slowTicks = 25;
+let waitSecs = 0.7;
+
+shiftSpeedPeriod(0.0, slowTicks);
+secTimer(waitSecs);
+
+# todo: spawn an arc of columns
+
+
+
+removeEntity();

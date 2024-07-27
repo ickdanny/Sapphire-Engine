@@ -1,0 +1,30 @@
+# pollen danmaku script
+
+let symmetry = diff(2, 3, 4);
+let secsBetweenSpawns = 0.1;
+let initSpeed = 75;
+let angleVel = 7.34;
+
+if(chance(0.5)){
+    angleVel = -angleVel;
+}
+
+let numSpawns = 0;
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "small_yellow",
+        getPosition(),
+        vel,
+        depthOffset + (numSpawns * 2 * symmetry),
+        "bullet_enemy_2_1"
+    );
+}
+
+# while true since the enemy script will remove spawn
+let baseVel = <<initSpeed, randomAngle()>>;
+while(true){
+    ring(baseVel, symmetry, spawnBullet);
+    numSpawns = numSpawns + 1;
+    baseVel.t = normalizeAngle(baseVel.t + angleVel);
+    secTimer(secsBetweenSpawns);
+}

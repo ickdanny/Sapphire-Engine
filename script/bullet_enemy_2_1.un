@@ -1,0 +1,13 @@
+let baseDirection = 90;
+let directionRange = diff(10.0, 30.0, 50.0);
+let accel = 1.0;
+let dragLow = 0.0001;
+let dragHigh = 0.001;
+
+let drag = random(dragLow, dragHigh);
+let direction = baseDirection + random(
+    -directionRange,
+    directionRange
+);
+
+gravity(direction, accel, drag);

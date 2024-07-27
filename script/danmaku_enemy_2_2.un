@@ -1,0 +1,29 @@
+# shoots a bullet which becomes an arc of columns
+
+let secsBetweenShots = diff(3.0, 2.5, 2.0);
+let secsRange = 0.3;
+
+let initSpeed = 150;
+
+# init wait randomizer
+secTimer(
+    random(secsBetweenShots / 2.0, secsBetweenShots)
+);
+
+func spawnBullet(){
+    spawn(
+        "sharp_lyellow",
+        getPosition(),
+        <<initSpeed, getAngleToPlayer()>>,
+        0,
+        "bullet_enemy_2_2_a"
+    );
+}
+
+while(true){
+    spawnBullet();
+    secTimer(
+        secsBetweenShots
+            + random(-secsRange, secsRange)
+    );
+}
