@@ -6,14 +6,17 @@
     ){
         let exponentBase = 2.0;
         let horizontalShift = 0.1;
-        let horizontalStretch = 7.0;
+        let horizontalStretch = 4.0;
 
         let distRatio = currentDist / initDist;
         let exponent = (horizontalStretch * distRatio)
             + horizontalShift;
         let speedMulti = 1.0
             - (1.0 / pow(exponentBase, exponent));
-        return min(maxSpeed * speedMulti, currentDist);
+        return min(
+            maxSpeed * speedMulti,
+            currentDist * updatesPerSecond()
+        );
     }
 
     let pos = getPosition();

@@ -1,0 +1,73 @@
+# bilateral polar func danmaku script
+
+let bulletSymmetry = 4;
+let initSpeed = 3.0;
+
+let overallAngleVel = diff(2.5, 2.1, 1.7) * pi();
+let patternAngleVel = diff(4.0, 3.0, 2.0) * phi();
+let bulletAngleVel = -diff(6.8, 5.3, 4.4) * phi();
+let secsBetweenSpawns = diff(0.15, 0.1, 0.07);
+
+# controls distance from the boss of spawn
+let rMulti = 30;
+func rFunc(theta){
+    return rMulti * (pow(cos(toRadians(5 * theta)), 2)
+        + sin(toRadians(3 * theta)) + 0.3);
+}
+
+let pos = getPosition();
+
+let spawnPosA = [0,0];
+func spawnBulletA(vel, depthOffset){
+    spawn(
+        "tri_lyellow",
+        spawnPosA,
+        vel,
+        depthOffset + 10,
+        "bullet_boss1_4_a"
+    );
+}
+
+let spawnPosB = [0,0];
+func spawnBulletB(vel, depthOffset){
+    spawn(
+        "tri_orange",
+        spawnPosB,
+        vel,
+        depthOffset,
+        "bullet_boss1_4_b"
+    );
+}
+
+func spawnRingA(baseVel){
+    ring(baseVel, bulletSymmetry, spawnBulletA);
+}
+
+func spawnRingB(baseVel){
+    ring(baseVel, bulletSymmetry, spawnBulletB);
+}
+
+let overallAngle = randomAngle();
+let patternAngle = -10.0; # used as input to rFunc
+let bulletAngle = randomAngle();
+while(true){
+    let r = rFunc(patternAngle);
+    spawnPosA = pos
+        + <<r, overallAngle + patternAngle>>;
+    spawnPosB = pos
+        + <<r, flipY(overallAngle + patternAngle)>>;
+
+    let baseVelA = <<initSpeed, bulletAngle>>;
+    let baseVelB = <<initSpeed, flipY(bulletAngle)>>;
+
+    spawnRingA(baseVelA);
+    spawnRingB(baseVelB);
+
+    overallAngle = overallAngle + overallAngleVel;
+    overallAngle = normalizeAngle(overallAngle);
+    patternAngle = patternAngle + patternAngleVel;
+    patternAngle = normalizeAngle(patternAngle);
+    bulletAngle = bulletAngle + bulletAngleVel;
+    bulletAngle = normalizeAngle(bulletAngle);
+    secTimer(secsBetweenSpawns);
+}

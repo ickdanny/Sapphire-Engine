@@ -859,9 +859,9 @@ static void addOverlayElements(
     int power
 ){
     #define initX 242.0f
-    #define initY (config_graphicsHeight - 28.0f)
+    #define initY (config_graphicsHeight - 29.0f)
     #define xOffset 13.0f
-    #define yOffset -27.0f
+    #define yOffset -26.0f
     static const Vector2D offset = {xOffset, 0.0f};
     static const Point2D lifeInitPos = {initX, initY};
     static const Point2D bombInitPos
@@ -940,7 +940,7 @@ static void addOverlayElements(
             0.0f,
             0.0f,
             80.0f,
-            13.0f
+            14.0f
         })
     );
 

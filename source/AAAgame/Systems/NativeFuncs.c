@@ -16,7 +16,7 @@ static WindEntity _handle;
 /* the actual native funcs */
 
 #define _angleEpsilon 0.05f
-#define _pointEpsilon 0.5f
+#define _pointEpsilon 0.05f
 #define _enemySpawnDist 20.0f
 #define _bossY 180.0f
 #define _bossInbound 30.0f
@@ -1076,7 +1076,7 @@ static UNValue removeScript(int argc, UNValue *argv){
      * try to remove script; return true if the
      * requested slot was occupied, false otherwise
      */
-    #define _removeScript(SLOT) \
+    #define _removeScriptAndReturn(SLOT) \
         do{ \
             if(scriptsPtr->vm##SLOT){ \
                 vmPoolReclaim(scriptsPtr->vm##SLOT); \
@@ -1090,16 +1090,16 @@ static UNValue removeScript(int argc, UNValue *argv){
 
     switch(slot){
         case 1:
-            _removeScript(1);
+            _removeScriptAndReturn(1);
             break;
         case 2:
-            _removeScript(2);
+            _removeScriptAndReturn(2);
             break;
         case 3:
-            _removeScript(3);
+            _removeScriptAndReturn(3);
             break;
         case 4:
-            _removeScript(4);
+            _removeScriptAndReturn(4);
             break;
         default:
             pgError(
@@ -1112,10 +1112,7 @@ static UNValue removeScript(int argc, UNValue *argv){
     /* should never be reached */
     return unBoolValue(false);
 
-    /*
-     * do not undefine _removeScript here; used below
-     * for removeSpawns
-     */
+    #undef _removeScriptAndReturn
 }
 
 /*
@@ -1134,6 +1131,15 @@ static UNValue removeSpawns(int argc, UNValue *argv){
         "entity that is currently running a script; "
         SRC_LOCATION
     );
+
+    /* try to remove script */
+    #define _removeScript(SLOT) \
+        do{ \
+            if(scriptsPtr->vm##SLOT){ \
+                vmPoolReclaim(scriptsPtr->vm##SLOT); \
+                scriptsPtr->vm##SLOT = NULL; \
+            } \
+        } while(false)
 
     _removeScript(3);
     _removeScript(4);

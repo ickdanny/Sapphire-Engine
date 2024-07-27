@@ -4,7 +4,7 @@ let health = 15000;
 let initSlowTicks = 25;
 let initWaitSecs = 0.60;
 
-let numMoves = 2;
+let numMoves = 4;
 let ticksBeforeMove = 32;
 let ticksAfterMove = 34;
 let rLow = 25.0;

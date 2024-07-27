@@ -35,12 +35,6 @@ while(true){
     velA.t = velA.t + angleVel;
     velB.t = velB.t - angleVel;
 
-    if(velA.t > 360.0){
-        velA.t = velA.t - 360.0;
-    }
-    if(velB.t < 0.0){
-        velB.t = velB.t + 360.0;
-    }
-
+    velA.t = normalizeAngle(velA.t);
     secTimer(secsBetweenSpawns);
 }

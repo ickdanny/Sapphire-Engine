@@ -65,8 +65,10 @@
 #define mediumHitboxRadius 3.5f
 #define largeHitboxRadius 7.0f
 #define sharpHitboxRadius 1.5f
+#define triHitboxRadius 2.0f
 #define laserHitboxRadius 1.8f
 #define starHitboxRadius 2.0f
+
 #define bulletOutbound -30.0f
 
 typedef void (*PrototypeFunction)(
@@ -1380,6 +1382,14 @@ DECLARE_ALL_COLORS(
 )
 
 DECLARE_ALL_COLORS(
+    tri,
+    aabbMakeRadius(triHitboxRadius),
+    tri,
+    config_enemyBulletDepth2,
+    DECLARE_POINTED_BULLET_PROTOTYPE
+)
+
+DECLARE_ALL_COLORS(
     laser,
     aabbMakeRadius(laserHitboxRadius),
     laser,
@@ -1661,6 +1671,7 @@ static void init(){
         addAllColors(medium);
         addAllColors(large);
         addAllColors(sharp);
+        addAllColors(tri);
         addAllColors(laser);
         addAllColors(star);
 

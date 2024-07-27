@@ -1,0 +1,55 @@
+# spiral with variable angular vel danmaku script
+
+let symmetry = 3;
+let speed = 100.0;
+let slowSpeedMulti = 0.4;
+
+let secsBetweenSpawns = diff(0.22, 0.16, 0.11);
+
+let angleVelMin = diff(4.7, 3.7, 2.7);
+let angleVelMax = 25;
+
+let angleVelSlope
+    = (angleVelMax - angleVelMin) / (180.0 / symmetry);
+
+func nextAngleVel(currentAngle){
+    let angleToPlayer = getAngleToPlayer();
+    let minDifference = 360.0;
+    for(let i = 0; i < symmetry; i = i + 1){
+        let testAngle = currentAngle
+            + i * (360.0 / symmetry);
+        let difference = smallerAngleDiff(
+            testAngle,
+            angleToPlayer
+        );
+        difference = abs(difference);
+        minDifference = min(minDifference, difference);
+    }
+    let toRet = angleVelMin
+        + angleVelSlope * minDifference;
+    return toRet;
+}
+
+let pos = getPosition();
+func spawnBullets(vel, depthOffset){
+    spawn(
+        "tri_yellow",
+        pos,
+        vel,
+        depthOffset + 10
+    );
+    spawn(
+        "tri_orange",
+        pos,
+        vel * slowSpeedMulti,
+        depthOffset
+    );
+}
+
+let angle = randomAngle();
+while(true){
+    ring(<<speed, angle>>, symmetry, spawnBullets);
+    angle = angle + nextAngleVel(angle);
+    angle = normalizeAngle(angle);
+    secTimer(secsBetweenSpawns);
+}

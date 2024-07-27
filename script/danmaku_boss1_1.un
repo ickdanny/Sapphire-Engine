@@ -1,0 +1,100 @@
+# rotating tri spawners danmaku script
+
+let secsBeforePhase2 = 9.7;
+
+let bulletSymmetry = 3;
+let bulletInitSpeed = 10.0;
+
+let spawnerSymmetry = diff(3, 4, 5);
+let spawnerDist = diff(25, 30, 35);
+let spawnerAngleVel = 8.5 * phi();
+
+let bulletAngleVel = -9.3 * phi();
+
+let phase1SecsBetweenSpawns = diff(0.4, 0.3, 0.2);
+let phase2SecsBetweenSpawns = diff(0.3, 0.2, 0.15);
+
+let secInc = 1.0 / updatesPerSecond();
+
+let triSpawnPos = [0,0];
+func spawnTriPhase1(vel, depthOffset){
+    spawn(
+        "tri_yellow",
+        triSpawnPos,
+        vel,
+        depthOffset,
+        "bullet_boss1_1_a"
+    );
+}
+func spawnTriPhase2(vel, depthOffset){
+    spawn(
+        "tri_lyellow",
+        triSpawnPos,
+        vel,
+        depthOffset,
+        "bullet_boss1_1_b"
+    );
+}
+
+let bulletAngleOffset = randomAngle();
+func spawnThreeTrisPhase1(posOffset, depthOffset){
+    triSpawnPos = getPosition() + posOffset;
+    let baseVel
+        = <<bulletInitSpeed, bulletAngleOffset>>;
+    ring(baseVel, bulletSymmetry, spawnTriPhase1);
+}
+func spawnThreeTrisPhase2(posOffset, depthOffset){
+    triSpawnPos = getPosition() + posOffset;
+    let baseVel
+        = <<bulletInitSpeed, bulletAngleOffset>>;
+    ring(baseVel, bulletSymmetry, spawnTriPhase2);
+}
+
+let spawnerAngle = randomAngle();
+let totalSecs = 0.0;
+let secsSinceLastSpawn = 0.0;
+while(totalSecs < secsBeforePhase2){
+    if(secsSinceLastSpawn > phase1SecsBetweenSpawns){
+        secsSinceLastSpawn = secsSinceLastSpawn
+            - phase1SecsBetweenSpawns;
+        ring(
+            <<spawnerDist, spawnerAngle>>,
+            spawnerSymmetry,
+            spawnThreeTrisPhase1
+        );
+        spawnerAngle = spawnerAngle + spawnerAngleVel;
+        bulletAngleOffset = bulletAngleOffset
+            + bulletAngleVel;
+        spawnerAngle = normalizeAngle(spawnerAngle);
+        bulletAngleOffset = normalizeAngle(
+            bulletAngleOffset
+        );
+    }
+    totalSecs = totalSecs + secInc;
+    secsSinceLastSpawn = secsSinceLastSpawn + secInc;
+    yield;
+}
+
+flagBulletClear();
+
+while(true){
+    if(secsSinceLastSpawn > phase2SecsBetweenSpawns){
+        secsSinceLastSpawn = secsSinceLastSpawn
+            - phase2SecsBetweenSpawns;
+        ring(
+            <<spawnerDist, spawnerAngle>>,
+            spawnerSymmetry,
+            spawnThreeTrisPhase2
+        );
+        spawnerAngle = spawnerAngle + spawnerAngleVel;
+        bulletAngleOffset = bulletAngleOffset
+            + bulletAngleVel;
+        spawnerAngle = normalizeAngle(spawnerAngle);
+        bulletAngleOffset = normalizeAngle(
+            bulletAngleOffset
+        );
+    }
+    totalSecs = totalSecs + secInc;
+    secsSinceLastSpawn = secsSinceLastSpawn + secInc;
+    yield;
+}
