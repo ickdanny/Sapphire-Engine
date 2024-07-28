@@ -427,7 +427,7 @@ static void initDiffMenu(
     /* add the buttons for the difficulty menu */
     Point2D initPos = {
         config_graphicsWidth / 2,
-        155.0f
+        150.0f
     };
     Vector2D lineOffset = {0.0f, -50.0f};
     Vector2D selOffset = {0.0f, 1.0f};
@@ -528,7 +528,7 @@ static void initStageMenu(
     /* add the buttons for the stage menu */
     Point2D initPos = {
         config_graphicsWidth / 2,
-        165.0f
+        157.0f
     };
     Vector2D lineOffset = {0.0f, -40.0f};
     Vector2D selOffset = {0.0f, 1.0f};

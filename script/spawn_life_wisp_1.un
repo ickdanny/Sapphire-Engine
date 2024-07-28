@@ -1,3 +1,5 @@
+# spawns the life wisp for stage 1
+
 let initSpeed = 5.0;
 
 spawn(
@@ -5,5 +7,5 @@ spawn(
     getPosition(),
     <<initSpeed, randomAngle()>>,
     0,
-    "life_wisp"
+    "life_wisp_1"
 );

@@ -1,1 +1,28 @@
-print "TODO: danmaku bomb wisp script";
+# danmaku script for the bomb wisp enemy; semi-random
+#   rings of stars
+
+let symmetry = diff(15, 22, 30);
+let baseSpeed = 60.0;
+let speedRange = 10.0;
+let angleRange = 10.0;
+
+let secsBetweenSpawns = 0.8;
+
+func spawnBullet(baseVel, depthOffset){
+    let vel = <<
+        baseVel.r + random(-speedRange, speedRange),
+        baseVel.t + random(-angleRange, angleRange)
+    >>;
+    spawn(
+        "star_red",
+        getPosition(),
+        vel,
+        depthOffset
+    );
+}
+
+while(true){
+    let baseVel = <<baseSpeed, randomAngle()>>;
+    ring(baseVel, symmetry, spawnBullet);
+    secTimer(secsBetweenSpawns);
+}

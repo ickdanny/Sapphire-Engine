@@ -615,7 +615,6 @@ DECLARE_PROTOTYPE(bee){
         bee1,
         spawn_explode_enemy
     );
-    addRotateSpriteForward(componentListPtr);
     Animations animations = animationListMake();
     Animation animation = animationMake(true);
     animationAddFrame(
@@ -625,6 +624,32 @@ DECLARE_PROTOTYPE(bee){
     animationAddFrame(
         &animation,
         "bee2"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = beeAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
+DECLARE_PROTOTYPE(bee_red){
+    addEnemyBaseComponents(
+        aabbMakeRadius(beeHitboxRadius),
+        bee_red1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "bee_red1"
+    );
+    animationAddFrame(
+        &animation,
+        "bee_red2"
     );
     arrayListPushBack(Animation,
         &(animations.animations),
@@ -1599,6 +1624,7 @@ static void init(){
         addPrototypeFunction(firefly_left);
         addPrototypeFunction(firefly_right);
         addPrototypeFunction(bee);
+        addPrototypeFunction(bee_red);
         addPrototypeFunction(plant);
         addPrototypeFunction(blob);
         addPrototypeFunction(automaton_blue);

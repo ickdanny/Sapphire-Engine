@@ -1,0 +1,11 @@
+# slow down, then restart
+
+let slowTicks = 24;
+let slowSpeed = 5.0;
+let waitSecs = 0.7;
+let speedTicks = 54;
+let finalSpeed = 85;
+
+shiftSpeedPeriod(slowSpeed, slowTicks);
+secTimer(waitSecs);
+shiftSpeedPeriod(finalSpeed, speedTicks);

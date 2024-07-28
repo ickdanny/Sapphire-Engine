@@ -1,0 +1,7 @@
+# water machine enemy script
+
+let health = 3000;
+
+setHealth(health);
+addDeathScript("spawn_power_small", 4);
+addScript("danmaku_enemy_2_5", 3);

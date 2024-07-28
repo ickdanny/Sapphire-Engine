@@ -17,7 +17,7 @@ let turnTicks = random(turnTicksLow, turnTicksHigh);
 
 setHealth(1000);
 addScript("danmaku_enemy_2_2", 3);
-addDeathScript("spawn_power_small_2", 4);
+addDeathScript("revenge_enemy_2_2", 4);
 
 secTimer(initWaitSecs);
 shiftAnglePeriod(finalAngle, turnTicks);

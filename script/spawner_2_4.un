@@ -1,19 +1,21 @@
-# spawn fireflies from side, one at a time
+# spawn curving fireflies from side, one at a time
 
-let maxSecs = 12.0;
+let maxSecs = 7.5;
 
-let secsBetweenSpawns = 0.25;
+let secsBetweenSpawns = 0.30;
 let secInc = 1.0 / updatesPerSecond();
 
-let speedLow = 60;
-let speedHigh = 80;
+let speedLow = 120;
+let speedHigh = 180;
 
 # angles for the left spawn; right should flipY
-let angleLow = 5.0;
-let angleHigh = 15.0;
+let angleLow = 35.0;
+let angleHigh = 45.0;
 
-let spawnYLow = gameHeight() - 40.0;
-let spawnYHigh = gameHeight() - 20.0;
+let spawnYLow = gameHeight() - 20.0;
+let spawnYHigh = gameHeight() + 10;
+
+let numSpawnsPerSide = 4;
 
 func spawnLeftFirefly(pos, vel, depthOffset){
     spawn(
@@ -21,7 +23,7 @@ func spawnLeftFirefly(pos, vel, depthOffset){
         pos,
         vel,
         depthOffset,
-        "enemy_2_2"
+        "enemy_2_4"
     );
 }
 
@@ -31,17 +33,17 @@ func spawnRightFirefly(pos, vel, depthOffset){
         pos,
         vel,
         depthOffset,
-        "enemy_2_2"
+        "enemy_2_4"
     );
 }
 
-let side = true;
+let count = 0;
 func spawnRandFirefly(depthOffset){
     let speed = random(speedLow, speedHigh);
     let angle = random(angleLow, angleHigh);
     let spawnY = random(spawnYLow, spawnYHigh);
     let pos;
-    if(side){
+    if(count < numSpawnsPerSide){
         pos = getLeftSpawn(spawnY);
         spawnLeftFirefly(
             pos,
@@ -58,7 +60,10 @@ func spawnRandFirefly(depthOffset){
             depthOffset
         );
     }
-    side = !side;
+    count = count + 1;
+    if(count >= (numSpawnsPerSide * 2)){
+        count = 0;
+    }
 }
 
 let numSpawns = 0;

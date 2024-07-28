@@ -40,7 +40,7 @@ func spawnBird(pos, vel, depthOffset){
 spawnLifeBird(
     getLeftSpawn(180.0),
     <<(speedLow + speedHigh) / 2, 15.0>>,
-    0
+    20
 );
 
 func spawnRandBird(depthOffset){

@@ -1,0 +1,31 @@
+# curving firefly enemy script
+
+let health = 1000;
+let slowTicks = 50;
+let speedTicks = 70;
+
+# jank function to check if the enemy is spawning on
+#   the left or the right
+func isLeft(){
+    return getX() < (gameWidth() / 2);
+}
+
+let slowAngle;
+if(isLeft()){
+    slowAngle = 0.0;
+}
+else{
+    slowAngle = 180.0;
+}
+let finalVelocity = flipX(getVelocity());
+
+setHealth(health);
+addDeathScript("revenge_enemy_2_2", 4);
+
+shiftVelocityTurnPeriod(0.0, slowAngle, slowTicks);
+addScript("danmaku_enemy_2_4", 3);
+shiftVelocityTurnPeriod(
+    finalVelocity.r,
+    finalVelocity.t,
+    speedTicks
+);

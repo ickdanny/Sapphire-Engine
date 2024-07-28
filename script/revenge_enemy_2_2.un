@@ -1,0 +1,28 @@
+# firefly revenge script
+
+# guarantee a small power to encourage killing
+spawn(
+    "power_small",
+    getPosition(),
+    <<initPickupSpeed(), -90.0>>,
+    0,
+    "pickup_fall"
+);
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_yellow",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_revenge_enemy_2_2"
+    );
+}
+
+let ringSym = diff(6, 8, 10);
+let initSpeed = 180;
+let angle = randomAngle();
+let baseVel = <<initSpeed, angle>>;
+
+ring(baseVel, ringSym, spawnBullet);

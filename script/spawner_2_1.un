@@ -1,6 +1,6 @@
 # pollen machine spawner
 
-let secs = 18.0;
+let secs = 16.0;
 let secsBetweenSpawns = 1.8;
 
 let initSpeed1 = 54;

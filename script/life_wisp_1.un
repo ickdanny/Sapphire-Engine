@@ -1,12 +1,12 @@
-# script for the life wisp enemy
+# script for the life wisp enemy in stage 1
 
 let health = 15000;
 let initSlowTicks = 25;
 let initWaitSecs = 0.60;
 
 let numMoves = 4;
-let ticksBeforeMove = 32;
-let ticksAfterMove = 34;
+let ticksBeforeMove = 62;
+let ticksAfterMove = 64;
 let rLow = 25.0;
 let rHigh = 40.0;
 let maxSpeed = 35.0;

@@ -1,0 +1,4 @@
+let slowSpeed = 45;
+let slowTicks = 14;
+
+shiftSpeedPeriod(slowSpeed, slowTicks);

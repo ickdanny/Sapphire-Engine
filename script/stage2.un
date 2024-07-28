@@ -1,14 +1,29 @@
 # stage 2 script: Bioluminescent Garden
 
-# secTimer(1.5);
-# 
-# # wave 1: pollen robots
-# addScript("spawner_2_1", 3);
-# 
-# secTimer(18.5);
-# 
+secTimer(1.5);
+
+# wave 1: pollen robots
+addScript("spawner_2_1", 3);
+
+secTimer(19.0);
+
 # wave 2: fireflies
 addScript("spawner_2_2", 4);
+
+secTimer(18.0);
+
+# wave 3: bees + bomb wisp carriers
+addScript("spawner_2_3", 3);
+
+secTimer(24.0);
+
+# wave 4: curving fireflies from sides
+addScript("spawner_2_4", 4);
+
+secTimer(9.0);
+
+# wave 5: water robots
+addScript("spawner_2_5", 3);
 
 wait isWin();
 tickTimer(timeBeforePostDialogue());

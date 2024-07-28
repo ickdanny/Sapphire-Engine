@@ -1,6 +1,6 @@
 #include "DialogueSystem.h"
 
-#define textRightBound 250
+#define textRightBound 230
 
 /*
  * Sets the image of the specified entity to the sprite

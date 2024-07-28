@@ -3,7 +3,7 @@
 
 let symmetry = 4;
 let speed = 55.0;
-let initAngle = 45.0 / 2.0;
+let initAngle = 45.0 / 4.0;
 let angleVel = diff(9, 7, 5) * phi();
 let secsBetweenSpawns = diff(0.45, 0.35, 0.25);
 

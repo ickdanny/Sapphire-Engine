@@ -297,11 +297,15 @@ TFSprite parseBitmapFile(const char *fileName){
         filePtr
     );
 
-    assertTrue(
-        header.compressionCode
-            == compressionCodeBitfields,
-        "error: only accept bitfields bmp compression"
-    );
+    if(header.compressionCode
+        != compressionCodeBitfields
+    ){
+        pgWarning(fileName);
+        pgError(
+            "error: only accept bitfields bmp "
+            "compression; " SRC_LOCATION
+        );
+    }
 
     /* seek to start of actual pixel data */
     fseek(filePtr, header.dataOffset, SEEK_SET);
