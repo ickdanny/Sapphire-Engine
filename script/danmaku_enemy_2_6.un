@@ -1,0 +1,40 @@
+# danmaku script for plants
+
+let secsBetweenShots = diff(4.5, 3.5, 2.75);
+
+let spawnOffsetDist = 1.0;
+let spawnOffset = <<spawnOffsetDist, 270>>;
+
+let speedLow = 35.0;
+let speedHigh = 55.0;
+
+# after plant crosses, no longer spawns
+let yMin = 10.0;
+
+# angle range from aimed at player
+let angleRange = 30.0;
+
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "sharp_lgreen",
+        getPosition() + spawnOffset,
+        vel,
+        depthOffset
+    );
+}
+
+let numSpawns = 0;
+let running = true;
+while(running){
+    let vel = <<
+        random(speedLow, speedHigh),
+        getAngleToPlayer() 
+            + random(-angleRange, angleRange)
+    >>;
+    spawnBullet(vel, numSpawns);
+    numSpawns = numSpawns + 1;
+    secTimer(secsBetweenShots);
+    if(getY() < yMin){
+        running = false;
+    }
+}

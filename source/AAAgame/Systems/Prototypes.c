@@ -61,8 +61,8 @@
 #define starSpin 2.3f
 
 /* BULLET PROTOTYPE CONFIG */
-#define smallHitboxRadius 2.5f
-#define mediumHitboxRadius 3.5f
+#define smallHitboxRadius 2.0f
+#define mediumHitboxRadius 3.3f
 #define largeHitboxRadius 7.0f
 #define sharpHitboxRadius 1.5f
 #define triHitboxRadius 2.0f

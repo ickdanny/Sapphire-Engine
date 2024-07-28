@@ -1,0 +1,7 @@
+# script for plants
+
+let health = 2500;
+
+setHealth(health);
+addDeathScript("spawn_power_small_2", 4);
+addScript("danmaku_enemy_2_6", 3);

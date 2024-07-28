@@ -25,6 +25,25 @@ secTimer(9.0);
 # wave 5: water robots
 addScript("spawner_2_5", 3);
 
+secTimer(16.5);
+
+# wave 6: plants
+addScript("spawner_2_6", 4);
+
+secTimer(19.85);
+
+flagBulletClear();
+
+secTimer(0.1);
+
+spawn(
+    "boss2",
+    getTopSpawnLeft(20.0),
+    <<0.0, 0.0>>,
+    0,
+    "boss2_master"
+);
+
 wait isWin();
 tickTimer(timeBeforePostDialogue());
 

@@ -1,0 +1,41 @@
+# spawner script for plants
+
+let maxSecs = 12.0;
+let secsBetweenSpawns = 0.3;
+
+# centermost spawn from left
+let x1 = 42.0;
+
+# dist to later spawns (3 total)
+let xOffset = 15.0;
+
+let speed = 41.4;
+let vel = <<speed, 90.0>>;
+let depthOffset = 200;
+func spawnPlant(pos){
+    spawn(
+        "plant",
+        pos,
+        vel,
+        depthOffset,
+        "enemy_2_6"
+    );
+    depthOffset = depthOffset - 1;
+}
+
+func spawnMirroredPlants(x){
+    spawnPlant(getTopSpawnLeft(x));
+    spawnPlant(getTopSpawnRight(x));
+}
+
+let secs = 0.0;
+while(secs < maxSecs){
+    spawnMirroredPlants(x1);
+    secTimer(secsBetweenSpawns);
+    spawnMirroredPlants(x1 - xOffset);
+    secTimer(secsBetweenSpawns);
+    spawnMirroredPlants(x1 - 2 * xOffset);
+    secTimer(secsBetweenSpawns);
+
+    secs = secs + 3 * secsBetweenSpawns;
+}
