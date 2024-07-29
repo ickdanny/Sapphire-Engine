@@ -1,0 +1,28 @@
+# bullet script for eye outer bullets
+
+let slowTicks = 10.0;
+let waitSecs = 1.0;
+
+let midSpeed = 40;
+let midSpeedTicks = 10;
+
+let midSlowTicks = 5;
+
+let afterMoveWaitSecs = 1.5;
+
+let finalSpeed = 35;
+let finalSpeedTicks = 45;
+
+let finalAngle = getAngle();
+
+shiftSpeedPeriod(0, slowTicks);
+secTimer(waitSecs);
+setAngle(getAngleToPlayer());
+shiftSpeedPeriod(midSpeed, midSpeedTicks);
+shiftSpeedPeriod(0, midSlowTicks);
+secTimer(afterMoveWaitSecs);
+shiftVelocityPeriod(
+    finalSpeed,
+    finalAngle,
+    finalSpeedTicks
+);

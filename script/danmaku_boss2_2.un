@@ -1,0 +1,64 @@
+# danmaku script for spawning the eye spawners
+
+let lowSpawnerAngleOffset = 35.0;
+
+# multiplied by dist to player
+let lowSpawnerSpeedMulti = 1.5;
+let highSpawnerSpeedMulti = 0.5;
+
+let speedMultiRange = 0.05;
+
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "large_clear",
+        getPosition(),
+        vel,
+        depthOffset,
+        "bullet_boss2_2_a"
+    );
+}
+
+let angleToPlayer = getAngleToPlayer();
+let dist = pointDist(getPosition(), getPlayerPos());
+let lowSpawnerSpeed = lowSpawnerSpeedMulti * dist;
+let highSpawnerSpeed = highSpawnerSpeedMulti * dist;
+
+spawnBullet(
+    <<
+        lowSpawnerSpeed * (1 + 
+            random(-speedMultiRange, speedMultiRange)),
+        angleToPlayer + lowSpawnerAngleOffset
+    >>,
+    0
+);
+spawnBullet(
+    <<
+        lowSpawnerSpeed * (1 + 
+            random(-speedMultiRange, speedMultiRange)),
+        angleToPlayer - lowSpawnerAngleOffset>>,
+    1
+);
+spawnBullet(
+    <<
+        highSpawnerSpeed * (1 + 
+            random(-speedMultiRange, speedMultiRange)),
+        angleToPlayer
+    >>,
+    2
+);
+spawnBullet(
+    <<
+        highSpawnerSpeed * (1 + 
+            random(-speedMultiRange, speedMultiRange)),
+        angleToPlayer + 120
+    >>,
+    2
+);
+spawnBullet(
+    <<
+        highSpawnerSpeed * (1 + 
+            random(-speedMultiRange, speedMultiRange)),
+        angleToPlayer - 120
+    >>,
+    2
+);

@@ -13,8 +13,8 @@ setCollidable();
 
 secTimer(0.5);
 
-# phase 1: rotating tri spawners
-addScript("attack_boss1_1", 3);
+# phase 1: demarcation rings
+addScript("attack_boss2_1", 3);
 wait isBossDead();
 removeSpawns();
 yield;
@@ -23,8 +23,8 @@ flagBulletClear();
 
 secTimer(0.3);
 
-# phase 2: mega triangle spawns from top
-addScript("attack_boss1_2", 3);
+# phase 2: eyes
+addScript("attack_boss2_2", 3);
 wait isBossDead();
 removeSpawns();
 yield;

@@ -9,4 +9,5 @@ void messageCleanupSystem(
         &(scenePtr->messages.deaths)
     );
     scenePtr->messages.pauseFlag = false;
+    scenePtr->messages.userFlag1 >>= 1;
 }

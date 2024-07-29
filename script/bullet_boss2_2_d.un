@@ -1,0 +1,23 @@
+# bullet script for eye inner bullets
+
+let slowTicks = 10.0;
+let waitSecs = 1.0;
+
+let midSpeed = 40;
+let midSpeedTicks = 10;
+
+let midSlowTicks = 5;
+
+let afterMoveWaitSecs = 1.5;
+
+let finalSpeed = 35;
+let finalSpeedTicks = 45;
+
+shiftSpeedPeriod(0, slowTicks);
+secTimer(waitSecs);
+setAngle(getAngleToPlayer());
+shiftSpeedPeriod(midSpeed, midSpeedTicks);
+shiftSpeedPeriod(0, midSlowTicks);
+addScript("danmaku_bullet_boss2_2_d", 3);
+secTimer(afterMoveWaitSecs);
+shiftSpeedPeriod(finalSpeed, finalSpeedTicks);

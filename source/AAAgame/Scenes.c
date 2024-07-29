@@ -98,6 +98,7 @@ void sceneMessagesClear(
     arrayListClear(Collision,
         &(messagesPtr->pickupCollisionList)
     );
+    messagesPtr->userFlag1 = 0;
 }
 
 /*

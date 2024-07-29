@@ -2067,7 +2067,33 @@ static UNValue startDialogue(int argc, UNValue *argv){
     return unBoolValue(false);
 }
 
-//todo: possibly flag and unflag user defined gameplay
+/*
+ * if need more flags, can refactor to take int
+ * arg and store an array of flags
+ */
+
+/*
+ * Sets the user flag 1 such that other entities will
+ * see it next tick
+ */
+static UNValue flagUser1(int argc, UNValue *argv){
+    assertArity(0, "flagUser1 expects no args");
+
+    _scenePtr->messages.userFlag1 |= 2;
+    return unBoolValue(false);
+}
+
+/*
+ * Returns true if the user flag 1 was set last tick,
+ * false otherwise
+ */
+static UNValue isFlagged1(int argc, UNValue *argv){
+    assertArity(0, "isFlagged1 expects no args");
+
+    return unBoolValue(
+        _scenePtr->messages.userFlag1 & 1
+    );
+}
 
 /* SPAWNING */
 
@@ -2274,6 +2300,7 @@ static void init(){
         addNativeFunc(isDialogueOver);
         addNativeFunc(isWin);
         addNativeFunc(getDifficulty);
+        addNativeFunc(getPlayerPos);
 
         /* entity graphics */
         addNativeFunc(setVisible);
@@ -2362,6 +2389,8 @@ static void init(){
         addNativeFunc(flagWin);
         addNativeFunc(endStage);
         addNativeFunc(startDialogue);
+        addNativeFunc(flagUser1);
+        addNativeFunc(isFlagged1);
 
         /* spawning */
         addNativeFunc(spawn);

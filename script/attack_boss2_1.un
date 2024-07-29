@@ -1,0 +1,9 @@
+# demarcation rings
+
+let health = 85000;
+let secsBeforeStart = 2.0;
+
+secTimer(secsBeforeStart);
+
+setHealth(health);
+addScript("danmaku_boss2_1", 4);

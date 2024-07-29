@@ -218,6 +218,12 @@ typedef struct SceneMessages{
      * detector system
      */
     ArrayList pickupCollisionList;
+
+    /*
+     * Flag for scripts to use for cross-entity
+     * communication
+     */
+    unsigned int userFlag1;
 } SceneMessages;
 
 /*
