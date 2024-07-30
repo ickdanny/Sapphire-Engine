@@ -1,0 +1,29 @@
+# big-small-big first big bullet script
+
+let slowTicks = 65;
+let waitSecsLow = 0.1;
+let waitSecsHigh = 2.0;
+let spawnAngle = getAngle();
+let spawnSpeed = 45;
+
+shiftSpeedPeriod(0, slowTicks);
+secTimer(random(waitSecsLow, waitSecsHigh));
+
+func randomPrototype(){
+    if(chance(0.5)){
+        return "small_blue";
+    }
+    else{
+        return "small_lblue";
+    }
+}
+
+spawn(
+    randomPrototype(),
+    getPosition(),
+    <<spawnSpeed, spawnAngle>>,
+    random(0, 100),
+    "bullet_boss2_4_b"
+);
+
+die();

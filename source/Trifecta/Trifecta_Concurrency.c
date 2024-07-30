@@ -29,7 +29,7 @@ void initThread(){
  */
 CreateReturn threadCreate(
     RunnableFuncPtr func,
-    void* arg
+    void *arg
 ){
     CreateReturn toRet;
     int result = pthread_create(

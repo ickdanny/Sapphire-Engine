@@ -8,7 +8,7 @@ MidiHub midiHubMake(bool muted){
     MidiHub toRet = {0};
     toRet.midiOut = midiOutMake();
     toRet.midiSequencer = midiSequencerMake(
-        &toRet.midiOut
+        &toRet.midiOut //todo: bug, should heap alloc
     );
     toRet.muted = muted;
     return toRet;

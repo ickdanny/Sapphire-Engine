@@ -58,6 +58,30 @@ void midiOutFree(MidiOut *midiOutPtr){
 #ifdef __APPLE__
 
 /*
+ * Throws an error and prints out the specified
+ * OSStatus as an integer if it is nonzero
+ */
+void assertOSStatusZero(
+    OSStatus status,
+    const char *errMsg
+){
+    #define bufferSize 50
+
+    if(status != 0){
+        static char buffer[bufferSize] = {0};
+        snprintf(
+            buffer,
+            bufferSize,
+            "OSStatus: %d",
+            status
+        );
+        pgWarning(buffer);
+        pgError(errMsg);
+    }
+    #undef bufferSize
+}
+
+/*
  * Constructs a new MidiOut and returns it by value.
  */
 MidiOut midiOutMake(){
@@ -71,8 +95,10 @@ MidiOut midiOutMake(){
 
     /* make new audio graph */
 	retCode = NewAUGraph(&(toRet.graph));
-    assertZero(retCode, "failed to create AUGraph");
-    
+    assertOSStatusZero(
+        retCode,
+        "failed to create AUGraph"
+    );
     
     /* add the synth to the graph */
 	compDesc.componentType
@@ -84,7 +110,10 @@ MidiOut midiOutMake(){
         &compDesc,
         &synthNode
     );
-    assertZero(retCode, "failed to add synth node");
+    assertOSStatusZero(
+        retCode,
+        "failed to add synth node"
+    );
 
     /* add the output to the graph */
 	compDesc.componentType = kAudioUnitType_Output;
@@ -95,11 +124,17 @@ MidiOut midiOutMake(){
         &compDesc,
         &outNode
     );
-    assertZero(retCode, "failed to add out node");
+    assertOSStatusZero(
+        retCode,
+        "failed to add out node"
+    );
 	
     /* open the graph */
 	retCode = AUGraphOpen(toRet.graph);
-    assertZero(retCode, "failed to open AUGraph");
+    assertOSStatusZero(
+        retCode,
+        "failed to open AUGraph"
+    );
 	
     /* connect the synth to the output */
 	retCode = AUGraphConnectNodeInput(
@@ -109,7 +144,7 @@ MidiOut midiOutMake(){
         outNode,
         0
     );
-    assertZero(
+    assertOSStatusZero(
         retCode,
         "failed to connect synth to output"
     );
@@ -121,30 +156,45 @@ MidiOut midiOutMake(){
         0,
         &(toRet.synthUnit)
     );
-    assertZero(retCode, "failed to get synthUnit");
+    assertOSStatusZero(
+        retCode,
+        "failed to get synthUnit"
+    );
 
     /* initialize the graph */
     retCode = AUGraphInitialize(toRet.graph);
-    assertZero(retCode, "failed to initialize AUGraph");
+    assertOSStatusZero(
+        retCode,
+        "failed to initialize AUGraph"
+    );
 
     /* start the graph */
     retCode = AUGraphStart(toRet.graph);
-    assertZero(retCode, "failed to start AUGraph");
+    assertOSStatusZero(
+        retCode,
+        "failed to start AUGraph"
+    );
 
+    printf("synth unit: %p\n", toRet.synthUnit);
     return toRet;
 }
 
 /* Outputs a short message where the status is byte0 */
 void midiOutShortMsg(
-    MidiOut *midiOutPtr, 
+    MidiOut *midiOutPtr,
     uint32_t output
 ){
-    MusicDeviceMIDIEvent(
+    printf("synth unit: %p\n", midiOutPtr->synthUnit);
+    OSStatus retCode = MusicDeviceMIDIEvent(
         midiOutPtr->synthUnit,
         getByte(output, 0),
         getByte(output, 1),
         getByte(output, 2),
         0 /* sample offset */
+    );
+    assertOSStatusZero(
+        retCode,
+        "failed to output midi short msg"
     );
 }
 
@@ -154,10 +204,14 @@ void midiOutSysex(
     const void* bufferPtr,
     uint32_t byteLength
 ){
-    MusicDeviceSysEx(
+    OSStatus retCode = MusicDeviceSysEx(
         midiOutPtr->synthUnit,
         bufferPtr,
         byteLength
+    );
+    assertOSStatusZero(
+        retCode,
+        "failed to output midi sysex msg"
     );
 }
 

@@ -6,6 +6,9 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
+# add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g)
+# add_link_options(-fsanitize=address -fno-omit-frame-pointer -g)
+
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     add_compile_definitions(_DEBUG)
 endif()

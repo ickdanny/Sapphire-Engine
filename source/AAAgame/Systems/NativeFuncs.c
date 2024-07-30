@@ -1893,6 +1893,26 @@ static UNValue chance(int argc, UNValue *argv){
     return unBoolValue(rand < chance);
 }
 
+/*
+ * Returns true if the specified point is outside the
+ * given bounds, false otherwise; (point, bound)
+ */
+static UNValue isPointOutOfBounds(
+    int argc,
+    UNValue *argv
+){
+    assertArity(
+        2,
+        "usage: isPointOutOfBounds(point, bound)"
+    );
+    Point2D point = unAsPoint(argv[0]);
+    float bound = getValueAsNumber(
+        argv[1],
+        "bound should be a number; " SRC_LOCATION
+    );
+    return unBoolValue(isOutOfBounds(point, bound));
+}
+
 /* SCENE SIGNALING */
 
 /*
@@ -2380,6 +2400,7 @@ static void init(){
         addNativeFuncWithName(_toDegrees, toDegrees);
         addNativeFuncWithName(_random, random);
         addNativeFunc(chance);
+        addNativeFunc(isPointOutOfBounds);
 
         /* scene signaling */
         addNativeFunc(addLife);

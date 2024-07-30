@@ -1,14 +1,19 @@
-# bullet script for eye outer bullet
+# wobbly ring A
 
-let slowTicks = 20;
-let waitSecs = 2.5;
+let midSpeed = 150.0;
+let midSpeedTicks = 40;
 
-let finalSpeed = diff(45.0, 35.0, 25.0);
+let slowTicks = 40;
+let waitSecs = 0.7;
+
+let finalSpeed = 40.0;
 let speedTicks = 55;
 
 let distAngleCalcMulti = 0.02;
 let xAngleCalcMulti = 0.01;
 let yAngleCalcMulti = 0.01;
+
+shiftSpeedPeriod(midSpeed, midSpeedTicks);
 
 shiftSpeedPeriod(0, slowTicks);
 secTimer(waitSecs);

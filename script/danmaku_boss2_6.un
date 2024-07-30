@@ -1,0 +1,76 @@
+# danmaku script for wobbly rings
+
+let secsBetweenRings = 60.0 / 187.0;
+let waitSecsAfter = 4.5;
+
+let initSpeed = 120;
+let speedOffset = 80;
+
+let pos = getPosition();
+
+let innerSymmetry = diff(8, 12, 16);
+let middleSymmetry = diff(13, 18, 23);
+let outerSymmetry = diff(18, 24, 30);
+
+func spawnBulletA(vel, depthOffset){
+    spawn(
+        "medium_dpurple",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss2_6_a"
+    );
+}
+
+func spawnBulletB(vel, depthOffset){
+    spawn(
+        "medium_purple",
+        pos,
+        vel,
+        depthOffset + 20,
+        "bullet_boss2_6_b"
+    );
+}
+
+func spawnBulletC(vel, depthOffset){
+    spawn(
+        "medium_lpurple",
+        pos,
+        vel,
+        depthOffset + 40,
+        "bullet_boss2_6_c"
+    );
+}
+
+func spawnRingA(speed){
+    let baseVel = <<speed, randomAngle()>>;
+    ring(baseVel, innerSymmetry, spawnBulletA);
+}
+
+func spawnRingB(speed){
+    let baseVel = <<speed, randomAngle()>>;
+    ring(baseVel, middleSymmetry, spawnBulletB);
+}
+
+func spawnRingC(speed){
+    let baseVel = <<speed, randomAngle()>>;
+    ring(baseVel, outerSymmetry, spawnBulletC);
+}
+
+while(true){
+    let speed = initSpeed;
+    spawnRingA(speed);
+    speed = speed + speedOffset;
+    secTimer(secsBetweenRings);
+
+    spawnRingB(speed);
+    speed = speed + speedOffset;
+    secTimer(secsBetweenRings);
+
+    spawnRingC(speed);
+
+    secTimer(secsBetweenRings * 2);
+    flagUser1();
+
+    secTimer(waitSecsAfter);
+}

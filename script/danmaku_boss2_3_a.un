@@ -1,0 +1,84 @@
+# danmaku script for true spirals
+
+# bullets should turn at same rate for true spiral
+let angleVel = _danmaku_boss2_3_angleVel(); # per tick
+let ringSymmetry = 3;
+let outSpeed = 0;
+
+let ticksBetweenSpawns = 25;
+
+let spawnsBeforeSkip = diff(1, 2, 3);
+let spawnsBeforeScriptB = 5;
+
+let counter1 = 0;
+func skipFunc(){
+    let toRet = true;
+    if(counter1 == spawnsBeforeSkip){
+        counter1 = -1;
+    }
+    else{
+        toRet = false;
+    }
+    counter1 = counter1 + 1;
+    return toRet;
+}
+
+let counter2 = 0;
+func shouldSpawnB(){
+    let toRet = false;
+    if(counter2 == spawnsBeforeScriptB){
+        counter2 = -1;
+        toRet = true;
+    }
+    counter2 = counter2 + 1;
+    return toRet;
+}
+
+let pos = getPosition();
+func spawnBulletA(vel, depthOffset){
+    spawn(
+        "medium_red",
+        pos,
+        vel,
+        depthOffset + 100,
+        "bullet_boss2_3_a"
+    );
+}
+
+func spawnBulletB(vel, depthOffset){
+    spawn(
+        "medium_lblue",
+        pos,
+        vel,
+        depthOffset + 90,
+        "bullet_boss2_3_b"
+    );
+}
+
+let angle = 90.0;
+let tick = 0;
+while(true){
+    if(tick == ticksBetweenSpawns){
+        if(!skipFunc()){
+            ring(
+                <<outSpeed, angle>>,
+                ringSymmetry,
+                spawnBulletA
+            );
+            ring(
+                <<outSpeed, flipY(angle)>>,
+                ringSymmetry,
+                spawnBulletB
+            );
+        }
+        if(shouldSpawnB()){
+            if(!addScript("danmaku_boss2_3_b", 3)){
+                error("failed to add danmaku b");
+            }
+        }
+        tick = -1;
+    }
+    angle = normalizeAngle(angle + angleVel);
+    tick = tick + 1;
+    yield;
+}

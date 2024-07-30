@@ -66,7 +66,7 @@
 #define largeHitboxRadius 7.0f
 #define sharpHitboxRadius 1.5f
 #define triHitboxRadius 2.0f
-#define laserHitboxRadius 1.8f
+#define laserHitboxRadius 2.1f
 #define starHitboxRadius 2.0f
 
 #define bulletOutbound -30.0f
@@ -1242,7 +1242,7 @@ DECLARE_PROTOTYPE(bomb_wisp){
         ); \
         animations.currentIndex = 0; \
         animations.idleIndex = 0; \
-        animations._maxTick = 15; \
+        animations._maxTick = 10; \
         addAnimations(componentListPtr, &animations); \
     }
 

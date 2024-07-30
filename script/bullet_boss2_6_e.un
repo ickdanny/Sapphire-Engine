@@ -1,14 +1,19 @@
-# bullet script for eye outer bullet
+# wobbly ring B
 
-let slowTicks = 20;
-let waitSecs = 2.5;
+let midSpeed = 100.0;
+let midSpeedTicks = 40;
 
-let finalSpeed = diff(45.0, 35.0, 25.0);
+let slowTicks = 40;
+let waitSecs = 0.7;
+
+let finalSpeed = 32.0;
 let speedTicks = 55;
 
 let distAngleCalcMulti = 0.02;
 let xAngleCalcMulti = 0.01;
 let yAngleCalcMulti = 0.01;
+
+shiftSpeedPeriod(midSpeed, midSpeedTicks);
 
 shiftSpeedPeriod(0, slowTicks);
 secTimer(waitSecs);
@@ -17,7 +22,7 @@ func calculateAngle(){
     let dist
         = pointDist(getPosition(), getPlayerPos());
     let multi = sin(dist * distAngleCalcMulti)
-        + sin(getX() * xAngleCalcMulti)
+        + cos(getX() * xAngleCalcMulti)
         + sin(getY() * yAngleCalcMulti);
     return normalizeAngle(360.0 * multi);
 }

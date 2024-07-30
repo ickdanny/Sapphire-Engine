@@ -1422,6 +1422,8 @@ void unCompilerWhileStatement(UNCompiler *compilerPtr){
         compilerPtr,
         exitJumpInstructionIndex
     );
+    /* need to pop false off the stack */
+    unCompilerWriteByte(compilerPtr, un_pop);
 }
 
 /*

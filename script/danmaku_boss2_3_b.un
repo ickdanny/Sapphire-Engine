@@ -1,0 +1,73 @@
+# second danmaku script for boss 2 true spiral attack;
+#   mega-circles like Aya
+
+let secsBetweenRings = 60.0 / 187.0;
+
+let initSpeed = 150;
+let speedOffset = 100;
+
+let pos = getPosition();
+
+let innerSymmetry = diff(6, 7, 8);
+let middleSymmetry = diff(8, 9, 10);
+let outerSymmetry = diff(12, 13, 14);
+
+func spawnBulletA(vel, depthOffset){
+    spawn(
+        "medium_dpurple",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss2_3_c"
+    );
+}
+
+func spawnBulletB(vel, depthOffset){
+    spawn(
+        "medium_purple",
+        pos,
+        vel,
+        depthOffset + 20,
+        "bullet_boss2_3_d"
+    );
+}
+
+func spawnBulletC(vel, depthOffset){
+    spawn(
+        "medium_lpurple",
+        pos,
+        vel,
+        depthOffset + 40,
+        "bullet_boss2_3_e"
+    );
+}
+
+func spawnRingA(speed){
+    let baseVel = <<speed, randomAngle()>>;
+    ring(baseVel, innerSymmetry, spawnBulletA);
+}
+
+func spawnRingB(speed){
+    let baseVel = <<speed, randomAngle()>>;
+    ring(baseVel, middleSymmetry, spawnBulletB);
+}
+
+func spawnRingC(speed){
+    let baseVel = <<speed, randomAngle()>>;
+    ring(baseVel, outerSymmetry, spawnBulletC);
+}
+
+# spawn 3 rings
+let speed = initSpeed;
+spawnRingA(speed);
+speed = speed + speedOffset;
+secTimer(secsBetweenRings);
+
+spawnRingB(speed);
+speed = speed + speedOffset;
+secTimer(secsBetweenRings);
+
+spawnRingC(speed);
+
+secTimer(secsBetweenRings);
+flagUser1();

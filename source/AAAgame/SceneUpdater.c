@@ -71,4 +71,7 @@ void updateScene(Game *gamePtr, Scene *scenePtr){
     outboundSystem(gamePtr, scenePtr);
     gameOverSystem(gamePtr, scenePtr);
     creditsSystem(gamePtr, scenePtr);
+
+    printf("address of midihub: %p\n", gamePtr->midiHubPtr);
+    printf("address of midiout: %p\n", gamePtr->midiHubPtr->midiSequencer.midiOutPtr);
 }

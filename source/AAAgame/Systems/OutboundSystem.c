@@ -25,34 +25,6 @@ static void init(){
 }
 
 /*
- * Transforms a point to be within the specified
- * boundary from the outside of the game field
- */
-static void inboundPoint(
-    Point2D *pointPtr,
-    Inbound bound
-){
-	float lowXBound = bound + config_gameOffsetX;
-    float lowYBound = bound + config_gameOffsetY;
-	float highXBound = config_gameWidth - bound
-        + config_gameOffsetX;
-	float highYBound = config_gameHeight - bound
-        + config_gameOffsetY;
-	if (pointPtr->x < lowXBound) {
-		pointPtr->x = lowXBound;
-	}
-	else if (pointPtr->x > highXBound) {
-		pointPtr->x = highXBound;
-	}
-	if (pointPtr->y < lowYBound) {
-		pointPtr->y = lowYBound;
-	}
-	else if (pointPtr->y > highYBound) {
-		pointPtr->y = highYBound;
-	}
-}
-
-/*
  * Removes entities which are outside of a certain
  * boundary from the edge of the game
  */

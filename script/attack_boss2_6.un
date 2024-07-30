@@ -1,0 +1,9 @@
+# attack script for wobbly rings
+
+let health = 170000;
+let secsBeforeStart = 1.0;
+
+secTimer(secsBeforeStart);
+
+setHealth(health);
+addScript("danmaku_boss2_6", 4);

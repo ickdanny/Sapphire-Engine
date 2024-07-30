@@ -61,6 +61,7 @@ WindComponents *componentsMake(){
             TYPENAME##ID \
         )
     
+    #ifdef _DEBUG
     #define insertMarker(NAME) \
         windComponentsInsert( \
             toRet, \
@@ -71,6 +72,17 @@ WindComponents *componentsMake(){
             ), \
             NAME##ID \
         )
+    #else
+    #define insertMarker(NAME) \
+        windComponentsInsert( \
+            toRet, \
+            _windComponentMetadataMake( \
+                0, /* size 0 for markers */ \
+                NULL /* no destructor for markers */ \
+            ), \
+            NAME##ID \
+        )
+    #endif
 
     insertComponent(Position, NULL);
     insertComponent(Velocity, NULL);

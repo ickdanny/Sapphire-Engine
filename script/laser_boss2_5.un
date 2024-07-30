@@ -1,0 +1,2 @@
+let lifetimeSecs = 1.0;
+laser(lifetimeSecs);

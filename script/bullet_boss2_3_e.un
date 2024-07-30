@@ -1,0 +1,27 @@
+# bullet script for outer ring
+
+let slowTicks = 20;
+
+let symmetry = diff(3, 4, 5);
+
+shiftSpeedPeriod(0, slowTicks);
+
+wait isFlagged1();
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_lpurple",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss2_3_h"
+    );
+}
+
+let playerPos = getPlayerPos();
+let angle = normalizeAngle(
+    360.0 * (sin(playerPos.x * 0.4) + cos(playerPos.y))
+);
+ring(<<0.0, angle>>, symmetry, spawnBullet);
+removeEntity();

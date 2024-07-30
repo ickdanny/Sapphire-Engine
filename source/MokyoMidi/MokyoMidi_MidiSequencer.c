@@ -294,8 +294,9 @@ static void midiSequencerPlayback(
  * A wrapper for midiSequencerPlayback() which can
  * be used by threadCreate()
  */
-static void* midiSeqeuncerPlaybackWrapper(void * arg){
+static void* midiSeqeuncerPlaybackWrapper(void *arg){
     initThread();
+    printf("void ptr: %p\n", arg);
     midiSequencerPlayback((MidiSequencer*)arg);
     return NULL;
 }
@@ -310,6 +311,7 @@ void midiSequencerStart(
     sequencerPtr->running = true;
 
     /* Create and run the playback thread */
+    printf("sequencerPtr: %p\n", sequencerPtr);
     CreateReturn createReturn = threadCreate(
         midiSeqeuncerPlaybackWrapper,
         sequencerPtr

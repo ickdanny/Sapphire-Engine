@@ -1,0 +1,42 @@
+# big-small-big small bullet script
+
+let initWaitSecs = 1.0;
+let slowTicks = 45;
+let waitSecs = 0.1;
+let spawnAngle = getAngle();
+let spawnSpeed = 85;
+
+let arcSym = 3;
+let arcInc = 20.0;
+
+secTimer(initWaitSecs);
+shiftSpeedPeriod(0, slowTicks);
+secTimer(waitSecs);
+
+func randomPrototype(){
+    if(chance(0.5)){
+        return "large_blue";
+    }
+    else{
+        return "large_lblue";
+    }
+}
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        randomPrototype(),
+        pos,
+        vel,
+        depthOffset + random(0, 100)
+    );
+}
+
+arc(
+    <<spawnSpeed, spawnAngle>>,
+    arcSym,
+    arcInc,
+    spawnBullet
+);
+
+die();

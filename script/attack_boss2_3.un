@@ -1,0 +1,12 @@
+# counter true spirals
+
+let health = 150000;
+let secsBeforeStart = 1.0;
+
+secTimer(secsBeforeStart);
+
+setHealth(health);
+addScript("danmaku_boss2_3_a", 4);
+
+# attack script ends here so that danmaku script A can
+#   add script B in slot 3

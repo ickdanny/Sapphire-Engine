@@ -11,42 +11,64 @@ startDialogue("b2_pre");
 wait isDialogueOver();
 setCollidable();
 
-secTimer(0.5);
+# secTimer(0.5);
+# 
+# # phase 1: demarcation rings
+# addScript("attack_boss2_1", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# 
+# secTimer(0.3);
+# 
+# # phase 2: eyes
+# addScript("attack_boss2_2", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# addScript("spawn_power_large", 3);
+# gotoDecelerating(bossMidpoint(), 70.0);
+# 
+# secTimer(0.5);
+# 
+# # phase 3: counter true spirals
+# addScript("attack_boss2_3", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# 
+# secTimer(0.5);
+# 
+# # phase 4: big-small-big
+# addScript("attack_boss2_4", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# addScript("spawn_power_large", 3);
+# gotoDecelerating(bossMidpoint(), 70.0);
+# 
+# secTimer(0.5);
+# 
+# # phase 5: radial lasers
+# addScript("attack_boss2_5", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# 
+# secTimer(0.5);
 
-# phase 1: demarcation rings
-addScript("attack_boss2_1", 3);
-wait isBossDead();
-removeSpawns();
-yield;
-setVelocity(<<0, 0>>);
-flagBulletClear();
-
-secTimer(0.3);
-
-# phase 2: eyes
-addScript("attack_boss2_2", 3);
-wait isBossDead();
-removeSpawns();
-yield;
-setVelocity(<<0, 0>>);
-flagBulletClear();
-addScript("spawn_power_large", 3);
-gotoDecelerating(bossMidpoint(), 70.0);
-
-secTimer(0.5);
-
-# phase 3: spiral with variable angular vel
-addScript("attack_boss1_3", 3);
-wait isBossDead();
-removeSpawns();
-yield;
-setVelocity(<<0, 0>>);
-flagBulletClear();
-
-secTimer(0.5);
-
-# phase 4: bilateral symmetry polar func pattern
-addScript("attack_boss1_4", 3);
+# phase 6: wobbly rings
+addScript("attack_boss2_6", 3);
 wait isBossDead();
 removeSpawns();
 yield;
