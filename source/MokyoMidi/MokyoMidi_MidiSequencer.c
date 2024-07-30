@@ -296,7 +296,6 @@ static void midiSequencerPlayback(
  */
 static void* midiSeqeuncerPlaybackWrapper(void *arg){
     initThread();
-    printf("void ptr: %p\n", arg);
     midiSequencerPlayback((MidiSequencer*)arg);
     return NULL;
 }
@@ -311,7 +310,6 @@ void midiSequencerStart(
     sequencerPtr->running = true;
 
     /* Create and run the playback thread */
-    printf("sequencerPtr: %p\n", sequencerPtr);
     CreateReturn createReturn = threadCreate(
         midiSeqeuncerPlaybackWrapper,
         sequencerPtr

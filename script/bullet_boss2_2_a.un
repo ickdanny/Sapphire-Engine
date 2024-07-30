@@ -27,7 +27,7 @@ func spawnOuterEyeBullet(vel, depthOffset){
         pos,
         vel,
         depthOffset,
-        "bullet_boss2_2_c" # todo: outer eye bullet script
+        "bullet_boss2_2_c"
     );
 }
 
@@ -37,7 +37,7 @@ func spawnInnerEyeBullet(depthOffset){
         pos,
         <<0, 0>>,
         depthOffset,
-        "bullet_boss2_2_d" # todo: inner eye bullet script
+        "bullet_boss2_2_d"
     );
 }
 

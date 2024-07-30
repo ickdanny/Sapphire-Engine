@@ -837,8 +837,7 @@ static int getInitPower(int stage){
         case 1:
             return 0;
         case 2:
-            // todo: return config_maxPower / 2;
-            return 63;
+            return config_maxPower / 2;
         case 3:
         case 4:
             return config_maxPower;

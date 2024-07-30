@@ -175,7 +175,6 @@ MidiOut midiOutMake(){
         "failed to start AUGraph"
     );
 
-    printf("synth unit: %p\n", toRet.synthUnit);
     return toRet;
 }
 
@@ -184,7 +183,6 @@ void midiOutShortMsg(
     MidiOut *midiOutPtr,
     uint32_t output
 ){
-    printf("synth unit: %p\n", midiOutPtr->synthUnit);
     OSStatus retCode = MusicDeviceMIDIEvent(
         midiOutPtr->synthUnit,
         getByte(output, 0),

@@ -8,23 +8,23 @@ let speedOffset = 80;
 
 let pos = getPosition();
 
-let innerSymmetry = diff(8, 12, 16);
-let middleSymmetry = diff(13, 18, 23);
-let outerSymmetry = diff(18, 24, 30);
+let innerSymmetry = diff(6, 8, 10);
+let middleSymmetry = diff(9, 13, 17);
+let outerSymmetry = diff(13, 17, 21);
 
 func spawnBulletA(vel, depthOffset){
     spawn(
-        "medium_dpurple",
+        "medium_lgreen",
         pos,
         vel,
-        depthOffset,
+        depthOffset + 40,
         "bullet_boss2_6_a"
     );
 }
 
 func spawnBulletB(vel, depthOffset){
     spawn(
-        "medium_purple",
+        "medium_dpurple",
         pos,
         vel,
         depthOffset + 20,
@@ -34,10 +34,10 @@ func spawnBulletB(vel, depthOffset){
 
 func spawnBulletC(vel, depthOffset){
     spawn(
-        "medium_lpurple",
+        "medium_purple",
         pos,
         vel,
-        depthOffset + 40,
+        depthOffset,
         "bullet_boss2_6_c"
     );
 }

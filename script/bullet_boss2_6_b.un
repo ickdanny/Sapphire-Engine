@@ -11,7 +11,7 @@ wait isFlagged1();
 let pos = getPosition();
 func spawnBullet(vel, depthOffset){
     spawn(
-        "medium_purple",
+        "medium_dpurple",
         pos,
         vel,
         depthOffset + 20,

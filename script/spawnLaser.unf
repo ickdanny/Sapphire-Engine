@@ -1,6 +1,6 @@
 # nextFunc takes position, angle, and spawn index
 (basePos, angle, nextFunc){
-    let bound = -20.0;
+    let bound = -6.0;
     let distToNextSegment = 4.4;
     let nextSegmentVector
         = <<distToNextSegment, angle>>;

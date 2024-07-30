@@ -1,4 +1,4 @@
-# danmaku script for spiral bullet direction A
+# danmaku script for spiral bullet direction B
 
 let outbound = _danmaku_boss2_5_outbound();
 let outwardSpeed = _danmaku_boss2_5_outwardSpeed();

@@ -1,9 +1,9 @@
 # wobbly ring B
 
-let midSpeed = 100.0;
-let midSpeedTicks = 40;
+let midSpeed = diff(90.0, 120.0, 140.0) * 0.67;
+let midSpeedTicks = 60;
 
-let slowTicks = 40;
+let slowTicks = 60;
 let waitSecs = 0.7;
 
 let finalSpeed = 32.0;
@@ -12,6 +12,9 @@ let speedTicks = 55;
 let distAngleCalcMulti = 0.02;
 let xAngleCalcMulti = 0.01;
 let yAngleCalcMulti = 0.01;
+
+setOutbound(_danmaku_boss2_6_outbound());
+
 
 shiftSpeedPeriod(midSpeed, midSpeedTicks);
 

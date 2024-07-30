@@ -6,9 +6,11 @@
  */
 MidiHub midiHubMake(bool muted){
     MidiHub toRet = {0};
-    toRet.midiOut = midiOutMake();
+    toRet.midiOutPtr
+        = pgAlloc(1, sizeof(*(toRet.midiOutPtr)));
+    *(toRet.midiOutPtr) = midiOutMake();
     toRet.midiSequencer = midiSequencerMake(
-        &toRet.midiOut //todo: bug, should heap alloc
+        toRet.midiOutPtr
     );
     toRet.muted = muted;
     return toRet;
@@ -61,5 +63,6 @@ bool midiHubIsMuted(const MidiHub *midiHubPtr){
  */
 void midiHubFree(MidiHub *midiHubPtr){
     midiSequencerFree(&(midiHubPtr->midiSequencer));
-    midiOutFree(&(midiHubPtr->midiOut));
+    midiOutFree(midiHubPtr->midiOutPtr);
+    pgFree(midiHubPtr->midiOutPtr);
 }

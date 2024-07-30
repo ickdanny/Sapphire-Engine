@@ -264,7 +264,7 @@ void PREFIX##CopyInto( \
     memcpy( \
         destPtr->_ptr,  \
         srcPtr->_ptr,  \
-        destPtr->_capacity * sizeof(CHARTYPE) \
+        srcPtr->_capacity * sizeof(CHARTYPE) \
     ); \
     destPtr->length = srcPtr->length; \
 } \

@@ -7,7 +7,7 @@ if(!addScript("danmaku_boss2_5_b", 3)){
 }
 
 let secsBetweenLasers = diff(3.0, 2.5, 2.0);
-let symmetry = 7;
+let symmetry = 5;
 
 func spawnLaserSegment(pos, angle, unused){
     spawn(
