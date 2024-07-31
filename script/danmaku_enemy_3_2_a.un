@@ -1,0 +1,28 @@
+# danmaku script for automaton wings
+
+let spawnAngleRight = -0.0;
+let baseSpeed = 15.0;
+let colCount = diff(3, 4, 5);
+let colInc = 50.0;
+
+let pos = getPosition();
+func spawnBullet(pos, vel, depthOffset){
+    spawn(
+        "sharp_orange",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_enemy_3_2_a"
+    );
+}
+
+func spawnBulletPair(rightVel, unused){
+    mirror(pos, rightVel, pos.x, spawnBullet);
+}
+
+column(
+    <<baseSpeed, spawnAngleRight>>,
+    colCount,
+    colInc,
+    spawnBulletPair
+);

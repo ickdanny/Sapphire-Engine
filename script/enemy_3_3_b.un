@@ -1,0 +1,10 @@
+# lifetime script for blob in wave 3
+
+let lifetimeSecs = 6.0;
+
+secTimer(lifetimeSecs);
+
+removeDeathScript(4);
+addDeathScript("revenge_enemy_3_1_b", 4);
+
+die();

@@ -1,7 +1,7 @@
 # big-small-big danmaku script
 
 let maxSecs = 2.5;
-let secsBetweenShots = diff(0.012, 0.009, 0.006);
+let secsBetweenShots = diff(0.015, 0.010, 0.007);
 let speedBase = 160.0;
 let speedRange = 5.0;
 

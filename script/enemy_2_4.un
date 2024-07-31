@@ -4,14 +4,8 @@ let health = 1000;
 let slowTicks = 50;
 let speedTicks = 70;
 
-# jank function to check if the enemy is spawning on
-#   the left or the right
-func isLeft(){
-    return getX() < (gameWidth() / 2);
-}
-
 let slowAngle;
-if(isLeft()){
+if(isLeft(getPosition())){
     slowAngle = 0.0;
 }
 else{

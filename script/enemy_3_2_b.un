@@ -1,0 +1,7 @@
+# automaton hexes
+
+let health = 4000;
+let danmakuScript = "danmaku_enemy_3_2_b";
+let deathScript = "spawn_power_small";
+
+_enemy_3_2(health, danmakuScript, deathScript);

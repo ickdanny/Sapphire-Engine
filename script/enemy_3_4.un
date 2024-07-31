@@ -1,0 +1,35 @@
+# script for small hex automatons
+
+let health = 4000;
+
+let initWaitSecs = getY() / 100.0;
+let midAngle = 0.0;
+let finalAngle = 75.0; # left
+let finalSpeed = 35.0; # left
+let slowTicks = 45;
+let waitSecs = 0.5;
+let speedTicks = 66;
+
+if(!isLeft(getPosition())){
+    midAngle = flipY(midAngle);
+    finalAngle = flipY(finalAngle);
+}
+
+setHealth(health);
+addDeathScript("spawn_power_small", 4);
+
+secTimer(initWaitSecs);
+shiftVelocityTurnPeriod(
+    0.0,
+    midAngle,
+    slowTicks
+);
+
+addScript("danmaku_enemy_3_4", 3);
+
+secTimer(waitSecs);
+shiftVelocityTurnPeriod(
+    finalSpeed,
+    finalAngle,
+    speedTicks
+);

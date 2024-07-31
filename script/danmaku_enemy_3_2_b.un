@@ -1,0 +1,23 @@
+# hexes danmaku script
+
+let vertexAngle = getAngleToPlayer();
+let vertexSpeed = 45.0;
+let sides = 6;
+let bulletsPerSide = diff(3, 5, 7);
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_red",
+        pos,
+        vel,
+        depthOffset
+    );
+}
+
+polygon(
+    <<vertexSpeed, vertexAngle>>,
+    sides,
+    bulletsPerSide,
+    spawnBullet
+);

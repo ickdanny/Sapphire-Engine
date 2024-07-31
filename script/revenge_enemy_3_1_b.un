@@ -1,0 +1,19 @@
+# blob revenge script if not killed
+
+# no power
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_dpurple",
+        pos,
+        vel,
+        depthOffset
+    );
+}
+
+let symmetry = diff(30, 40, 50);
+let speed = 30.0;
+let angle = randomAngle();
+
+ring(<<speed, angle>>, symmetry, spawnBullet);

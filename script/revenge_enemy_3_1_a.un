@@ -1,0 +1,37 @@
+# blob revenge script
+
+spawn(
+    "power_small",
+    getPosition(),
+    <<initPickupSpeed(), -90.0>>,
+    0,
+    "pickup_fall"
+);
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_lpurple",
+        pos,
+        vel,
+        depthOffset + 500
+    );
+}
+
+let ringSym = diff(6, 8, 10);
+let colCount = diff(2, 3, 4);
+let colInc = 15.0;
+let baseSpeed = 60.0;
+let angle = getAngleToPlayer();
+let baseVel = <<baseSpeed, angle>>;
+
+func spawnColumn(baseVel, spawnCount){
+    column(
+        baseVel,
+        colCount,
+        colInc,
+        spawnBullet
+    );
+}
+
+ring(baseVel, ringSym, spawnColumn);

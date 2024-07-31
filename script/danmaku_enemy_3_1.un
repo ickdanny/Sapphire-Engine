@@ -1,0 +1,25 @@
+# danmaku script for blobs
+
+let sym = diff(10, 15, 20);
+let speed = 35;
+
+let secsBetweenShotsLow = diff(1.5, 1.0, 0.75) * 3;
+let secsBetweenShotsHigh = diff(1.5, 1.0, 0.75) * 4;
+let secsBetweenShots = random(
+    secsBetweenShotsLow,
+    secsBetweenShotsHigh
+);
+
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_red",
+        getPosition(),
+        vel,
+        depthOffset + 250
+    );
+}
+
+while(true){
+    ring(<<speed, randomAngle()>>, sym, spawnBullet);
+    secTimer(secsBetweenShots);
+}

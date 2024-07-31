@@ -1,4 +1,26 @@
-print "TODO: STAGE 3 SCRIPT";
+# stage 3 script: The Magician's City
+
+secTimer(1.5);
+
+# wave 1: blobs 1
+addScript("spawner_3_1", 3);
+
+secTimer(14.5);
+
+# wave 2: automaton wings + hexes
+addScript("spawner_3_2", 4);
+
+secTimer(16.0);
+
+# wave 3: blobs 2 (not as many as blobs 1)
+addScript("spawner_3_3", 3);
+
+secTimer(4.0);
+
+# wave 4: automaton small hexes
+addScript("spawner_3_4", 4);
+
+#todo more waves
 
 wait isWin();
 tickTimer(timeBeforePostDialogue());

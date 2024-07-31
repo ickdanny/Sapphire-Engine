@@ -1,0 +1,12 @@
+# trap that spawns blobs
+trapTimer();
+
+spawn(
+    "blob",
+    getPosition(),
+    <<0,0>>,
+    0,
+    "enemy_3_1_a"
+);
+
+removeEntity();

@@ -56,6 +56,7 @@
 #define crystalAnimationMaxTick 5
 #define bossAnimationMaxTick 5
 #define pickupWispAnimationMaxTick 3
+#define trapAnimationMaxTick 3
 
 #define trapSpin -2.345f
 #define starSpin 2.3f
@@ -1091,6 +1092,45 @@ DECLARE_PROTOTYPE(bomb_wisp){
     );
 }
 
+DECLARE_PROTOTYPE(trap){
+    addVisible(componentListPtr);
+    addSpriteInstructionSimple(
+        componentListPtr,
+        gamePtr,
+        "trap1",
+        config_enemyBulletDepth0 - 100,
+        ((Vector2D){0})
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(&animation, "trap1");
+    animationAddFrame(&animation, "trap2");
+    animationAddFrame(&animation, "trap3");
+    animationAddFrame(&animation, "trap4");
+    animationAddFrame(&animation, "trap5");
+    animationAddFrame(&animation, "trap6");
+    animationAddFrame(&animation, "trap7");
+    animationAddFrame(&animation, "trap8");
+    animationAddFrame(&animation, "trap9");
+    animationAddFrame(&animation, "trap10");
+    animationAddFrame(&animation, "trap11");
+    animationAddFrame(&animation, "trap12");
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = trapAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+    addSpriteSpin(componentListPtr, trapSpin);
+
+    /*
+     * no death script; trap scripts will remove
+     * themselves
+     */
+}
+
 /* BULLET PROTOTYPES */
 
 /* adds the basic components for a bullet */
@@ -1637,6 +1677,7 @@ static void init(){
         addPrototypeFunction(boss4);
         addPrototypeFunction(life_wisp);
         addPrototypeFunction(bomb_wisp);
+        addPrototypeFunction(trap);
 
         /* bullet prototypes */
         #define addAllColors(NAMEPREFIX) \

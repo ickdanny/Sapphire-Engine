@@ -1,0 +1,28 @@
+# script for blobs A: movement
+
+let health = 15000;
+let inbound = 0.0;
+let accel3MagnitudeMax = 0.1;
+let maxSpeed = 5.0;
+
+setHealth(health);
+setInbound(inbound);
+
+addScript("enemy_3_3_b", 2);
+addScript("danmaku_enemy_3_1", 3);
+addDeathScript("revenge_enemy_3_1_a", 4);
+
+let accel3 = <<0,0>>;
+let accel2 = <<0,0>>;
+let accel1 = <<0,0>>;
+let vel = <<0,0>>;
+while(true){
+    accel3.r = random(0.0, accel3MagnitudeMax);
+    accel3.t = randomAngle();
+    accel2 = accel2 + accel3;
+    accel1 = accel1 + accel2;
+    vel = vel + accel1;
+    vel.r = min(vel.r, maxSpeed);
+    setVelocity(vel);
+    yield;
+}

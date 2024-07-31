@@ -1,0 +1,47 @@
+# script for the life wisp enemy in stage 1
+
+let health = 50000;
+let initSlowTicks = 25;
+let initWaitSecs = 0.60;
+
+let numMoves = 4;
+let ticksBeforeMove = 62;
+let ticksAfterMove = 64;
+let rLow = 25.0;
+let rHigh = 40.0;
+let maxSpeed = 35.0;
+
+setHealth(health);
+
+shiftSpeedPeriod(0.0, initSlowTicks);
+secTimer(initWaitSecs);
+addScript("danmaku_life_wisp", 4);
+
+gotoDecelerating(
+    bossMidpoint() + <<
+        random(0.0, 20.0),
+        randomAngle()
+    >>,
+    maxSpeed
+);
+
+for(let i = 0; i < numMoves; i = i + 1){
+    tickTimer(ticksBeforeMove);
+    boundGotoDecelerating(
+        bossXLow(),
+        bossXHigh(),
+        bossYLow(),
+        bossYHigh(),
+        rLow,
+        rHigh,
+        maxSpeed
+    );
+    tickTimer(ticksAfterMove);
+}
+
+# if after set amount of time, player failed to kill,
+#   destroy self and get rid of death scripts
+removeDeathScript(2);
+removeDeathScript(3);
+addDeathScript("spawn_explode_enemy", 3);
+die();

@@ -1,0 +1,31 @@
+# spawner for blobs 1
+
+let numSpawns = 8;
+let secsBetweenSpawns = 0.15;
+let spawnBound = 20;
+let yMin = 120;
+
+func generatePos(){
+    let x = random(
+        spawnBound,
+        gameWidth() - spawnBound
+    );
+    let y = random(yMin, gameHeight() - spawnBound);
+    let pos = [x, y];
+    return pos + gameOffset();
+}
+
+func spawnTrap(){
+    spawn(
+        "trap",
+        generatePos(),
+        <<0,0>>,
+        0,
+        "trap_3_1"
+    );
+}
+
+for(let i = 0; i < numSpawns; i = i + 1){
+    spawnTrap();
+    secTimer(secsBetweenSpawns);
+}
