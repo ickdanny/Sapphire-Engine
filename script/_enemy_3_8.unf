@@ -1,5 +1,6 @@
-(health, danmakuScript, deathScript){    
-    let initWaitSecs = getY() / 100.0;
+(spiralDirectionBool){
+    let health = 4000;
+    let initWaitSecs = (gameHeight() - getY()) / 100.0;
     let midAngle = 0.0;
     let finalAngle = -35.0; # left
     let finalSpeed = 35.0;
@@ -13,7 +14,7 @@
     }
 
     setHealth(health);
-    addDeathScript(deathScript, 4);
+    addDeathScript("spawn_power_small", 4);
 
     secTimer(initWaitSecs);
 
@@ -22,7 +23,14 @@
         midAngle,
         slowTicks
     );
-    addScript(danmakuScript, 3);
+    if(spiralDirectionBool){
+        addScript("danmaku_enemy_3_8_a", 3);
+    }
+    else{
+        addScript("danmaku_enemy_3_8_b", 3);
+    }
+
+    wait !isSpawning();
 
     secTimer(waitSecs);
     shiftVelocityTurnPeriod(
@@ -30,4 +38,6 @@
         finalAngle,
         speedTicks
     );
+
+    setHealth(health);
 }

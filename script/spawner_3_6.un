@@ -1,0 +1,46 @@
+# spawner script for magic circles 1
+
+let secsBetweenSpawns1 = 0.9;
+let secsBetweenSpawns2 = 1.5 * secsBetweenSpawns1;
+
+# y coord of the center trap
+let centerY = 150.0;
+
+# first spawn is a point, second triangle, third
+#   square, fourth pentagon
+let dist2 = 20.0;
+let dist3 = 30.0;
+let dist4 = 40.0;
+
+let centerPos = [gameWidth() / 2.0, centerY]
+    + gameOffset();
+
+# set before spawning trap
+let trapScript;
+func spawnTrap(posOffset, depthOffset){
+    spawn(
+        "trap",
+        centerPos + posOffset,
+        <<0,0>>,
+        depthOffset,
+        trapScript
+    );
+}
+
+trapScript = "trap_3_6_a";
+spawnTrap(<<0,0>>, 0);
+secTimer(secsBetweenSpawns1);
+
+trapScript = "trap_3_6_b";
+ring(<<dist2, -90.0>>, 3, spawnTrap);
+secTimer(secsBetweenSpawns1);
+
+trapScript = "trap_3_6_c";
+ring(<<dist3, 45.0>>, 4, spawnTrap);
+secTimer(secsBetweenSpawns2);
+
+trapScript = "trap_3_6_d";
+ring(<<dist4, 90.0>>, 5, spawnTrap);
+
+secTimer(secsBetweenSpawns2);
+flagUser1();

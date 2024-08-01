@@ -1,0 +1,86 @@
+# spawner for automaton counter spirals
+
+let secsBetweenSpawns = 4.0;
+
+let initSpeed = 87.0;
+
+let numWaves = 4;
+
+# distance on y axis between spawns
+let yOffset = -25.0;
+
+# init y coord of spawns on odd waves
+let yHigh1 = 190.0;
+
+# init y coord of spawns on even waves
+let yHigh2 = yHigh1 - (0.5 * yOffset);
+
+# init angle of automaton spawning on the left
+let angleLeft = 55.0;
+
+func spawnAutomatonA(pos, vel){
+    spawn(
+        "automaton_red",
+        pos,
+        vel,
+        0,
+        "enemy_3_8_a"
+    );
+}
+
+func spawnAutomatonB(pos, vel){
+    spawn(
+        "automaton_red",
+        pos,
+        vel,
+        0,
+        "enemy_3_8_b"
+    );
+}
+
+func spawnAutomatonPair(y, sideBool){
+    if(sideBool){
+        spawnAutomatonA(
+            getLeftSpawn(y),
+            <<initSpeed, angleLeft>>
+        );
+        spawnAutomatonB(
+            getRightSpawn(y),
+            <<initSpeed, flipY(angleLeft)>>
+        );
+    }
+    else{
+        spawnAutomatonB(
+            getLeftSpawn(y),
+            <<initSpeed, angleLeft>>
+        );
+        spawnAutomatonA(
+            getRightSpawn(y),
+            <<initSpeed, flipY(angleLeft)>>
+        );
+    }
+}
+
+for(let i = 0; i < (numWaves / 2); i = i + 1){
+    let y = yHigh1;
+    spawnAutomatonPair(y, true);
+    y = y + yOffset;
+    spawnAutomatonPair(y, true);
+
+    secTimer(secsBetweenSpawns);
+
+    y = yHigh2;
+    spawnAutomatonPair(y, false);
+    y = y + yOffset;
+    spawnAutomatonPair(y, false);
+
+    secTimer(secsBetweenSpawns);
+}
+
+# check if wave left over
+if(numWaves % 2 == 1){
+    let y = yHigh1;
+    spawnAutomatonPair(y, true);
+    y = y + yOffset;
+    spawnAutomatonPair(y, true);
+}

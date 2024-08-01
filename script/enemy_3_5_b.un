@@ -1,6 +1,6 @@
-# lifetime script for blob in wave 3
+# lifetime script for blob in wave 5
 
-let lifetimeSecs = 5.0;
+let lifetimeSecs = 3.0;
 
 secTimer(lifetimeSecs);
 

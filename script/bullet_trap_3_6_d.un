@@ -1,0 +1,11 @@
+# bullet script for trap 1 part D
+
+let slowTicks = 22;
+let finalSpeed = -55;
+let speedTicks = 55;
+
+shiftSpeedPeriod(0, slowTicks);
+
+wait isFlagged1();
+
+shiftSpeedPeriod(finalSpeed, speedTicks);

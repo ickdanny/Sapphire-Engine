@@ -280,7 +280,7 @@ static void initMainMenu(
         109.0f
     };
     Vector2D lineOffset = {-12.0f, -22.0f};
-    Vector2D selOffset = {1.0f, 0.0f};
+    Vector2D selOffset = {5.0f, 0.0f};
 
     ArrayList buttonHandles = arrayListMake(WindEntity,
         10

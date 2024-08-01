@@ -12,7 +12,7 @@ func spawnBullet(vel, depthOffset){
     );
 }
 
-let symmetry = diff(30, 40, 50);
+let symmetry = diff(25, 35, 45);
 let speed = 30.0;
 let angle = randomAngle();
 

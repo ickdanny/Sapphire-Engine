@@ -1,1 +1,26 @@
-# todo
+# small hexes danmaku
+
+let numSpawns = diff(2, 3, 3);
+let secsBetweenSpawns = 0.4;
+let vertexSpeed = 56;
+let sides = 6;
+let bulletsPerSide = diff(3, 3, 4);
+
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "small_lblue",
+        getPosition(),
+        vel,
+        depthOffset
+    );
+}
+
+for(let i = 0; i < numSpawns; i = i + 1){
+    polygon(
+        <<vertexSpeed, randomAngle()>>,
+        sides,
+        bulletsPerSide,
+        spawnBullet
+    );
+    secTimer(secsBetweenSpawns);
+}

@@ -21,7 +21,7 @@ func spawnTrap(){
         generatePos(),
         <<0,0>>,
         0,
-        "trap_3_3"
+        "trap_3_5"
     );
 }
 

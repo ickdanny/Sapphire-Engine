@@ -1,0 +1,24 @@
+# first trap of big trap 1
+trapTimer();
+
+let ringSymmetry = diff(30, 40, 50);
+let initSpeed = 200;
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "sharp_red",
+        pos,
+        vel,
+        depthOffset + 750,
+        "bullet_trap_3_6_a"
+    );
+}
+
+ring(
+    <<initSpeed, getAngleToPlayer()>>,
+    ringSymmetry,
+    spawnBullet
+);
+
+removeEntity();

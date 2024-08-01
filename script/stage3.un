@@ -15,10 +15,30 @@ secTimer(16.0);
 # wave 3: blobs 2 (not as many as blobs 1)
 addScript("spawner_3_3", 3);
 
-secTimer(4.0);
+secTimer(3.5);
 
 # wave 4: automaton small hexes
 addScript("spawner_3_4", 4);
+
+secTimer(3.5);
+
+# wave 5: blobs 3
+addScript("spawner_3_5", 3);
+
+secTimer(4.85);
+
+# wave 6: trap 1
+addScript("spawner_3_6", 4);
+
+secTimer(6.5);
+
+# wave 7: wisp spirals
+addScript("spawner_3_7", 3);
+
+secTimer(15.0);
+
+# wave 8: automaton counter spirals
+addScript("spawner_3_8", 4);
 
 #todo more waves
 

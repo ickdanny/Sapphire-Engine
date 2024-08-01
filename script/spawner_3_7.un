@@ -1,0 +1,33 @@
+# spawns spirals of wisps
+
+let spawnPos = getTopSpawnLeft(gameWidth() / 2.0);
+let spawnOffsetDist = 5.0;
+let symmetry = 20;
+let baseAngle = randomAngle();
+let timeBetweenSpawns = 8.0;
+
+func spawnWispA(vel, depthOffset){
+    spawn(
+        "wisp",
+        spawnPos + <<spawnOffsetDist, vel.t>>,
+        vel,
+        depthOffset,
+        "enemy_3_7_a" # CCW
+    );
+}
+
+func spawnWispB(vel, depthOffset){
+    spawn(
+        "wisp",
+        spawnPos + <<spawnOffsetDist, vel.t>>,
+        vel,
+        depthOffset,
+        "enemy_3_7_b" # CW
+    );
+}
+
+ring(<<0.0, baseAngle>>, symmetry, spawnWispA);
+
+secTimer(timeBetweenSpawns);
+
+ring(<<0.0, baseAngle>>, symmetry, spawnWispB);

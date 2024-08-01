@@ -1,0 +1,41 @@
+# wisp program, either CW or CCW
+(flipSide){
+    let health = 5000;
+    let outbound = -200.0;
+    let outwardSpeed = 30.0;
+    let angleVel = 1.0; # per tick
+
+    setHealth(health);
+    setOutbound(outbound);
+    addDeathScript("spawn_power_small_2", 4);
+    addScript("danmaku_enemy_3_7", 3);
+
+    # spiral script
+
+    let centerPos = getPosition();
+    let currentAngle = getAngle();
+    let currentDist = 0.0;
+    let distInc = outwardSpeed / updatesPerSecond();
+
+    if(flipSide){
+        angleVel = -angleVel;
+    }
+
+    while(true){
+        currentAngle = normalizeAngle(
+            currentAngle + angleVel
+        );
+        currentDist = currentDist + distInc;
+        let nextPos = centerPos
+            + <<currentDist, currentAngle>>;
+        let currentPos = getPosition();
+        let nextSpeed = (pointDist(currentPos, nextPos)
+            * updatesPerSecond());
+        let nextAngle = pointAngle(currentPos, nextPos);
+        let nextVel = <<nextSpeed, nextAngle>>;
+        setVelocity(nextVel);
+
+        yield;
+    }
+    # dies when reaches outbound
+}
