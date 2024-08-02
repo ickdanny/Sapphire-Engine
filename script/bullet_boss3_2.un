@@ -1,0 +1,6 @@
+# bullet script for jailcell spawner
+
+let waitSecs = diff(4.6, 4.4, 4.2);
+
+secTimer(waitSecs);
+addScript("danmaku_bullet_boss3_2", 3);

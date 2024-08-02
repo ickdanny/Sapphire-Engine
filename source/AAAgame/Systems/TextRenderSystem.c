@@ -133,6 +133,7 @@ static void init(Game *gamePtr){
         insertGlyph('\'', symbol_quote);
         insertGlyph(';', symbol_semicolon);
         insertGlyph('~', symbol_tilde);
+        insertGlyph('-', symbol_dash);
 
         #undef insertGlyph
 

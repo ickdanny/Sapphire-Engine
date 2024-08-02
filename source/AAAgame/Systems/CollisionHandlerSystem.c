@@ -111,7 +111,7 @@ void handlePickupCommand(
         );
         playerDataPtr->power += powerGain;
         /* if player gains max power, clear bullets */
-        if(playerDataPtr->power > config_maxPower){
+        if(playerDataPtr->power >= config_maxPower){
             playerDataPtr->power = config_maxPower;
             scenePtr->messages.clearFlag = true;
         }

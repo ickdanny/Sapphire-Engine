@@ -1,21 +1,20 @@
-# spawner for automaton wings + hexes
-#   also life (blue) automaton in first wave from left
+# spawner for automaton wings + hexes 2
 
 let secsBetweenSpawns = 4.0;
 
-let initSpeed = 47.0;
+let initSpeed = 57.0;
 
 # distance on y axis between spawns
-let yOffset = 25.0;
+let yOffset = 22.0;
 
 # init y coord of spawns on odd waves
-let yLow1 = 73.0;
+let yLow1 = 70.0;
 
 # init y coord of spawns on even waves
 let yLow2 = yLow1 + (0.5 * yOffset);
 
 # init angle of automaton spawning on the left
-let angleLeft = -55.0;
+let angleLeft = -35.0;
 
 func spawnAutomatonA(pos, vel){
     spawn(
@@ -37,23 +36,13 @@ func spawnAutomatonB(pos, vel){
     );
 }
 
-func spawnLifeAutomaton(pos, vel){
-    spawn(
-        "automaton_blue",
-        pos,
-        vel,
-        0,
-        "enemy_3_2_c"
-    );
-}
-
-func spawnAutomatonPair(y, sideBool){
-    if(sideBool){
+func spawnAutomatonPair(y, typeBool){
+    if(typeBool){
         spawnAutomatonA(
             getLeftSpawn(y),
             <<initSpeed, angleLeft>>
         );
-        spawnAutomatonB(
+        spawnAutomatonA(
             getRightSpawn(y),
             <<initSpeed, flipY(angleLeft)>>
         );
@@ -63,25 +52,6 @@ func spawnAutomatonPair(y, sideBool){
             getLeftSpawn(y),
             <<initSpeed, angleLeft>>
         );
-        spawnAutomatonA(
-            getRightSpawn(y),
-            <<initSpeed, flipY(angleLeft)>>
-        );
-    }
-}
-
-func spawnAutomatonPairWithLifeOnLeft(y, sideBool){
-    spawnLifeAutomaton(
-        getLeftSpawn(y),
-        <<initSpeed, angleLeft>>
-    );
-    if(!sideBool){
-        spawnAutomatonA(
-            getRightSpawn(y),
-            <<initSpeed, flipY(angleLeft)>>
-        );
-    }
-    else{
         spawnAutomatonB(
             getRightSpawn(y),
             <<initSpeed, flipY(angleLeft)>>
@@ -89,29 +59,11 @@ func spawnAutomatonPairWithLifeOnLeft(y, sideBool){
     }
 }
 
-# first wave: spawn life at top
 let y = yLow1;
 spawnAutomatonPair(y, true);
 y = y + yOffset;
 spawnAutomatonPair(y, true);
 y = y + yOffset;
-spawnAutomatonPairWithLifeOnLeft(y, true);
-secTimer(secsBetweenSpawns);
-
-# next 3 waves normal
-y = yLow2;
-spawnAutomatonPair(y, false);
-y = y + yOffset;
-spawnAutomatonPair(y, false);
-y = y + yOffset;
-spawnAutomatonPair(y, false);
-secTimer(secsBetweenSpawns);
-
-y = yLow1;
-spawnAutomatonPair(y, true);
-y = y + yOffset;
-spawnAutomatonPair(y, true);
-y = y + yOffset;
 spawnAutomatonPair(y, true);
 secTimer(secsBetweenSpawns);
 
@@ -121,4 +73,12 @@ y = y + yOffset;
 spawnAutomatonPair(y, false);
 y = y + yOffset;
 spawnAutomatonPair(y, false);
+secTimer(secsBetweenSpawns);
+
+let y = yLow1;
+spawnAutomatonPair(y, true);
+y = y + yOffset;
+spawnAutomatonPair(y, true);
+y = y + yOffset;
+spawnAutomatonPair(y, true);
 secTimer(secsBetweenSpawns);

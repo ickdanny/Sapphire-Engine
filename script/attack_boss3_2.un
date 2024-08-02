@@ -1,0 +1,8 @@
+# jailcell attack script
+
+let health = 200000;
+let initWaitSecs = 0.5;
+
+setHealth(health);
+secTimer(initWaitSecs);
+addScript("danmaku_boss3_2", 4);

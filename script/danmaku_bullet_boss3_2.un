@@ -1,0 +1,41 @@
+# danmaku script for jailcell spawner bullet
+
+let secsBetweenShots = diff(0.5, 0.4, 0.3);
+let chanceForTopSpawn = 0.18;
+
+let bottomArcSymmetry = diff(3, 5, 7);
+let bottomArcInc = 15.0;
+let topAngleRange = 30.0;
+
+let bottomSpeed = 55.0;
+let topSpeed = 25.0;
+
+let direction = getAngle();
+
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "small_yellow",
+        getPosition(),
+        vel,
+        depthOffset
+    );
+}
+
+while(true){
+    arc(
+        <<bottomSpeed, direction>>,
+        bottomArcSymmetry,
+        bottomArcInc,
+        spawnBullet
+    );
+    if(chance(chanceForTopSpawn)){
+        let angle = direction + 180.0;
+        angle = angle
+            + random(-topAngleRange, topAngleRange);
+        spawnBullet(
+            <<topSpeed, angle>>,
+            100 + random(1, 100)
+        );
+    }
+    secTimer(secsBetweenShots);
+}

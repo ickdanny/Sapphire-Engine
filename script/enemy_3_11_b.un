@@ -1,0 +1,10 @@
+# lifetime script for blob final
+
+let lifetimeSecs = 4.5;
+
+secTimer(lifetimeSecs);
+
+removeDeathScript(4);
+addDeathScript("revenge_enemy_3_1_b", 4);
+
+die();
