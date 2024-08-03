@@ -1,0 +1,9 @@
+# attack script for four corners
+
+let health = 200000;
+
+setHealth(health);
+addScript("danmaku_boss3_7_a", 4);
+
+# end script so danmaku script A can add danmaku
+#   script B

@@ -1,0 +1,38 @@
+# trap that spawns aimed V-arc
+
+trapTimer();
+
+let ringSym = 4;
+let arcSym = diff(3, 5, 7);
+let arcInc = 10.0;
+let topSpeed = 68.0;
+let speedInc = -10.0;
+
+let pos = getPosition();
+let spawnNum = 1;
+let middleSpawnNum = (arcSym + 1) / 2;
+func spawnBullet(vel, depthOffset){
+    vel.r = vel.r + (speedInc
+        * abs(spawnNum - middleSpawnNum)
+    );
+    spawn(
+        "sharp_red",
+        pos,
+        vel,
+        depthOffset
+    );
+    spawnNum = spawnNum + 1;
+    if(spawnNum > arcSym){
+        spawnNum = 1;
+    }
+}
+
+func spawnArc(baseVel, unused){
+    arc(velocity, arcSym, arcInc, spawnBullet);
+}
+
+let baseAngle = getAngleToPlayer();
+
+ring(<<topSpeed, baseAngle>>, ringSym, spawnArc);
+
+removeEntity();

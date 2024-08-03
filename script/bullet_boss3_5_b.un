@@ -1,0 +1,14 @@
+# bullet script for spawned bullet of square spirals
+
+let slowTicks = 25;
+let finalSpeed = -35.0;
+let speedTicks = 50;
+let outbound = -10; # don't want unfair bullets
+
+setOutbound(outbound);
+
+shiftSpeedPeriod(0, slowTicks);
+
+wait isFlagged1();
+
+shiftSpeedPeriod(finalSpeed, speedTicks);

@@ -1,0 +1,26 @@
+# laser grid attack script
+
+let health = 200000;
+let initWaitSecs = 0.4;
+
+let afterMoveSecs = 1.0;
+let rLow = 30;
+let rHigh = 40;
+let maxSpeed = 27.5;
+
+setHealth(health);
+
+secTimer(initWaitSecs);
+while(true){
+    addScript("danmaku_boss3_4", 4);
+    boundGotoDecelerating(
+        bossXLow(),
+        bossXHigh(),
+        bossYLow(),
+        bossYHigh(),
+        rLow,
+        rHigh,
+        maxSpeed
+    );
+    secTimer(afterMoveSecs);
+}

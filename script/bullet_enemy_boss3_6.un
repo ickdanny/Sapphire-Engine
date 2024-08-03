@@ -1,0 +1,36 @@
+# bullet script for automaton helpers
+
+let finalSpeedLow = 100.0;
+let finalSpeedHigh = 170.0;
+
+let speedTicksLow = 48;
+let speedTicksHigh = 58;
+
+let sides = 6;
+let bulletsPerSide = diff(3, 5, 7);
+let vertexSpeed = 55.0;
+let vertexAngle = 180.0 / sides;
+
+let finalSpeed = random(finalSpeedLow, finalSpeedHigh);
+let speedTicks = random(speedTicksLow, speedTicksHigh);
+
+shiftSpeedPeriod(finalSpeed, speedTicks);
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "small_blue",
+        pos,
+        vel,
+        depthOffset
+    );
+}
+
+polygon(
+    <<vertexSpeed, vertexAngle>>,
+    sides,
+    bulletsPerSide,
+    spawnBullet
+);
+
+die();

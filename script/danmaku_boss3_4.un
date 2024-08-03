@@ -1,0 +1,69 @@
+# danmaku script for laser grid
+
+# bullets
+let symmetry = diff(15, 23, 30);
+let angleRange = 180.0 / symmetry;
+let speed = 34.2;
+let speedRange = diff(10.0, 15.0, 20.0);
+let secsBetweenShots = 0.2;
+let numShots = 8;
+
+func spawnBullet(vel, depthOffset){
+    vel.r = vel.r + random(-speedRange, speedRange);
+    vel.t = vel.t + random(-angleRange, angleRange);
+    spawn(
+        "medium_lgreen",
+        getPosition(),
+        vel,
+        depthOffset
+    );
+}
+
+for(let i = 0; i < numShots; i = i + 1){
+    ring(
+        <<speed, randomAngle()>>,
+        symmetry,
+        spawnBullet
+    );
+    secTimer(secsBetweenShots);
+}
+
+# lasers
+let laserSpawnBound = -5.0;
+let laserDist = diff(60.0, 50.0, 40.0);
+
+func spawnLaserSegment(pos, angle, depthOffset){
+    spawn(
+        "laser_red",
+        pos,
+        <<0, angle>>,
+        depthOffset + angle,
+        "laser_boss3_4"
+    );
+}
+func _spawnLaser(pos, angle){
+    spawnLaser(pos, angle, spawnLaserSegment);
+}
+
+# spawn lasers on left
+let pos = [laserSpawnBound, random(0.0, laserDist)];
+while(pos.y < gameHeight()){
+    _spawnLaser(pos + gameOffset(), 45);
+    # _spawnLaser(pos + gameOffset(), -45);
+    pos.y = pos.y + laserDist;
+    yield;
+    yield;
+}
+
+# spawn lasers on the right
+pos = [
+    gameWidth() - laserSpawnBound,
+    gameHeight() - random(0.0, laserDist)
+];
+while(pos.y > 0){
+    _spawnLaser(pos + gameOffset(), 135);
+    #_spawnLaser(pos + gameOffset(), -135);
+    pos.y = pos.y - laserDist;
+    yield;
+    yield;
+}

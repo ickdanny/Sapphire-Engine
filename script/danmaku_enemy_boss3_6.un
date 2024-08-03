@@ -1,0 +1,32 @@
+# automaton helper danmaku script
+
+let secsBetweenSpawnsLow = 1.0;
+let secsBetweenSpawnsHigh = 2.0;
+
+let initSpeed = 10.0;
+
+func randomSecsBetweenSpawns(){
+    return random(
+        secsBetweenSpawnsLow,
+        secsBetweenSpawnsHigh
+    );
+}
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_blue",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_enemy_boss3_6"
+    );
+}
+
+secTimer(random(0.0, 0.2));
+spawnBullet(<<initSpeed, 90.0>>, 0);
+
+while(true){
+    secTimer(randomSecsBetweenSpawns());
+    spawnBullet(<<initSpeed, 90.0>>, 0);
+}

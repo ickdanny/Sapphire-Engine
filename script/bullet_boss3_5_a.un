@@ -1,0 +1,3 @@
+# bullet script for square spiral spawner
+
+addScript("danmaku_bullet_boss3_5_a", 3);

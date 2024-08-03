@@ -1229,7 +1229,6 @@ DECLARE_PROTOTYPE(trap){
             componentListPtr, \
             collision_none \
         ); \
-        addClearable(componentListPtr); \
         addDamage(componentListPtr, 1); \
         addSpriteInstructionSimple( \
             componentListPtr, \

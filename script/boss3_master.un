@@ -34,41 +34,60 @@ secTimer(0.5);
 # addScript("spawn_power_large", 3);
 # 
 # secTimer(0.5);
+# 
+# # phase 3: eightfold pt 2
+# addScript("attack_boss3_3", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# 
+# secTimer(0.5);
+# 
+# # phase 4: laser grid
+# addScript("attack_boss3_4", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# addScript("spawn_power_large", 3);
+# 
+# secTimer(0.5);
+# 
+# phase 5: square spirals
+# addScript("attack_boss3_5", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# 
+# secTimer(0.5);
+# 
+# # phase 6: automaton helpers
+# addScript("attack_boss3_6", 3);
+# wait isBossDead();
+# removeSpawns();
+# yield;
+# setVelocity(<<0, 0>>);
+# flagBulletClear();
+# addScript("spawn_power_large", 3);
+# yield;
+# flagBulletClear(); # clear twice in case stray autos
+# gotoDecelerating(
+#     [
+#         gameWidth() / 2.0,
+#         gameHeight() / 2.0
+#     ] + gameOffset(),
+#     50.0
+# );
+# 
+# secTimer(0.35);
 
-# phase 3: eightfold pt 2
-addScript("attack_boss3_3", 3);
-wait isBossDead();
-removeSpawns();
-yield;
-setVelocity(<<0, 0>>);
-flagBulletClear();
-
-secTimer(0.5);
-
-# phase 4: big-small-big
-addScript("attack_boss2_4", 3);
-wait isBossDead();
-removeSpawns();
-yield;
-setVelocity(<<0, 0>>);
-flagBulletClear();
-addScript("spawn_power_large", 3);
-gotoDecelerating(bossMidpoint(), 70.0);
-
-secTimer(0.5);
-
-# phase 5: radial lasers
-addScript("attack_boss2_5", 3);
-wait isBossDead();
-removeSpawns();
-yield;
-setVelocity(<<0, 0>>);
-flagBulletClear();
-
-secTimer(0.5);
-
-# phase 6: wobbly rings
-addScript("attack_boss2_6", 3);
+# phase 7: four corners
+addScript("attack_boss3_7", 3);
 wait isBossDead();
 removeSpawns();
 yield;
