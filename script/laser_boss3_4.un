@@ -1,2 +1,2 @@
-let lifetimeSecs = 0.7;
+let lifetimeSecs = 0.5;
 laser(lifetimeSecs);

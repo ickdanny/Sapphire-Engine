@@ -2,8 +2,30 @@
 
 trapTimer();
 
-#todo
+let symmetry = 8;
+let baseSpeed = diff(35, 30, 25);
+let colCount = diff(1, 2, 3);
+let colInc = 9.0;
+let baseAngle = getAngleToPlayer();
 
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_lgreen",
+        pos,
+        vel,
+        depthOffset
+    );
+}
 
+func spawnColumn(baseVel, unused){
+    column(baseVel, colCount, colInc, spawnBullet);
+}
+
+ring(
+    <<baseSpeed, baseAngle>>,
+    symmetry,
+    spawnColumn
+);
 
 removeEntity();

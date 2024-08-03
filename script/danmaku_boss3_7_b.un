@@ -3,7 +3,7 @@
 # distance on axis from corner to spawn traps
 let distFromCorner = 20.0;
 
-let secsBetweenSpawns = 0.7;
+let secsBetweenSpawns = 1.8;
 
 func spawnTrapA(pos){
     spawn(
@@ -29,7 +29,7 @@ let topLeft = [0, gameHeight()] + gameOffset();
 let topRight = [gameWidth(), gameHeight()]
     + gameOffset();
 let bottomLeft = [0, 0] + gameOffset();
-let bottomRight = [gameWidth, 0] + gameOffset();
+let bottomRight = [gameWidth(), 0] + gameOffset();
 
 while(true){
     spawnTrapA(topLeft);

@@ -3,7 +3,7 @@
     let slowTicks = 25;
     let waitSecs = 0.7;
     let angleShift = 24.4 + 0.5 * getSpeed();
-    let finalSpeed = diff(80, 90, 100);
+    let finalSpeed = diff(70, 80, 90);
 
     setOutbound(outbound);
 

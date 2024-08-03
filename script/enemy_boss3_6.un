@@ -1,6 +1,6 @@
 # enemy script for automaton helpers
 
-let health = 10000;
+let health = 8000;
 
 let slowTicks = 45;
 let finalSpeed = 35.0;

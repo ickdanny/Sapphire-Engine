@@ -1,6 +1,6 @@
 # danmaku script for four corners - center spiral
 
-let angleVel = -diff(3.42, 2.42, 1.42); * pi();
+let angleVel = -diff(3.42, 2.42, 1.42) * pi() * 3;
 let secsBetweenShots = diff(0.45, 0.35, 0.25);
 let speed = 33.3;
 let initAngle = randomAngle();
@@ -12,7 +12,7 @@ addScript("danmaku_boss3_7_b", 3);
 let pos = getPosition();
 func spawnBullet(vel, depthOffset){
     spawn(
-        "medium_blue",
+        "small_blue",
         pos,
         vel,
         depthOffset

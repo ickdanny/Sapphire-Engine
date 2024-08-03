@@ -1,0 +1,44 @@
+# attack script for eightfold pt 3
+
+let health = 300000;
+let initWaitSecs = 0.4;
+
+let beforeMoveSecs = 0.8;
+let afterMoveSecs = 0.4;
+let afterFlagSecs = 1.0;
+let rLow = 40;
+let rHigh = 50;
+let maxSpeed = 45.5;
+
+setHealth(health);
+
+secTimer(initWaitSecs);
+while(true){
+    addScript("danmaku_boss3_8_a", 4);
+    secTimer(beforeMoveSecs);
+    boundGotoDecelerating(
+        bossXLow(),
+        bossXHigh(),
+        bossYLow(),
+        bossYHigh(),
+        rLow,
+        rHigh,
+        maxSpeed
+    );
+    secTimer(afterMoveSecs);
+
+    addScript("danmaku_boss3_8_b", 4);
+    secTimer(beforeMoveSecs);
+    boundGotoDecelerating(
+        bossXLow(),
+        bossXHigh(),
+        bossYLow(),
+        bossYHigh(),
+        rLow,
+        rHigh,
+        maxSpeed
+    );
+
+    flagUser1();
+    secTimer(afterFlagSecs);
+}

@@ -4,9 +4,9 @@ trapTimer();
 
 let ringSym = 4;
 let arcSym = diff(3, 5, 7);
-let arcInc = 10.0;
-let topSpeed = 68.0;
-let speedInc = -10.0;
+let arcInc = 5.0;
+let topSpeed = 51.0;
+let speedInc = -5.0;
 
 let pos = getPosition();
 let spawnNum = 1;
@@ -28,7 +28,7 @@ func spawnBullet(vel, depthOffset){
 }
 
 func spawnArc(baseVel, unused){
-    arc(velocity, arcSym, arcInc, spawnBullet);
+    arc(baseVel, arcSym, arcInc, spawnBullet);
 }
 
 let baseAngle = getAngleToPlayer();
