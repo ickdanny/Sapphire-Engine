@@ -159,7 +159,6 @@ void *_arrayGetPtr(
  */
 #define arrayGet(TYPENAME, ARRAYPTR, INDEX) \
     ( \
-        (TYPENAME) \
         (*arrayGetPtr(TYPENAME, ARRAYPTR, INDEX)) \
     )
 

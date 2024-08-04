@@ -2,6 +2,7 @@
 #define WIND_COMPONENTS_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "Constructure.h"
 

@@ -1,10 +1,19 @@
 #ifndef TRIFECTA_SPRITE
 #define TRIFECTA_SPRITE
 
+#ifdef __APPLE__
+
 /* define to silence OpenGL deprecation warnings */
 #define GL_SILENCE_DEPRECATION
-
 #include <OpenGL/gl3.h>
+
+#endif /* end __APPLE__ */
+
+#ifdef WIN32
+
+#include "GLFW/glfw3.h"
+
+#endif /* end WIN32 */
 
 #include "ZMath.h"
 

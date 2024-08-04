@@ -10,6 +10,21 @@
 
 #endif /* end __APPLE__ */
 
+#ifdef WIN32
+
+/* name collisions */
+
+#define midiOutShortMsg _midiOutShortMsg
+#define midiOutReset _midiOutReset
+
+#include "windows.h"
+#include "mmeapi.h"
+
+#undef midiOutShortMsg
+#undef midiOutReset
+
+#endif /* end WIN32 */
+
 /*
  * The MidiOut class provides wrapper functions for
  * basic midi output.
@@ -21,6 +36,10 @@ typedef struct MidiOut{
     AudioUnit synthUnit;
 
     #endif /* end __APPLE__ */
+
+    #ifdef WIN32
+    HMIDIOUT midiOutHandle;
+    #endif /* end WIN32 */
     //todo other platforms
 } MidiOut;
 

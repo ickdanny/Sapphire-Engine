@@ -385,7 +385,6 @@ void *_arrayListGetPtr(
     INDEX \
 ) \
     ( \
-        (TYPENAME) \
         (*arrayListGetPtr( \
             TYPENAME, \
             ARRAYLISTPTR, \
@@ -720,7 +719,6 @@ void *_arrayListFrontPtr(
     ARRAYLISTPTR \
 ) \
     ( \
-        (TYPENAME) \
         (*arrayListFrontPtr( \
             TYPENAME, \
             ARRAYLISTPTR \
@@ -777,14 +775,11 @@ void *_arrayListBackPtr(
     ARRAYLISTPTR \
 ) \
     ( \
-        (TYPENAME) \
         (*arrayListBackPtr( \
             TYPENAME, \
             ARRAYLISTPTR \
         )) \
     )
-
-
 
 /* 
  * Apply must be done via macro because

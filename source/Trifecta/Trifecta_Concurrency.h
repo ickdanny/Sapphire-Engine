@@ -11,6 +11,14 @@ typedef pthread_t Thread;
 
 #endif /* end __APPLE__ */
 
+#ifdef WIN32
+
+#include <windows.h>
+
+typedef HANDLE Thread;
+
+#endif /* end WIN32 */
+
 /* 
  * A typedef for a function which can be passed
  * into threadCreate()

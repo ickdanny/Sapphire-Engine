@@ -4,13 +4,15 @@
 #include "PGUtil.h"
 #include "ZMath_Bitwise.h"
 
-#ifdef __WIN32__
+#ifdef WIN32
 
 /*
  * Constructs a new MidiOut and returns it by value.
  */
 MidiOut midiOutMake(){
-    //todo
+    MidiOut toRet = {0};
+    midiOutStart(&toRet);
+    return toRet;
 }
 
 /* Outputs a short message */
@@ -18,7 +20,16 @@ void midiOutShortMsg(
     MidiOut *midiOutPtr, 
     uint32_t output
 ){
-    //todo
+    MMRESULT result = _midiOutShortMsg(
+        midiOutPtr->midiOutHandle,
+        output
+    );
+    if(result != MMSYSERR_NOERROR){
+        pgError(
+            "error outputting midi short msg; "
+            SRC_LOCATION
+        );
+    }
 }
 
 /* Outputs a system exclusive message */
@@ -27,33 +38,89 @@ void midiOutSysex(
     const void* bufferPtr,
     uint32_t byteLength
 ){
-    //prepare data to be output from MIDIHDR
+    /* prepare data to be output from MIDIHDR */
 	MIDIHDR midiHDR = {0};
 	midiHDR.lpData = (char*)bufferPtr;
 	midiHDR.dwBufferLength = byteLength;
 	midiHDR.dwBytesRecorded = byteLength;
 
-    //todo
+    /* output the sysex */
+    MMRESULT result = midiOutPrepareHeader(
+        midiOutPtr->midiOutHandle,
+        &midiHDR,
+        sizeof(midiHDR)
+    );
+	if(result != MMSYSERR_NOERROR){
+        pgError(
+            "Error preparing sysEx; " SRC_LOCATION
+        );
+	}
+	result = midiOutLongMsg(
+        midiOutPtr->midiOutHandle,
+        &midiHDR,
+        sizeof(midiHDR)
+    );
+	if(result != MMSYSERR_NOERROR){
+		pgError(
+            "Error outputting sysEx; " SRC_LOCATION
+        );
+	}
+	result = midiOutUnprepareHeader(
+        midiOutPtr->midiOutHandle,
+        &midiHDR,
+        sizeof(midiHDR)
+    );
+	if(result != MMSYSERR_NOERROR){
+		pgError(
+            "Error unpreparing sysEx; " SRC_LOCATION
+        );
+	}
 }
 
 /* Starts a MidiOut's output */
 void midiOutStart(MidiOut *midiOutPtr){
-    //todo
+    if(midiOutPtr->midiOutHandle != 0){
+        midiOutStop(midiOutPtr);
+    }
+    MMRESULT result = midiOutOpen(
+        &(midiOutPtr->midiOutHandle),
+        MIDI_MAPPER,
+        0,
+        0,
+        CALLBACK_NULL
+    );
+    if(result != MMSYSERR_NOERROR){
+        pgError(
+            "error opening midi out; " SRC_LOCATION
+        );
+    }
 }
 
 /* Stops a MidiOut's output */
 void midiOutStop(MidiOut *midiOutPtr){
-    //todo
+    if(midiOutPtr->midiOutHandle == 0){
+        return;
+    }
+    MMRESULT result = midiOutClose(
+        midiOutPtr->midiOutHandle
+    );
+    if(result != MMSYSERR_NOERROR){
+        pgError(
+            "error closing midi out; " SRC_LOCATION
+        );
+    }
+    midiOutPtr->midiOutHandle = 0;
 }
 
 /* Frees the given MidiOut */
 void midiOutFree(MidiOut *midiOutPtr){
-    //todo
-    midiOutPtr->graph = NULL;
-    midiOutPtr->synthUnit = NULL;
+    if(!midiOutPtr){
+        return;
+    }
+    midiOutStop(midiOutPtr);
 }
 
-#endif /* end __WIN32__ */
+#endif /* end WIN32 */
 
 #ifdef __APPLE__
 

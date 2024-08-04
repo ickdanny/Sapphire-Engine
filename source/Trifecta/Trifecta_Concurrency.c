@@ -69,3 +69,55 @@ JoinReturnCode threadJoin(Thread thread){
 }
 
 #endif /* end __APPLE__ */
+
+#ifdef WIN32
+
+/*
+ * Initializes the current thread; should be called by
+ * runnable functions
+ */
+void initThread(){
+    /* do nothing */
+}
+
+/* 
+ * Creates a new thread and returns its ID if
+ * successful
+ */
+CreateReturn threadCreate(
+    RunnableFuncPtr func,
+    void* arg
+){
+    CreateReturn toRet = {0};
+    toRet.thread = CreateThread(
+        NULL,   /* default security attributes */
+        0,      /* default stack size */
+        func,   /* pass the func the thread starts */
+        arg,    /* pass argument for the func */
+        0,      /* default creation flags */
+        NULL    /* no thread identifier */
+    );
+    toRet.success = (toRet.thread != NULL);
+    return toRet;
+}
+
+/* Kills the specified thread */
+void threadKill(Thread toKill){
+    //todo:
+}
+
+/* Attempts to join the specified thread */
+JoinReturnCode threadJoin(Thread thread){
+    DWORD result = WaitForSingleObject(
+        thread,
+        INFINITE
+    );
+    if(result == WAIT_FAILED){
+        return joinUnknownError;
+    }
+    else{
+        return joinSuccess;
+    }
+}
+
+#endif /* end WIN32 */

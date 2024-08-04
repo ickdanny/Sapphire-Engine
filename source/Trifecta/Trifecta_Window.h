@@ -1,15 +1,26 @@
 #ifndef TRIFECTA_WINDOW_H
 #define TRIFECTA_WINDOW_H
 
+#include <stdbool.h>
+
+#ifdef __APPLE__
+
 /* define to silence OpenGL deprecation warnings */
 #define GL_SILENCE_DEPRECATION
 
 /* define to have glfw3 include gl3 not gl */
 #define GLFW_INCLUDE_GLCOREARB
 
-#include <stdbool.h>
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl3.h>
+
+#endif /* end __APPLE__ */
+
+#ifdef WIN32
+
+#include <GLFW/glfw3.h>
+
+#endif /* end WIN32 */
 
 #include "Constructure.h"
 

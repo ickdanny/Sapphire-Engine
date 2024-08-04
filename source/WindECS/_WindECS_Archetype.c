@@ -39,6 +39,18 @@ _WindArchetype _windArchetypeMake(
             if(componentMetadata._componentSize == 0){
                 continue;
             }
+            #ifdef _DEBUG
+            arraySet(SparseSet,
+                &(toRet._componentStorageArray),
+                i,
+                _sparseSetMake(
+                    numEntities,
+                    initDenseCapacity,
+                    componentMetadata._componentSize,
+                    componentMetadata._typeName
+                );
+            );
+            #else
             arraySet(SparseSet,
                 &(toRet._componentStorageArray),
                 i,
@@ -46,11 +58,9 @@ _WindArchetype _windArchetypeMake(
                     numEntities,
                     initDenseCapacity,
                     componentMetadata._componentSize
-                    #ifdef _DEBUG
-                    , componentMetadata._typeName
-                    #endif
                 );
             );
+            #endif
         }
     }
     return toRet;
