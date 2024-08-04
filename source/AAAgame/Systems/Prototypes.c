@@ -1132,7 +1132,7 @@ DECLARE_PROTOTYPE(trap){
         ((Vector2D){0})
     );
     Animations animations = animationListMake();
-    Animation animation = animationMake(true);
+    Animation animation = animationMake(false);
     animationAddFrame(&animation, "trap1");
     animationAddFrame(&animation, "trap2");
     animationAddFrame(&animation, "trap3");

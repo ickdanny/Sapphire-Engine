@@ -2,10 +2,10 @@
 
 (midAngle, finalAngle){
     let health = 5000;
-    let initWaitSecs = getSpeed() / 100.0;
+    let initWaitSecs = getSpeed() / 150.0;
     let turnTicks = 40.0;
     let waitSecs = 0.3;
-    let finalSpeed = getSpeed();
+    let finalSpeed = getSpeed() / 2.0;
 
     setHealth(health);
     addDeathScript("spawn_power_small", 4);

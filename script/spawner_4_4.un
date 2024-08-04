@@ -1,6 +1,6 @@
 # spawner script for circle of traps
 
-let secsBetweenSpawns = 0.25;
+let secsBetweenSpawns = 0.33;
 
 let center = [gameWidth() / 2.0, gameHeight() / 2.0]
     + gameOffset();
