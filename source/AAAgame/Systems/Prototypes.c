@@ -878,6 +878,36 @@ DECLARE_PROTOTYPE(crystal){
     addAnimations(componentListPtr, &animations);
 }
 
+DECLARE_PROTOTYPE(crystal_red){
+    addEnemyBaseComponents(
+        crystalHitbox,
+        crystal_red1,
+        spawn_explode_enemy
+    );
+    Animations animations = animationListMake();
+    Animation animation = animationMake(true);
+    animationAddFrame(
+        &animation,
+        "crystal_red1"
+    );
+    animationAddFrame(
+        &animation,
+        "crystal_red2"
+    );
+    animationAddFrame(
+        &animation,
+        "crystal_red3"
+    );
+    arrayListPushBack(Animation,
+        &(animations.animations),
+        animation
+    );
+    animations.currentIndex = 0;
+    animations.idleIndex = 0;
+    animations._maxTick = crystalAnimationMaxTick;
+    addAnimations(componentListPtr, &animations);
+}
+
 /* adds the basic components for a boss */
 #define addBossBaseComponents( \
     SPRITEPREFIX \
@@ -1670,6 +1700,7 @@ static void init(){
         addPrototypeFunction(automaton_red);
         addPrototypeFunction(wisp);
         addPrototypeFunction(crystal);
+        addPrototypeFunction(crystal_red);
         addPrototypeFunction(boss1);
         addPrototypeFunction(boss2);
         addPrototypeFunction(boss3);

@@ -164,7 +164,14 @@ static void updateSettings(Game *gamePtr){
         gamePtr->settingsPtr->muted
             = !gamePtr->settingsPtr->muted;
         midiHubToggleMute(gamePtr->midiHubPtr);
-        //todo: start playback of track 01 if unmuted
+
+        /* start playback of track 01 if unmuted*/
+        if(!(gamePtr->settingsPtr->muted)){
+            String *trackIDPtr = &(gamePtr->messages
+                .startMusicString);
+            stringClear(trackIDPtr);
+            stringAppendC(trackIDPtr, "01");
+        }
 
         gamePtr->messages.toggleSoundFlag = false;
     }

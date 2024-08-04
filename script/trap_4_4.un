@@ -1,0 +1,8 @@
+# circle trap
+
+trapTimer();
+
+let arcSym1 = diff(1, 3, 5);
+let arcInc1 = diff(2, 2, 4);
+
+#todo

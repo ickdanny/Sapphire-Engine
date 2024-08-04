@@ -1,0 +1,162 @@
+# spawner for shotgun automatons
+
+let yLow = 80.0;
+let yOffset = 29.4;
+let speed1 = 40.0;
+let speed2 = 50.0;
+let speed3 = 60.0;
+
+let angleUpFromLeft = -45.0;
+let angleUpFromRight = flipY(angleUpFromLeft);
+
+let angleDownFromTopLeft = 80.0;
+let angleDownFromTopRight
+    = flipY(angleDownFromTopLeft);
+
+let angleDownFromLeft = 45.0;
+let angleDownFromRight = flipY(angleDownFromLeft);
+
+let yHigh = gameHeight();
+
+let xLow = 25.0;
+let xOffset = 21.2;
+
+let secsBetweenSpawnsFull = 1.75;
+
+func spawnAutomatonA(pos, vel, depthOffset){
+    spawn(
+        "automaton_red",
+        pos,
+        vel,
+        depthOffset,
+        "enemy_4_3_a" # final angle = init angle
+    );
+}
+
+func spawnAutomatonB(pos, vel, depthOffset){
+    spawn(
+        "automaton_red",
+        pos,
+        vel,
+        depthOffset,
+        "enemy_4_3_b" # final angle to the left
+    );
+}
+
+func spawnAutomatonC(pos, vel, depthOffset){
+    spawn(
+        "automaton_red",
+        pos,
+        vel,
+        depthOffset,
+        "enemy_4_3_c" # final angle to the right
+    );
+}
+
+# first spawn on the left
+spawnAutomatonA(
+    getLeftSpawn(yLow),
+    <<speed1, angleUpFromLeft>>,
+    0
+);
+spawnAutomatonA(
+    getLeftSpawn(yLow + yOffset),
+    <<speed2, angleUpFromLeft>>,
+    0
+);
+spawnAutomatonA(
+    getLeftSpawn(yLow + yOffset + yOffset),
+    <<speed3, angleUpFromLeft>>,
+    0
+);
+
+secTimer(secsBetweenSpawnsFull);
+
+# second spawn on the right
+spawnAutomatonA(
+    getRightSpawn(yLow),
+    <<speed1, angleUpFromRight>>,
+    0
+);
+spawnAutomatonA(
+    getRightSpawn(yLow + yOffset),
+    <<speed2, angleUpFromRight>>,
+    0
+);
+spawnAutomatonA(
+    getRightSpawn(yLow + yOffset + yOffset),
+    <<speed3, angleUpFromRight>>,
+    0
+);
+
+secTimer(secsBetweenSpawnsFull);
+
+# third spawn top left
+spawnAutomatonB(
+    getTopSpawnLeft(xLow),
+    <<speed1, angleDownFromTopLeft>>,
+    0
+);
+spawnAutomatonB(
+    getTopSpawnLeft(xLow + xOffset),
+    <<speed2, angleDownFromTopLeft>>,
+    0
+);
+spawnAutomatonB(
+    getTopSpawnLeft(xLow + xOffset + xOffset),
+    <<speed3, angleDownFromTopLeft>>,
+    0
+);
+
+secTimer(secsBetweenSpawnsFull / 2.0);
+
+# fourth spawn top right
+spawnAutomatonC(
+    getTopSpawnRight(xLow),
+    <<speed1, angleDownFromTopLeft>>,
+    0
+);
+spawnAutomatonC(
+    getTopSpawnRight(xLow + xOffset),
+    <<speed2, angleDownFromTopLeft>>,
+    0
+);
+spawnAutomatonC(
+    getTopSpawnRight(xLow + xOffset + xOffset),
+    <<speed3, angleDownFromTopLeft>>,
+    0
+);
+
+secTimer(secsBetweenSpawnsFull / 2.0);
+
+# fifth spawn both sides near top
+spawnAutomatonA(
+    getLeftSpawn(yHigh),
+    <<speed3, angleDownFromLeft>>,
+    0
+);
+spawnAutomatonA(
+    getLeftSpawn(yHigh - yOffset),
+    <<speed2, angleDownFromLeft>>,
+    0
+);
+spawnAutomatonA(
+    getLeftSpawn((yHigh - yOffset) - yOffset),
+    <<speed1, angleDownFromLeft>>,
+    0
+);
+spawnAutomatonA(
+    getRightSpawn(yHigh),
+    <<speed3, angleDownFromRight>>,
+    0
+);
+spawnAutomatonA(
+    getRightSpawn(yHigh - yOffset),
+    <<speed2, angleDownFromRight>>,
+    0
+);
+spawnAutomatonA(
+    getRightSpawn((yHigh - yOffset) - yOffset),
+    <<speed1, angleDownFromRight>>,
+    0
+);

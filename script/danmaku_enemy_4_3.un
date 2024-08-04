@@ -1,0 +1,49 @@
+# shotgun danmaku script
+
+let arcSym = diff(3, 4, 5);
+let arcInc = 3.0;
+let speedLow = 30.0;
+let colInc = 30.0;
+let colCount = diff(4, 6, 8);
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_red",
+        pos,
+        vel,
+        (depthOffset * 50) + random(0, 49)
+    );
+}
+
+func spawnFullArc(baseVel, unused){
+    arc(
+        baseVel,
+        arcSym,
+        arcInc,
+        spawnBullet
+    );
+}
+
+func spawnSmallerArc(baseVel, unused){
+    arc(
+        baseVel,
+        arcSym - 1,
+        arcInc,
+        spawnBullet
+    );
+}
+
+column(
+    <<speedLow, getAngleToPlayer()>>,
+    colCount,
+    colInc,
+    spawnFullArc
+);
+
+column(
+    <<speedLow + 0.5 * colInc, getAngleToPlayer()>>,
+    colCount - 1,
+    colInc,
+    spawnSmallerArc
+);

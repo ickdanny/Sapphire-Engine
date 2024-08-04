@@ -2055,7 +2055,10 @@ static UNValue endStage(int argc, UNValue *argv){
      * are going back to the menu
      */
     else if(gameStatePtr->gameMode == game_practice){
-        //todo: start track 1
+        String *trackIDPtr = &(_gamePtr->messages
+            .startMusicString);
+        stringClear(trackIDPtr);
+        stringAppendC(trackIDPtr, "01");
     }
     else{
         pgError(

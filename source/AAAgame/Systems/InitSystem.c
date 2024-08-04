@@ -398,7 +398,10 @@ static void initMainMenu(
     scenePtr->messages.backMenuCommand
         = menu_navFarDown;
 
-    //todo: start playback of track 01
+    String *trackIDPtr = &(gamePtr->messages
+        .startMusicString);
+    stringClear(trackIDPtr);
+    stringAppendC(trackIDPtr, "01");
 }
 
 /* initializes the entities for the difficulty menu */
@@ -485,7 +488,7 @@ static void initDiffMenu(
             scenePtr,
             "button_lunaticUnsel",
             "button_lunaticSel",
-            menu_enterStopMusic,
+            menu_enter,
             (MenuCommandData){.sceneData = {
                 nextScene,
                 gb_lunatic
@@ -586,7 +589,7 @@ static void initStageMenu(
             scenePtr,
             "button_s3Unsel",
             "button_s3Sel",
-            menu_enterStopMusic,
+            menu_enter,
             (MenuCommandData){.sceneData = {
                 scene_game,
                 gb_stage3
@@ -607,7 +610,7 @@ static void initStageMenu(
             scenePtr,
             "button_s4Unsel",
             "button_s4Sel",
-            menu_enterStopMusic,
+            menu_enter,
             (MenuCommandData){.sceneData = {
                 scene_game,
                 gb_stage4

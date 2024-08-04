@@ -17,7 +17,10 @@ void creditsSystem(Game *gamePtr, Scene *scenePtr){
     if(*timer1Ptr > -1){
         /* if timer is done, return to menu */
         if(timer1Ptr == 0){
-            //todo: set track to 01
+            String *trackIDPtr = &(gamePtr->messages
+                .startMusicString);
+            stringClear(trackIDPtr);
+            stringAppendC(trackIDPtr, "01");
             gamePtr->messages.sceneExitToID
                 = scene_main;
         }

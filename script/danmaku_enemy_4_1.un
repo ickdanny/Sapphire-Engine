@@ -1,0 +1,33 @@
+# danmaku script for crystals
+
+let angleVelLow = diff(3, 2, 1) * phi() * 5.4;
+let angleVelHigh = 2 * angleVelLow;
+let speed = 28.8;
+let yMin = 20.0;
+
+let secsBetweenSpawns = diff(0.20, 0.15, 0.07);
+
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_clear",
+        getPosition(),
+        vel,
+        depthOffset
+    );
+}
+
+let angleVel = random(angleVelLow, angleVelHigh);
+if(chance(0.5)){
+    angleVel = -angleVel;
+}
+
+let angle = randomAngle();
+
+let numSpawns = 0;
+while(getY() > yMin){
+    spawnBullet(<<speed, angle>>, 300 - numSpawns);
+    numSpawns = numSpawns + 1;
+    angle = angle + angleVel;
+
+    secTimer(secsBetweenSpawns);
+}

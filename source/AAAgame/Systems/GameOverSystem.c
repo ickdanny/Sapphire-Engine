@@ -5,7 +5,10 @@ void gameOverSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.playerStateEntry.state
         == player_gameOver
     ){
-        //todo: set track to 01
+        String *trackIDPtr = &(gamePtr->messages
+            .startMusicString);
+        stringClear(trackIDPtr);
+        stringAppendC(trackIDPtr, "01");
 
         /* send back to correct menu */
         SceneID backTo = scene_numScenes;

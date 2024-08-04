@@ -1,0 +1,23 @@
+# spawner for automatons with wavy sea stars
+
+let x = 25.0;
+let initSpeed = 52.2;
+let secsBetweenSpawns = 6.5;
+
+func spawnAutomaton(pos, vel, depthOffset){
+    spawn(
+        "automaton_blue",
+        pos,
+        vel,
+        depthOffset,
+        "enemy_4_2"
+    );
+}
+
+let vel = <<initSpeed, 90.0>>;
+
+spawnAutomaton(getTopSpawnLeft(x), vel, 0);
+
+secTimer(secsBetweenSpawns);
+
+spawnAutomaton(getTopSpawnRight(x), vel, 0);

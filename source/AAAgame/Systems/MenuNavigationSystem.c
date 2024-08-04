@@ -234,7 +234,11 @@ void handleRestartGameCommand(
 /* Handles game over by popping scenes */
 void handleGameOverCommand(Game *gamePtr){
     gamePtr->messages.stopMusicFlag = true;
-    //todo: start track 1
+    
+    String *trackIDPtr = &(gamePtr->messages
+        .startMusicString);
+    stringClear(trackIDPtr);
+    stringAppendC(trackIDPtr, "01");
 
     popOutOfGame(gamePtr);
 }
@@ -283,8 +287,13 @@ bool parseMenuCommand(
             );
             return true; /* entering is critical */
 
-        case menu_backSetMenuTrack:
-            //todo start track 1
+        case menu_backSetMenuTrack:{ 
+                String *trackIDPtr
+                    = &(gamePtr->messages
+                        .startMusicString);
+                stringClear(trackIDPtr);
+                stringAppendC(trackIDPtr, "01");
+            }
             /* fall through */
         case menu_backTo:
             gamePtr->messages.sceneExitToID
@@ -297,7 +306,7 @@ bool parseMenuCommand(
             return true; /* exiting is critical */
 
         case menu_startTrack:
-            //todo start music
+            //todo start music for music room buttons
             return false;
         case menu_toggleSound:
             gamePtr->messages.toggleSoundFlag = true;
