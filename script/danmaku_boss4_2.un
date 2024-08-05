@@ -1,0 +1,36 @@
+# danmaku script for spawning laser spiral
+
+let secsBetweenLasers = diff(0.15, 0.1, 0.08);
+let segmentsBeforeSpawner = diff(7, 6, 5);
+let symmetry = diff(8, 12, 16); # not used in a ring
+let angleVel = -(360.0 / symmetry);
+angleVel = angleVel - diff(0.4, 0.3, 0.2);
+
+let pos = getPosition();
+let segmentCount = 1;
+func spawnLaserSegment(pos, angle, depthOffset){
+    let scriptID = "laser_boss4_2_a";
+    if(segmentCount == segmentsBeforeSpawner){
+        scriptID = "laser_boss4_2_b";
+        segmentCount = 0;
+    }
+    spawn(
+        "laser_lpurple",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        scriptID
+    );
+    segmentCount = segmentCount + 1;
+}
+func _spawnLaser(angle){
+    spawnLaser(pos, angle, spawnLaserSegment);
+}
+
+let angle = randomAngle();
+while(true){
+    _spawnLaser(angle);
+    
+    angle = normalizeAngle(angle + angleVel);
+    secTimer(secsBetweenLasers);
+}

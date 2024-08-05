@@ -1,0 +1,15 @@
+# aiming at player
+
+let initWaitSecs = 0.8;
+let finalSpeed = 35.0;
+let speedTicks = 40;
+
+let secInc = 1.0 / updatesPerSecond();
+let secs = 0.0;
+while(secs < initWaitSecs){
+    setAngle(getAngleToPlayer());
+    secs = secs + secInc;
+    yield;
+}
+
+shiftSpeedPeriod(finalSpeed, speedTicks);

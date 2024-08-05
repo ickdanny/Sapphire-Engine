@@ -1,0 +1,54 @@
+# danmaku script for whip squares A
+
+let angleOff1 = 45.0;
+let angleOff2 = 75.0;
+let angleOff3 = 95.0;
+let angleOff4 = 110.0;
+
+let whipCount = diff(5, 6, 7);
+let whipSpeedLow = 35.0;
+let whipSpeedHigh = 400.0;
+let whipSpeedInc = (whipSpeedHigh - whipSpeedLow)
+    / whipCount;
+
+let secsBetweenShots = 0.9 / whipCount;
+
+let baseAngle = getAngleToPlayer();
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_yellow",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss4_3_a"
+    );
+}
+
+func spawnPair(baseVel, angleOffset, depthOffset){
+    let vel1 = baseVel;
+    vel1.t = vel1.t + angleOffset;
+    spawnBullet(vel1, depthOffset);
+
+    let vel2 = baseVel;
+    vel2.t = vel2.t - angleOffset;
+    spawnBullet(vel2, depthOffset);
+}
+
+# custom arc
+func _spawnArc(baseVel){
+    spawnBullet(baseVel, 10);
+    spawnPair(baseVel, angleOff1, 9);
+    spawnPair(baseVel, angleOff2, 8);
+    spawnPair(baseVel, angleOff3, 7);
+    spawnPair(baseVel, angleOff4, 6);
+}
+
+let speed = whipSpeedLow;
+for(let i = 0; i < whipCount; i = i + 1){
+    _spawnArc(<<speed, baseAngle>>);
+
+    speed = speed + whipSpeedInc;
+    secTimer(secsBetweenShots);
+}

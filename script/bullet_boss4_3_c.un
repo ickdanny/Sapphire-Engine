@@ -1,0 +1,34 @@
+# bullet script for spawning square B
+
+let outbound = -15.0;
+let slowTicks = 60;
+let waitSecs = 0.5;
+let sides = 4;
+let bulletsPerSide = diff(3, 3, 3);
+let vertexSpeed = 60.0;
+
+setOutbound(outbound);
+
+shiftSpeedPeriod(0, slowTicks);
+
+secTimer(waitSecs);
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "sharp_lgreen",
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss4_3_d"
+    );
+}
+
+polygon(
+    <<vertexSpeed, randomAngle()>>,
+    sides,
+    bulletsPerSide,
+    spawnBullet
+);
+
+die();

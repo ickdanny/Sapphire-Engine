@@ -1,0 +1,24 @@
+# green spawner danmaku script - laser ring
+
+let symmetry = diff(8, 12, 16);
+
+let pos = getPosition();
+func spawnLaserSegment(pos, angle, depthOffset){
+    spawn(
+        "laser_lgreen",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        "laser_boss4_1"
+    );
+}
+func _spawnLaser(vector, unused){
+    spawnLaser(pos, vector.t, spawnLaserSegment);
+    yield;
+}
+
+ring(
+    <<0, randomAngle()>>,
+    symmetry,
+    _spawnLaser
+);

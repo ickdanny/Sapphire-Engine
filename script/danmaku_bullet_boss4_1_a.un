@@ -1,0 +1,29 @@
+# red spawner danmaku script - large spiral
+
+let symmetry = diff(2, 3, 4);
+let numSpawns = 4;
+let angleVel = 12.2;
+let secsBetweenSpawns = 0.44;
+
+let speed = 24.4;
+
+if(chance(0.5)){
+    angleVel = -angleVel;
+}
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "large_red",
+        pos,
+        vel,
+        (depthOffset * 100) + random(0, 99)
+    );
+}
+
+let angle = randomAngle();
+for(let i = 0; i < numSpawns; i = i + 1){
+    ring(<<speed, angle>>, symmetry, spawnBullet);
+    angle = angle + angleVel;
+    secTimer(secsBetweenSpawns);
+}

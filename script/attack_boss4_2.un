@@ -1,0 +1,6 @@
+# attack script for rotating laser spawner
+
+let health = 200000;
+
+setHealth(health);
+addScript("danmaku_boss4_2", 4);
