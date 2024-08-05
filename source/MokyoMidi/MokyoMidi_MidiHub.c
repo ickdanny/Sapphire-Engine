@@ -63,6 +63,6 @@ bool midiHubIsMuted(const MidiHub *midiHubPtr){
  */
 void midiHubFree(MidiHub *midiHubPtr){
     midiSequencerFree(&(midiHubPtr->midiSequencer));
-    midiOutFree(midiHubPtr->midiOutPtr);
+    mmMidiOutFree(midiHubPtr->midiOutPtr);
     pgFree(midiHubPtr->midiOutPtr);
 }

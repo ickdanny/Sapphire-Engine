@@ -11,7 +11,8 @@
 
 #ifdef WIN32
 
-#include "GLFW/glfw3.h"
+#include "Trifecta_Win32.h"
+#include <GL/GL.h>
 
 #endif /* end WIN32 */
 

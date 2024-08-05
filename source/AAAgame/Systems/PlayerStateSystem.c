@@ -4,6 +4,11 @@
 
 #define noTimer -1
 
+/* apparently Win32 defines "accept" already */
+#ifdef WIN32
+#define accept _accept
+#endif
+
 static Bitset accept;
 static bool initialized = false;
 
@@ -209,6 +214,7 @@ static PlayerState onUpdate(
                 "Unexpected default player state; "
                 SRC_LOCATION
             );
+            return player_none;
             break;
     }
 }

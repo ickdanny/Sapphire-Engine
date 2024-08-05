@@ -1,5 +1,10 @@
 #include "OverlaySystem.h"
 
+/* apparently Win32 defines "accept" already */
+#ifdef WIN32
+#define accept _accept
+#endif
+
 static Bitset accept;
 static String removeUIScriptID;
 static String lifeSpawnSpriteID;

@@ -18,6 +18,7 @@
 
 #ifdef WIN32
 
+#include "Trifecta_Win32.h"
 #include <GLFW/glfw3.h>
 
 #endif /* end WIN32 */

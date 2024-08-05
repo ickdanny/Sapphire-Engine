@@ -2,6 +2,11 @@
 
 #include "GameCommand.h"
 
+/* apparently Win32 defines "accept" already */
+#ifdef WIN32
+#define accept _accept
+#endif
+
 static Bitset accept;
 static String shotID;
 static bool initialized = false;

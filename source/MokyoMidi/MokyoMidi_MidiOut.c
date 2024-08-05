@@ -7,20 +7,20 @@
 #ifdef WIN32
 
 /*
- * Constructs a new MidiOut and returns it by value.
+ * Constructs a new MMMidiOut and returns it by value.
  */
-MidiOut midiOutMake(){
-    MidiOut toRet = {0};
-    midiOutStart(&toRet);
+MMMidiOut midiOutMake(){
+    MMMidiOut toRet = {0};
+    mmMidiOutStart(&toRet);
     return toRet;
 }
 
 /* Outputs a short message */
-void midiOutShortMsg(
-    MidiOut *midiOutPtr, 
+void mmMidiOutShortMsg(
+    MMMidiOut *midiOutPtr, 
     uint32_t output
 ){
-    MMRESULT result = _midiOutShortMsg(
+    MMRESULT result = _mmMidiOutShortMsg(
         midiOutPtr->midiOutHandle,
         output
     );
@@ -33,8 +33,8 @@ void midiOutShortMsg(
 }
 
 /* Outputs a system exclusive message */
-void midiOutSysex(
-    MidiOut *midiOutPtr,
+void mmMidiOutSysex(
+    MMMidiOut *midiOutPtr,
     const void* bufferPtr,
     uint32_t byteLength
 ){
@@ -78,9 +78,9 @@ void midiOutSysex(
 }
 
 /* Starts a MidiOut's output */
-void midiOutStart(MidiOut *midiOutPtr){
+void mmMidiOutStart(MMMidiOut *midiOutPtr){
     if(midiOutPtr->midiOutHandle != 0){
-        midiOutStop(midiOutPtr);
+        mmMidiOutStop(midiOutPtr);
     }
     MMRESULT result = midiOutOpen(
         &(midiOutPtr->midiOutHandle),
@@ -97,7 +97,7 @@ void midiOutStart(MidiOut *midiOutPtr){
 }
 
 /* Stops a MidiOut's output */
-void midiOutStop(MidiOut *midiOutPtr){
+void mmMidiOutStop(MMMidiOut *midiOutPtr){
     if(midiOutPtr->midiOutHandle == 0){
         return;
     }
@@ -112,12 +112,12 @@ void midiOutStop(MidiOut *midiOutPtr){
     midiOutPtr->midiOutHandle = 0;
 }
 
-/* Frees the given MidiOut */
-void midiOutFree(MidiOut *midiOutPtr){
+/* Frees the given MMMidiOut */
+void mmMidiOutFree(MMMidiOut *midiOutPtr){
     if(!midiOutPtr){
         return;
     }
-    midiOutStop(midiOutPtr);
+    mmMidiOutStop(midiOutPtr);
 }
 
 #endif /* end WIN32 */
@@ -149,10 +149,10 @@ void assertOSStatusZero(
 }
 
 /*
- * Constructs a new MidiOut and returns it by value.
+ * Constructs a new MMMidiOut and returns it by value.
  */
-MidiOut midiOutMake(){
-    MidiOut toRet = {0};
+MMMidiOut midiOutMake(){
+    MMMidiOut toRet = {0};
     AUNode synthNode = 0;
     AUNode outNode = 0;
     AudioComponentDescription compDesc = {0};
@@ -246,8 +246,8 @@ MidiOut midiOutMake(){
 }
 
 /* Outputs a short message where the status is byte0 */
-void midiOutShortMsg(
-    MidiOut *midiOutPtr,
+void mmMidiOutShortMsg(
+    MMMidiOut *midiOutPtr,
     uint32_t output
 ){
     OSStatus retCode = MusicDeviceMIDIEvent(
@@ -264,8 +264,8 @@ void midiOutShortMsg(
 }
 
 /* Outputs a system exclusive message */
-void midiOutSysex(
-    MidiOut *midiOutPtr,
+void mmMidiOutSysex(
+    MMMidiOut *midiOutPtr,
     const void* bufferPtr,
     uint32_t byteLength
 ){
@@ -281,19 +281,19 @@ void midiOutSysex(
 }
 
 /* Starts a MidiOut's output */
-void midiOutStart(MidiOut *midiOutPtr){
+void mmMidiOutStart(MMMidiOut *midiOutPtr){
     /* start the graph */
     AUGraphStart(midiOutPtr->graph);
 }
 
 /* Stops a MidiOut's output */
-void midiOutStop(MidiOut *midiOutPtr){
+void mmMidiOutStop(MMMidiOut *midiOutPtr){
     /* stop the graph */
     AUGraphStop(midiOutPtr->graph);
 }
 
-/* Frees the given MidiOut */
-void midiOutFree(MidiOut *midiOutPtr){
+/* Frees the given MMMidiOut */
+void mmMidiOutFree(MMMidiOut *midiOutPtr){
     AUGraphStop(midiOutPtr->graph);
     DisposeAUGraph(midiOutPtr->graph);
     midiOutPtr->graph = NULL;
@@ -303,8 +303,8 @@ void midiOutFree(MidiOut *midiOutPtr){
 #endif /* end __APPLE__ */
 
 /* Outputs a short message on all channels */
-void midiOutShortMsgOnAllChannels(
-    MidiOut *midiOutPtr,
+void mmMidiOutShortMsgOnAllChannels(
+    MMMidiOut *midiOutPtr,
     uint32_t output
 ){
     /* 
@@ -313,7 +313,7 @@ void midiOutShortMsgOnAllChannels(
      */
 	if(!(output << 28)) {
 		for(int i = 0; i <= 0xF; ++i) {
-			midiOutShortMsg(midiOutPtr, output + i);
+			mmMidiOutShortMsg(midiOutPtr, output + i);
 		}
 	}
 	else {
@@ -324,30 +324,30 @@ void midiOutShortMsgOnAllChannels(
 }
 
 /* Outputs a control change message on all channels */
-void midiOutControlChangeOnAllChannels(
-    MidiOut *midiOutPtr,
+void mmMidiOutControlChangeOnAllChannels(
+    MMMidiOut *midiOutPtr,
     uint32_t data
 ){
-    midiOutShortMsgOnAllChannels(
+    mmMidiOutShortMsgOnAllChannels(
         midiOutPtr,
 		(data << 8) + mm_controlChange
 	);
 }
 
-/* Resets the given MidiOut */
-void midiOutReset(MidiOut *midiOutPtr){
+/* Resets the given MMMidiOut */
+void mmMidiOutReset(MMMidiOut *midiOutPtr){
     /* 
      * Terminating a sysex message without sending an
 	 * EOX(end - of - exclusive) byte might cause
      * problems for the receiving device
      */ 
-	midiOutShortMsg(midiOutPtr, mm_sysexEnd);
+	mmMidiOutShortMsg(midiOutPtr, mm_sysexEnd);
 
-    midiOutControlChangeOnAllChannels(
+    mmMidiOutControlChangeOnAllChannels(
         midiOutPtr,
         mm_allNotesOff
     );
-    midiOutControlChangeOnAllChannels(
+    mmMidiOutControlChangeOnAllChannels(
         midiOutPtr,
         mm_allSoundOff
     );

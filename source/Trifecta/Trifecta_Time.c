@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 
+#include "PGUtil.h"
+
 #ifdef __APPLE__
 
 #include <CoreServices/CoreServices.h>
@@ -128,3 +130,111 @@ void sleepUntil(TimePoint timePoint){
 }
 
 #endif /* end __APPLE__ */
+
+#ifdef WIN32
+
+/* 
+ * Returns TimePoint representing the specified number
+ * of nanoseconds
+ */
+TimePoint makeTimeNano(uint64_t nanoseconds){
+    return (TimePoint)nanoseconds;
+}
+
+/* Returns the current time */
+TimePoint getCurrentTime(){
+    /* frequency in ticks per second */
+    LARGE_INTEGER frequency = {0};
+    LARGE_INTEGER count = {0};
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&count);
+
+    count.QuadPart *= _oneBillion;
+    count.QuadPart /= frequency.QuadPart;
+    return count.QuadPart;
+}
+
+/* 
+ * Returns the result of adding the specified amount
+ * of nanoseconds to the specified TimePoint
+ */
+TimePoint addTimeNano(
+    TimePoint timePoint,
+    uint64_t timeNano
+){
+    return timePoint + (TimePoint)timeNano;
+}
+
+/* 
+ * Returns a negative value if the first TimePoint
+ * is before the second, a positive value if the
+ * first TimePoint is after the second, or 0 if
+ * the two TimePoints are the same
+ */
+int timePointCompare(TimePoint left, TimePoint right){
+    if(left < right){
+        return -1;
+    }
+    if(left > right){
+        return 1;
+    }
+    return 0;
+}
+
+/*
+ * Returns the difference between the two specified
+ * TimePoints in nanoseconds
+ */
+int64_t timePointDiffNano(
+    TimePoint left,
+    TimePoint right
+){
+    return left - right;
+}
+
+/* Sleeps until the specified TimePoint */
+void sleepUntil(TimePoint timePoint){
+    /* initialize variables */
+
+    TimePoint currentTime = getCurrentTime();
+    int64_t timeDiff = timePointDiffNano(
+        timePoint,
+        currentTime
+    );
+    /* return if we have reached timePoint */
+    if(timeDiff <= 0){
+        return;
+    }
+
+    HANDLE timerHandle = CreateWaitableTimer(
+        NULL,
+        true,
+        NULL)
+    ;
+    if(!timerHandle){
+        pgError(
+            "failed to open timer handle; "
+            SRC_LOCATION
+        );
+    }
+
+    LARGE_INTEGER timeToWait = {0};
+    timeToWait.QuadPart = -timeDiff / 100; /* 100ns */
+
+    if(!SetWaitableTimer(
+        timerHandle,
+        &timeToWait,
+        0,
+        NULL,
+        NULL,
+        false
+    )){
+        pgError("error setting timer; " SRC_LOCATION);
+    }
+
+    WaitForSingleObject(timerHandle, INFINITE);
+
+    CloseHandle(timerHandle);
+}
+
+#endif /* end WIN32 */

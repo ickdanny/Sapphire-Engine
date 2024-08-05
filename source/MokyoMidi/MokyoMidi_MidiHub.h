@@ -12,7 +12,7 @@
  * play midi sequences
  */
 typedef struct MidiHub{
-    MidiOut *midiOutPtr;
+    MMMidiOut *midiOutPtr;
     MidiSequencer midiSequencer;
     bool muted;
 } MidiHub;

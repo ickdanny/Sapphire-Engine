@@ -15,7 +15,7 @@
  * to actually produce music; not threadsafe
  */
 typedef struct MidiSequencer{
-    MidiOut *midiOutPtr;
+    MMMidiOut *midiOutPtr;
 
     /* playback fields */
 
@@ -38,9 +38,9 @@ typedef struct MidiSequencer{
 
 /* 
  * Constructs and returns a new MidiSequencer with
- * the specified MidiOut by value
+ * the specified MMMidiOut by value
  */
-MidiSequencer midiSequencerMake(MidiOut *midiOutPtr);
+MidiSequencer midiSequencerMake(MMMidiOut *midiOutPtr);
 
 /* Begins playing back the specified midi sequence */
 void midiSequencerStart(

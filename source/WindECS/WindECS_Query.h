@@ -151,7 +151,6 @@ void *_windQueryItrGetPtr(
     ITRPTR \
 ) \
     ( \
-        (TYPENAME) \
         (*windQueryItrGetPtr( \
             TYPENAME, \
             ITRPTR \

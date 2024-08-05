@@ -3,6 +3,11 @@
 #define horizontalDist 7
 #define verticalDist 11
 
+/* apparently Win32 defines "accept" already */
+#ifdef WIN32
+#define accept _accept
+#endif
+
 static Bitset accept;
 static TFGlyphMap glyphMap;
 static bool initialized = false;

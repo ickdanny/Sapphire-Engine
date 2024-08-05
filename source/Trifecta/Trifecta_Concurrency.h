@@ -19,11 +19,33 @@ typedef HANDLE Thread;
 
 #endif /* end WIN32 */
 
+//todo: declare a macro for DECLARE_RUNNABLE_FUNC?
+
+#ifdef __APPLE__
+
 /* 
  * A typedef for a function which can be passed
  * into threadCreate()
  */
 typedef void*(*RunnableFuncPtr)(void*);
+
+#define DECLARE_RUNNABLE_FUNC(FUNCNAME, PARAMNAME) \
+    void* FUNCNAME(void *PARAMNAME)
+
+#endif /* end __APPLE__ */
+
+#ifdef WIN32
+
+/* 
+ * A typedef for a function which can be passed
+ * into threadCreate()
+ */
+typedef DWORD (WINAPI *RunnableFuncPtr)(void*);
+
+#define DECLARE_RUNNABLE_FUNC(FUNCNAME, PARAMNAME) \
+    DWORD WINAPI FUNCNAME(void *PARAMNAME)
+
+#endif /* end WIN32 */
 
 /*
  * Initializes the current thread; should be called by

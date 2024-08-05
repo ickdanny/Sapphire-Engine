@@ -20,7 +20,9 @@ typedef struct timespec TimePoint;
 
 #ifdef WIN32
 
+#include "Trifecta_Win32.h"
 
+typedef int64_t TimePoint;
 
 #endif /* end WIN32 */
 

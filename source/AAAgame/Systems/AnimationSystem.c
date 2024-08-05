@@ -1,5 +1,10 @@
 #include "AnimationSystem.h"
 
+/* apparently Win32 defines "accept" already */
+#ifdef WIN32
+#define accept _accept
+#endif
+
 /*
  * The value below which a vector is considered 0 for
  * the purposes of deciding which animation

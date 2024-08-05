@@ -7,9 +7,9 @@
 
 /* 
  * Constructs and returns a new MidiSequencer with
- * the specified MidiOut by value
+ * the specified MMMidiOut by value
  */
-MidiSequencer midiSequencerMake(MidiOut *midiOutPtr){
+MidiSequencer midiSequencerMake(MMMidiOut *midiOutPtr){
     MidiSequencer toRet = {0};
     toRet.midiOutPtr = midiOutPtr;
     atomic_init(&(toRet.running), false);
@@ -50,7 +50,7 @@ uint32_t calculateInitialTimePerTick100ns(
 static void midiSequencerOutputMidiEvent(
     MidiSequencer *sequencerPtr
 ){
-    midiOutShortMsg(
+    mmMidiOutShortMsg(
         sequencerPtr->midiOutPtr,
         (sequencerPtr->currentPtr++)->event
     );
@@ -69,7 +69,7 @@ static void midiSequencerOutputSysexEvent(
     ++(sequencerPtr->currentPtr);
     /* currentPtr now points to first data */
 
-    midiOutSysex(
+    mmMidiOutSysex(
         sequencerPtr->midiOutPtr,
         sequencerPtr->currentPtr,
         byteLength
@@ -152,7 +152,7 @@ static void midiSequencerHandleMetaEvent(
                 sequencerPtr->currentPtr
                     = sequencerPtr->loopPtr;
                 /* reset for stray note off events */
-                midiOutReset(sequencerPtr->midiOutPtr);
+                mmMidiOutReset(sequencerPtr->midiOutPtr);
                 /* 
                  * since loop ptr points directly to
                  * next event, return
@@ -199,7 +199,7 @@ static void midiSequencerPlayback(
     MidiSequencer *sequencerPtr
 ){
     /* initialize playback */
-    midiOutReset(sequencerPtr->midiOutPtr);
+    mmMidiOutReset(sequencerPtr->midiOutPtr);
     sequencerPtr->currentPtr = arrayListFrontPtr(
         _EventUnit,
         &(sequencerPtr->sequencePtr->eventTrack)
@@ -285,7 +285,7 @@ static void midiSequencerPlayback(
     }
 
     /* cleanup after playback */
-    midiOutReset(sequencerPtr->midiOutPtr);
+    mmMidiOutReset(sequencerPtr->midiOutPtr);
     midiSequencerResetPlaybackFields(sequencerPtr);
     sequencerPtr->running = false;
 }
@@ -294,10 +294,13 @@ static void midiSequencerPlayback(
  * A wrapper for midiSequencerPlayback() which can
  * be used by threadCreate()
  */
-static void* midiSeqeuncerPlaybackWrapper(void *arg){
+static DECLARE_RUNNABLE_FUNC(
+    midiSeqeuncerPlaybackWrapper,
+    arg
+){
     initThread();
     midiSequencerPlayback((MidiSequencer*)arg);
-    return NULL;
+    return 0;
 }
 
 /* Begins playing back the specified midi sequence */
@@ -326,7 +329,7 @@ void midiSequencerStart(
 /* Stops playback */
 void midiSequencerStop(MidiSequencer *sequencerPtr){
     midiSequencerStopPlaybackThread(sequencerPtr);
-    midiOutReset(sequencerPtr->midiOutPtr);
+    mmMidiOutReset(sequencerPtr->midiOutPtr);
 }
 
 /* Frees the given MidiSequencer */
