@@ -18,6 +18,12 @@ typedef struct timespec TimePoint;
 
 #endif /* end __APPLE__ */
 
+#ifdef WIN32
+
+
+
+#endif /* end WIN32 */
+
 /* 
  * Returns TimePoint representing the specified number
  * of nanoseconds

@@ -12,12 +12,13 @@
 
 #ifdef WIN32
 
+#include "Trifecta_Win32.h"
+
 /* name collisions */
 
 #define midiOutShortMsg _midiOutShortMsg
 #define midiOutReset _midiOutReset
 
-#include "windows.h"
 #include "mmeapi.h"
 
 #undef midiOutShortMsg

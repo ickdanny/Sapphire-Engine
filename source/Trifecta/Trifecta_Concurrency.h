@@ -13,7 +13,7 @@ typedef pthread_t Thread;
 
 #ifdef WIN32
 
-#include <windows.h>
+#include "Trifecta_Win32.h"
 
 typedef HANDLE Thread;
 

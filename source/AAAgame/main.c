@@ -20,8 +20,6 @@
 #include "SystemDestructors.h"
 #include "Scripts.h" /* to destroy vm pool */
 
-#include <unistd.h>
-
 /* A struct holding all the elements of the engine */
 typedef struct Engine{
     Settings settings;

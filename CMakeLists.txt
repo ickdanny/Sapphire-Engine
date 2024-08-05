@@ -60,7 +60,7 @@ add_dependencies(${PROJECT_NAME} script)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 
 if(WIN32)
-    message("win32 detected")
+    set_target_properties(OceanEngine PROPERTIES COMPILE_FLAGS "/experimental:c11atomics")
 elseif(APPLE)
     # https://stackoverflow.com/questions/17070101/why-i-cannot-link-the-mac-framework-file-with-cmake
     set(LIBS 
