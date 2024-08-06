@@ -4,7 +4,7 @@ let secsBetweenLasers = diff(0.15, 0.1, 0.08);
 let segmentsBeforeSpawner = diff(8, 7, 6);
 let symmetry = diff(8, 12, 16); # not used in a ring
 let angleVel = -(360.0 / symmetry);
-angleVel = angleVel - diff(0.4, 0.3, 0.2);
+angleVel = angleVel - diff(0.8, 0.4, 0.2);
 
 let pos = getPosition();
 let segmentCount = 1;

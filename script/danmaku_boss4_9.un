@@ -1,6 +1,6 @@
 # final spell danmaku script: turning lasers
 
-let symmetry = diff(8, 12, 16);
+let symmetry = diff(10, 13, 16);
 let secsBetweenSpawns1 = 2.9;
 let secsBetweenSpawns2 = 0.4;
 let secsBetweenSpawns3 = 3.5;
@@ -9,7 +9,7 @@ let initSpeedAB = 60.0;
 let baseInitSpeedC = 70;
 let initSpeedOffsetC = 20;
 let angleOffsetC = -5.1;
-let numRingsC = diff(2, 3, 3);
+let numRingsC = 3;
 
 let spawnerPrototype = "tri_black";
 

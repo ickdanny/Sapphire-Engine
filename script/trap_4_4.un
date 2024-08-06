@@ -5,7 +5,7 @@ trapTimer();
 let arcSymA = diff(1, 3, 5);
 let arcIncA = diff(1, 15, 12);
 let arcSymB = diff(2, 2, 4);
-let arcIncB = diff(1, 10, 7.7);
+let arcIncB = diff(10, 10, 7.7);
 
 let colCountA = diff(4, 6, 8);
 let colIncA = 17.0;

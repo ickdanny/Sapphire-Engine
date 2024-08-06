@@ -1,31 +1,31 @@
 # stage 4 script: The Bridge Between Worlds
 
-# secTimer(2.0);
-# 
-# # wave 1: crystal corridor
-# addScript("spawner_4_1", 3);
-# 
-# secTimer(23.0);
-# 
-# # wave 2: automatons spawning wavy sea star
-# addScript("spawner_4_2", 4);
-# 
-# secTimer(14.5);
-# 
-# # wave 3: shotgun automatons
-# addScript("spawner_4_3", 3);
-# 
-# secTimer(10.5);
-# 
-# # wave 4: circle of traps
-# addScript("spawner_4_4", 4);
-# 
-# secTimer(21.2);
-# 
-# flagBulletClear();
-# 
-# secTimer(0.1);
-# 
+secTimer(2.0);
+
+# wave 1: crystal corridor
+addScript("spawner_4_1", 3);
+
+secTimer(23.0);
+
+# wave 2: automatons spawning wavy sea star
+addScript("spawner_4_2", 4);
+
+secTimer(14.5);
+
+# wave 3: shotgun automatons
+addScript("spawner_4_3", 3);
+
+secTimer(10.5);
+
+# wave 4: circle of traps
+addScript("spawner_4_4", 4);
+
+secTimer(21.2);
+
+flagBulletClear();
+
+secTimer(0.1);
+
 spawn(
     "boss4",
     getTopSpawnLeft(gameWidth() / 2.0),

@@ -12,7 +12,7 @@ let gravDragHigh = 0.0015;
 let gravDrag = random(gravDragLow, gravDragHigh);
 let gravDirectionRange = 10.0;
 
-let segmentsBeforeSpawner = diff(10, 8, 6);
+let segmentsBeforeSpawner = diff(8, 7, 6);
 
 # laser spawning funcs
 let segmentCount = 1;

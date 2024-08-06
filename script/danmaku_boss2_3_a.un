@@ -5,7 +5,7 @@ let angleVel = _danmaku_boss2_3_angleVel(); # per tick
 let ringSymmetry = 3;
 let outSpeed = 0;
 
-let ticksBetweenSpawns = 25;
+let ticksBetweenSpawns = diff(40, 30, 25);
 
 let spawnsBeforeSkip = diff(1, 2, 3);
 let spawnsBeforeScriptB = 5;

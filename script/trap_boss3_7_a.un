@@ -3,7 +3,7 @@
 trapTimer();
 
 let ringSym = 4;
-let arcSym = diff(3, 5, 7);
+let arcSym = diff(4, 5, 7);
 let arcInc = 5.0;
 let topSpeed = 51.0;
 let speedInc = -5.0;

@@ -1,6 +1,6 @@
 # danmaku script for plants
 
-let secsBetweenShots = diff(4.5, 3.5, 2.75);
+let secsBetweenShots = diff(6.5, 4.5, 2.75);
 
 let spawnOffsetDist = 1.0;
 let spawnOffset = <<spawnOffsetDist, 270>>;

@@ -10,7 +10,7 @@
     let secsBeforeExplodeHigh = 1.2;
 
     # spawning parameters
-    let numSpawnsBase = diff(6, 9, 12);
+    let numSpawnsBase = diff(5, 9, 12);
     let numSpawnsRange = 1;
     let speedLow = 25.0;
     let speedHigh = 39.4;

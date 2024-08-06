@@ -1,6 +1,6 @@
 # danmaku script for spawner for square spirals
 
-let secsBetweenSpawns = diff(0.15, 0.10, 0.07);
+let secsBetweenSpawns = diff(0.20, 0.15, 0.07);
 let symmetry = 4;
 let initSpeed = 65.0;
 let angleVelLow = 8.0;
