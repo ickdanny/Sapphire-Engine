@@ -365,6 +365,37 @@ static UNValue removeVisible(int argc, UNValue *argv){
     return unBoolValue(false);
 }
 
+/* Marks the entity as rotate forward */
+static UNValue setRotateSpriteForward(
+    int argc,
+    UNValue *argv
+){
+    assertArity(
+        0,
+        "setRotateSpriteForward expects no args"
+    );
+    windWorldHandleQueueSetComponent(
+        RotateSpriteForwardMarker,
+        &(_scenePtr->ecsWorld),
+        _handle,
+        NULL
+    );
+    return unBoolValue(false);
+}
+
+/* Unmarks the entity as rotate forward */
+static UNValue removeRotateSpriteForward(
+    int argc,
+    UNValue *argv
+){
+    assertArity(
+        0,
+        "removeRotateSpriteForward expects no args"
+    );
+    removeComponent(RotateSpriteForwardMarker);
+    return unBoolValue(false);
+}
+
 /*
  * Set the sprite of the entity to the requested image
  */
@@ -2328,6 +2359,8 @@ static void init(){
         /* entity graphics */
         addNativeFunc(setVisible);
         addNativeFunc(removeVisible);
+        addNativeFunc(setRotateSpriteForward);
+        addNativeFunc(removeRotateSpriteForward);
         addNativeFunc(setSprite);
         addNativeFunc(setSpriteInstruction);
         addNativeFunc(setDepth);

@@ -1,6 +1,6 @@
-# attack script for point gravity trail spawners
+# starfall attack script
 
-let health = 200000;
+let health = 300000;
 let initWaitSecs = 0.4;
 
 let beforeMoveSecs = 1.8;
@@ -10,10 +10,10 @@ let rHigh = 40;
 let maxSpeed = 28.5;
 
 setHealth(health);
+addScript("danmaku_boss4_7", 4);
 
 secTimer(initWaitSecs);
 while(true){
-    addScript("danmaku_boss4_6", 4);
     secTimer(beforeMoveSecs);
     boundGotoDecelerating(
         bossXLow(),

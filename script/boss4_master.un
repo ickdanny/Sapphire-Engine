@@ -20,61 +20,60 @@ setCollidable();
 
 secTimer(0.5);
 
-# # phase 1: four spawner types
-# addScript("attack_boss4_1", 3);
-# wait isBossDead();
-# removeSpawns();
-# yield;
-# setVelocity(<<0, 0>>);
-# flagBulletClear();
-# gotoDecelerating(bossMidpoint(), 50.0);
-# 
-# secTimer(0.3);
-# 
-# # phase 2: rotating laser spawner
-# addScript("attack_boss4_2", 3);
-# wait isBossDead();
-# removeSpawns();
-# yield;
-# setVelocity(<<0, 0>>);
-# flagBulletClear();
-# addScript("spawn_power_large", 3);
-# clearLaserSpawners();
-#
-# secTimer(0.1);
-# 
-# # phase 3: whip squares
-# addScript("attack_boss4_3", 3);
-# wait isBossDead();
-# removeSpawns();
-# yield;
-# setVelocity(<<0, 0>>);
-# flagBulletClear();
-# gotoDecelerating(bossMidpoint(), 50.0);
-# 
-# secTimer(0.5);
-# 
-# # phase 4: spiraling star spawners
-# addScript("attack_boss4_4", 3);
-# wait isBossDead();
-# removeSpawns();
-# yield;
-# setVelocity(<<0, 0>>);
-# flagBulletClear();
-# addScript("spawn_power_large", 3);
-# 
-# secTimer(1.0);
-# 
-# # phase 5: counter rotating laser spawners
-# addScript("attack_boss4_5", 3);
-# wait isBossDead();
-# removeSpawns();
-# yield;
-# setVelocity(<<0, 0>>);
-# flagBulletClear();
-# clearLaserSpawners();
-# 
-# secTimer(0.1);
+# phase 1: four spawner types
+addScript("attack_boss4_1", 3);
+wait isBossDead();
+removeSpawns();
+yield;
+setVelocity(<<0, 0>>);
+flagBulletClear();
+gotoDecelerating(bossMidpoint(), 50.0);
+
+secTimer(0.3);
+
+# phase 2: rotating laser spawner
+addScript("attack_boss4_2", 3);
+wait isBossDead();
+removeSpawns();
+yield;
+setVelocity(<<0, 0>>);
+flagBulletClear();
+addScript("spawn_power_large", 3);
+clearLaserSpawners();
+secTimer(0.1);
+
+# phase 3: whip squares
+addScript("attack_boss4_3", 3);
+wait isBossDead();
+removeSpawns();
+yield;
+setVelocity(<<0, 0>>);
+flagBulletClear();
+gotoDecelerating(bossMidpoint(), 50.0);
+
+secTimer(0.5);
+
+# phase 4: spiraling star spawners
+addScript("attack_boss4_4", 3);
+wait isBossDead();
+removeSpawns();
+yield;
+setVelocity(<<0, 0>>);
+flagBulletClear();
+addScript("spawn_power_large", 3);
+
+secTimer(1.0);
+
+# phase 5: counter rotating laser spawners
+addScript("attack_boss4_5", 3);
+wait isBossDead();
+removeSpawns();
+yield;
+setVelocity(<<0, 0>>);
+flagBulletClear();
+clearLaserSpawners();
+
+secTimer(0.1);
 
 # phase 6: point gravity trail spawners
 addScript("attack_boss4_6", 3);
@@ -87,8 +86,19 @@ addScript("spawn_power_large", 3);
 
 secTimer(0.5);
 
-# phase 7: four corners
-addScript("attack_boss3_7", 3);
+# phase 8: crosses (last minute reordering)
+addScript("attack_boss4_8", 3);
+wait isBossDead();
+removeSpawns();
+yield;
+setVelocity(<<0, 0>>);
+flagBulletClear();
+clearLaserSpawners();
+
+secTimer(0.1);
+
+# phase 7: starfall (last minute reordering)
+addScript("attack_boss4_7", 3);
 wait isBossDead();
 removeSpawns();
 yield;
@@ -96,15 +106,16 @@ setVelocity(<<0, 0>>);
 flagBulletClear();
 gotoDecelerating(bossMidpoint(), 50.0);
 
-# phase 8: eightfold pt 3
-addScript("attack_boss3_8", 3);
+secTimer(1.0);
+
+# phase 9: turning lasers; final spell
+addScript("attack_boss4_9", 3);
 wait isBossDead();
 removeSpawns();
 yield;
 setVelocity(<<0, 0>>);
 flagBulletClear();
-
-secTimer(0.25);
+clearLaserSpawners();
 
 flagWin();
 spawn(

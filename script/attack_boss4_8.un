@@ -1,10 +1,10 @@
-# attack script for point gravity trail spawners
+# attack script for crosses
 
 let health = 200000;
 let initWaitSecs = 0.4;
 
 let beforeMoveSecs = 1.8;
-let afterMoveSecs = 1.2;
+let afterMoveSecs = 0.9;
 let rLow = 30;
 let rHigh = 40;
 let maxSpeed = 28.5;
@@ -13,7 +13,7 @@ setHealth(health);
 
 secTimer(initWaitSecs);
 while(true){
-    addScript("danmaku_boss4_6", 4);
+    addScript("danmaku_boss4_8", 4);
     secTimer(beforeMoveSecs);
     boundGotoDecelerating(
         bossXLow(),

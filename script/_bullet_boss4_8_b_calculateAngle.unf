@@ -1,0 +1,9 @@
+(){
+    let pos = getPosition();
+    let playerPos = getPlayerPos();
+    let dist = pointDist(pos, playerPos);
+    let distMulti = 0.0033;
+    return normalizeAngle(
+        360.0 * sin(dist * distMulti)
+    );
+}

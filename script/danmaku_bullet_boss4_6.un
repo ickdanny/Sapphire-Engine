@@ -1,0 +1,21 @@
+# danmaku script for trail after point gravity
+
+let secsBetweenSpawns = diff(3.0, 2.3, 1.5);
+let speedLow = 2.0;
+let speedHigh = 4.0;
+
+func spawnBullet(){
+    spawn(
+        "small_lpurple",
+        getPosition(),
+        <<random(speedLow, speedHigh), randomAngle()>>,
+        random(1, 999),
+        "bullet_boss4_6_b"
+    );
+}
+
+secTimer(random(0, secsBetweenSpawns));
+while(true){
+    spawnBullet();
+    secTimer(secsBetweenSpawns);
+}

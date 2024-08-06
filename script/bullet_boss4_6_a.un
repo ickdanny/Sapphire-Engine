@@ -1,0 +1,69 @@
+# point gravity to player of decreasing strength
+
+let lifetimeSecs = 14.0;
+let outbound = -100.0;
+let dragCoefficient = 0.001;
+let baseAccel = 3000;
+let baseAccelDec = 1000; # decreases twice
+
+setRotateSpriteForward();
+setOutbound(outbound);
+addScript("danmaku_bullet_boss4_6", 3);
+
+let velocity = getVelocity();
+let speed = getSpeed();
+let drag;
+let accelVector = <<0, 0>>;
+
+func updateAccelVector(){
+    let currentPos = getPosition();
+    let playerPos = getPlayerPos();
+    let dist = pointDist(currentPos, playerPos);
+    let angle = pointAngle(currentPos, playerPos);
+
+    # avoid divide by zero
+    if(dist == 0){
+        accelVector = <<0, 0>>;
+    }
+    else{
+        accelVector.r = baseAccel / (dist * dist);
+        accelVector.t = angle;
+    }
+}
+
+func gravityUpdate(){
+    updateAccelVector();
+    velocity = velocity + accelVector;
+    speed = velocity.r;
+
+    drag = 0.5 * speed * speed * dragCoefficient;
+    velocity.r = speed - drag;
+    setVelocity(velocity);
+
+    secs = secs + secInc;
+    yield;
+}
+
+let secs = 0.0;
+let secInc = 1.0 / updatesPerSecond();
+let secPoint1 = lifetimeSecs / 3.0;
+while(secs < secPoint1){
+    gravityUpdate();
+}
+
+setSprite("large_dpurple");
+baseAccel = baseAccel - baseAccelDec;
+
+let secPoint2 = 2 * secPoint1;
+while(secs < secPoint2){
+    gravityUpdate();
+}
+
+setSprite("large_black");
+baseAccel = baseAccel - baseAccelDec;
+
+while(secs < lifetimeSecs){
+    gravityUpdate();
+}
+
+die();
