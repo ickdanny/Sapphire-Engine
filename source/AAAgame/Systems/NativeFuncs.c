@@ -2078,7 +2078,12 @@ static UNValue endStage(int argc, UNValue *argv){
                 &(_gamePtr->messages.sceneEntryList),
                 scene_credits
             );
-            //todo: start track 10
+            
+            /* start playback of track 10 */
+            String *trackIDPtr = &(_gamePtr->messages
+                .startMusicString);
+            stringClear(trackIDPtr);
+            stringAppendC(trackIDPtr, "10");
         }
     }
     /*

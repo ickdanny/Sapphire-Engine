@@ -83,6 +83,7 @@ TFDirectory tfDirectoryOpen(const char *dirName){
                 pgWarning("unknown error");
                 break;
         }
+        pgWarning("Current directory: ");
         printCurrentDir();
         pgError("failed to opendir");
     }

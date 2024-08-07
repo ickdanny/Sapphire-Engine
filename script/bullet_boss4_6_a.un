@@ -3,8 +3,8 @@
 let lifetimeSecs = 14.0;
 let outbound = -100.0;
 let dragCoefficient = 0.001;
-let baseAccel = 3000;
-let baseAccelDec = 1000; # decreases twice
+let baseAccel = 2800;
+let baseAccelDec = 1100; # decreases twice
 
 setRotateSpriteForward();
 setOutbound(outbound);

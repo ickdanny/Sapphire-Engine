@@ -1,7 +1,7 @@
 # red spawner danmaku script - large spiral
 
 let symmetry = diff(2, 3, 4);
-let numSpawns = 4;
+let numSpawns = diff(3, 4, 4);
 let angleVel = 12.2;
 let secsBetweenSpawns = 0.44;
 

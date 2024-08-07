@@ -1,0 +1,16 @@
+# credit element script for all but final
+
+let slowTicks = 120;
+let waitSecs = 1.1;
+let finalSpeed = 115;
+let speedTicks = 60;
+let outbound = -500;
+
+shiftSpeedPeriod(0, slowTicks);
+
+secTimer(waitSecs);
+
+setAngle(270.0);
+shiftSpeedPeriod(finalSpeed, speedTicks);
+
+setOutbound(outbound);

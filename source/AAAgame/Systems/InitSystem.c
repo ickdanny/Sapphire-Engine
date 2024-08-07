@@ -636,14 +636,111 @@ static void initStageMenu(
     scenePtr->messages.backSceneID = scene_difficulty;
 }
 
-//todo: init music menu
+/* initializes the entities for the music menu */
+static void initMusicMenu(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    /* add the background for the music menu */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "menubg_music",
+        0,
+        screenCenter
+    );
+
+    /* add the buttons for the music menu */
+    Point2D initPos = {
+        config_graphicsWidth / 2,
+        190.0f
+    };
+    Vector2D lineOffset = {0.0f, -17.0f};
+    Vector2D selOffset = {3.0f, 0.0f};
+
+    ArrayList buttonHandles = arrayListMake(WindEntity,
+        11
+    );
+
+    int rowIndex = 0;
+    bool initiallySelected = true;
+    #define addTrackButton(NUMBER) \
+        do{ \
+            arrayListPushBack(WindEntity, \
+                &buttonHandles, \
+                addButtonInLine( \
+                    gamePtr, \
+                    scenePtr, \
+                    "button_" #NUMBER "Unsel", \
+                    "button_" #NUMBER "Sel", \
+                    menu_startTrack, \
+                    (MenuCommandData){ \
+                        .trackName = #NUMBER \
+                    }, \
+                    0, \
+                    initPos, \
+                    lineOffset, \
+                    rowIndex, \
+                    selOffset, \
+                    initiallySelected \
+                ) \
+            ); \
+            ++rowIndex; \
+            initiallySelected = false; \
+        } while(false)
+
+    /* the track buttons */
+    addTrackButton(01);
+    addTrackButton(02);
+    addTrackButton(03);
+    addTrackButton(04);
+    addTrackButton(05);
+    addTrackButton(06);
+    addTrackButton(07);
+    addTrackButton(08);
+    addTrackButton(09);
+    addTrackButton(10);
+
+    #undef addTrackButton
+
+    /* the exit button */
+    arrayListPushBack(WindEntity,
+        &buttonHandles,
+        addButtonInLine(
+            gamePtr,
+            scenePtr,
+            "button_exitUnsel",
+            "button_exitSel",
+            menu_backSetMenuTrack,
+            (MenuCommandData){.sceneData = {
+                scene_main
+            }},
+            0,
+            initPos,
+            lineOffset,
+            rowIndex,
+            selOffset,
+            false
+        )
+    );
+    linkElements(scenePtr, &buttonHandles, topDown);
+    setInitSelectedElement(
+        scenePtr,
+        arrayListFront(WindEntity, &buttonHandles)
+    );
+
+    arrayListFree(WindEntity, &buttonHandles);
+
+    scenePtr->messages.backMenuCommand
+        = menu_navFarDown;
+}
 
 /* initializes the entities for the options menu */
 static void initOptionsMenu(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    /* add the background for the difficulty menu */
+    /* add the background for the options menu */
     addBackground(
         gamePtr,
         scenePtr,
@@ -652,7 +749,7 @@ static void initOptionsMenu(
         screenCenter
     );
 
-    /* add the buttons for the main menu */
+    /* add the buttons for the options menu */
     Point2D initPos = {
         config_graphicsWidth / 2,
         160.0f
@@ -1445,6 +1542,41 @@ static void initContinueMenu(
         = menu_navFarDown;
 }
 
+/* initializes the entities for the credits screen */
+static void initCredits(
+    Game *gamePtr,
+    Scene *scenePtr
+){
+    /* add the background for the credits screen */
+    addBackground(
+        gamePtr,
+        scenePtr,
+        "creditsbg",
+        0,
+        screenCenter
+    );
+
+    /* add the spawner for the credits */
+    declareList(componentList, 1);
+    Scripts scripts = {0};
+    String scriptID = stringMakeC("credits");
+    scripts.vm1 = vmPoolRequest();
+    unVirtualMachineLoad(
+        scripts.vm1,
+        resourcesGetScript(
+            gamePtr->resourcesPtr,
+            &scriptID
+        )
+    );
+    addScripts(&componentList, scripts);
+    addEntityAndFreeList(
+        &componentList,
+        scenePtr,
+        NULL
+    );
+    stringFree(&scriptID);
+}
+
 /* initializes each scene */
 void initSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.initFlag){
@@ -1469,8 +1601,9 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
         case scene_stage:
             initStageMenu(gamePtr, scenePtr);
             break;
-        //todo: init music scene
-        //scene_music,
+        case scene_music:
+            initMusicMenu(gamePtr, scenePtr);
+            break;
         case scene_options:
             initOptionsMenu(gamePtr, scenePtr);
             break;
@@ -1489,9 +1622,9 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
         case scene_continue:
             initContinueMenu(gamePtr, scenePtr);
             break;
-    /*
-    scene_credits, //todo: init credits scene
-    */
+        case scene_credits:
+            initCredits(gamePtr, scenePtr);
+            break;
         default:
             pgError(
                 "unrecognized scene in init system; "

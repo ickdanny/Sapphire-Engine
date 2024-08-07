@@ -1,6 +1,6 @@
 # stage 4 script: The Bridge Between Worlds
 
-secTimer(2.0);
+secTimer(2.15);
 
 # wave 1: crystal corridor
 addScript("spawner_4_1", 3);
