@@ -6,6 +6,8 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 # add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g)
 # add_link_options(-fsanitize=address -fno-omit-frame-pointer -g)
 
@@ -60,7 +62,15 @@ add_dependencies(${PROJECT_NAME} script)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 
 if(WIN32)
+    add_compile_definitions(GLEW_STATIC)
     set_target_properties(OceanEngine PROPERTIES COMPILE_FLAGS "/experimental:c11atomics")
+    set(LIBS
+        "winmm"
+        "opengl32"
+        ${CMAKE_SOURCE_DIR}/libraries/glfw/lib-vc2022/glfw3.lib
+        ${CMAKE_SOURCE_DIR}/libraries/glew/lib/glew32s.lib
+    )
+    target_link_libraries(OceanEngine PRIVATE ${LIBS})
 elseif(APPLE)
     # https://stackoverflow.com/questions/17070101/why-i-cannot-link-the-mac-framework-file-with-cmake
     set(LIBS 

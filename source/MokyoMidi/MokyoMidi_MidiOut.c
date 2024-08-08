@@ -20,7 +20,7 @@ void mmMidiOutShortMsg(
     MMMidiOut *midiOutPtr, 
     uint32_t output
 ){
-    MMRESULT result = _mmMidiOutShortMsg(
+    MMRESULT result = midiOutShortMsg(
         midiOutPtr->midiOutHandle,
         output
     );
