@@ -152,19 +152,38 @@ bool tfWindowToggleFullscreen(TFWindow *windowPtr){
             windowPtr->_windowHeight,
             GLFW_DONT_CARE
         );
+
+        #ifdef WIN32
+
+        glViewport(
+            0,
+            0,
+            windowPtr->_windowWidth,
+            windowPtr->_windowHeight
+        );
+
+        #endif /* WIN32 */
     }
     /* if window is windowed, make it fullscreen */
     else{
         tfWindowStorePos(windowPtr);
+        int width = getPrimaryMonitorWidth();
+        int height = getPrimaryMonitorHeight();
         glfwSetWindowMonitor(
             windowPtr->_windowPtr,
             glfwGetPrimaryMonitor(),
             0,
             0,
-            getPrimaryMonitorWidth(),
-            getPrimaryMonitorHeight(),
+            width,
+            height,
             GLFW_DONT_CARE
         );
+
+        #ifdef WIN32
+
+        glViewport(0, 0, width, height);
+
+        #endif /* WIN32 */
     }
     windowPtr->_fullscreen = !windowPtr->_fullscreen;
     return windowPtr->_fullscreen;

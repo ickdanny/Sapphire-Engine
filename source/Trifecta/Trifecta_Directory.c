@@ -160,3 +160,128 @@ void tfDirectoryFree(TFDirectory *dirPtr){
 }
 
 #endif /* __APPLE__ */
+
+#ifdef WIN32
+
+#include "Constructure.h"
+
+/*
+ * Opens the specified directory and returns a
+ * new TFDirectory by value
+ */
+TFDirectory tfDirectoryOpen(const char *dirName){
+    TFDirectory toRet = {0};
+
+    /* copy directory name */
+    int nameLength = strlen(dirName);
+    int allocLength = nameLength + 1;
+    toRet._dirName = pgAlloc(
+        allocLength,
+        sizeof(char)
+    );
+    strncpy(toRet._dirName, dirName, allocLength);
+
+    toRet._searchHandle = INVALID_HANDLE_VALUE;
+
+    return toRet;
+}
+
+/* 
+ * Prints the name of the next file in the specified
+ * directory to the given C string; prints only the
+ * null terminator if the directory has no more
+ * files
+ */
+void tfDirectoryGetNextFileName(
+    TFDirectory *dirPtr,
+    char *fileNameOut,
+    int arraySize
+){
+    static WIN32_FIND_DATAA findData = {0};
+
+    /*
+     * case 1: we are in the middle of searching the
+     * directory
+     */
+    if(dirPtr->_searchHandle != INVALID_HANDLE_VALUE){
+        bool hasNextFile = FindNextFileA(
+            dirPtr->_searchHandle,
+            &findData
+        );
+        /*
+         * if no more files, close the current handle
+         * and bail
+         */
+        if(!hasNextFile){
+            bool closeResult
+                = FindClose(dirPtr->_searchHandle);
+            if(!closeResult){
+                pgError(
+                    "failed to close directory find "
+                    "handle; " SRC_LOCATION
+                );
+            }
+            dirPtr->_searchHandle
+                = INVALID_HANDLE_VALUE;
+            /* write null terminator as output */
+            if(arraySize > 0){
+                *fileNameOut = '\0';
+            }
+            return;
+        }
+        /* otherwise, output the filename */
+        else{
+            snprintf(
+                fileNameOut,
+                arraySize,
+                "%s/%s",
+                dirPtr->_dirName, /* dir name */
+                findData.cFileName  /* file name */
+            );
+        }
+    }
+    /* case 2: need to start a search */
+    else{
+        /* add a wildcard to the directory */
+        String findString = stringMakeC(
+            dirPtr->_dirName
+        );
+        stringAppendC(&findString, "/*");
+        dirPtr->_searchHandle = FindFirstFileA(
+            findString._ptr,
+            &findData
+        );
+        stringFree(&findString);
+        /* if invalid handle, no files so bail */
+        if(dirPtr->_searchHandle
+            == INVALID_HANDLE_VALUE
+        ){
+            if(arraySize > 0){
+                *fileNameOut = '\0';
+            }
+            return;
+        }
+        /* otherwise, output the filename */
+        else{
+            snprintf(
+                fileNameOut,
+                arraySize,
+                "%s/%s",
+                dirPtr->_dirName, /* dir name */
+                findData.cFileName  /* file name */
+            );
+        }
+    }
+}
+
+/*
+ * Frees the memory associated with the specified
+ * TFDirectory
+ */
+void tfDirectoryFree(TFDirectory *dirPtr){
+    if(dirPtr){
+        pgFree(dirPtr->_dirName);
+    }
+}
+
+#endif /* WIN32 */

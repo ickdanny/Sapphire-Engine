@@ -38,9 +38,9 @@ void engineFree(Engine *enginePtr){
         config_settingsFileName
     );
     resourcesFree(&(enginePtr->resources));
+    midiHubFree(&(enginePtr->midiHub));
     tfWindowFree(&(enginePtr->window));
     tfKeyTableFree(&(enginePtr->keyTable));
-    midiHubFree(&(enginePtr->midiHub));
     gameFree(&(enginePtr->game));
 }
 

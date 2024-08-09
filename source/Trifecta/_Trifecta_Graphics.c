@@ -77,6 +77,26 @@ static const Rectangle fullTexRect = {
     1.0f
 };
 
+/*
+ * inits certain program-wide state related to
+ * graphics if needed
+ */
+static void _tfGraphicsInit(){
+    #ifdef WIN32
+
+    static bool glewInitialized = false;
+    
+    if(!glewInitialized){
+        assertTrue(
+            glewInit() == GLEW_OK,
+            "glewInit() error"
+        );
+        glewInitialized = true;
+    }
+
+    #endif
+}
+
 /* 
  * Constructs, initializes, and returns a new
  * _TFGraphics object by value
@@ -85,6 +105,8 @@ _TFGraphics _tfGraphicsMake(
     int graphicsWidth,
     int graphicsHeight
 ){
+    _tfGraphicsInit();
+    
     _TFGraphics toRet = {0};
     toRet._graphicsWidth = graphicsWidth;
     toRet._graphicsHeight = graphicsHeight;

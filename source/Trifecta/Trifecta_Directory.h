@@ -7,6 +7,13 @@
 
 #endif /* __APPLE__ */
 
+#ifdef WIN32
+
+#include "Trifecta_Win32.h"
+#include <fileapi.h>
+
+#endif
+
 /* A type representing a directory */
 typedef struct TFDirectory{
     /*
@@ -20,6 +27,12 @@ typedef struct TFDirectory{
     DIR *_dirPtr;
     
     #endif /* __APPLE__ */
+
+    #ifdef WIN32
+
+    HANDLE _searchHandle;
+
+    #endif /* WIN32 */
 
 } TFDirectory;
 
