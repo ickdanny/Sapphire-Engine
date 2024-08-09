@@ -155,6 +155,16 @@ bool tfWindowToggleFullscreen(TFWindow *windowPtr){
 
         #ifdef WIN32
 
+        #define titleYOffset 30
+
+        if(windowPtr->_windowY <= 0){
+            glfwSetWindowPos(
+                windowPtr->_windowPtr,
+                windowPtr->_windowX,
+                titleYOffset
+            );
+        }
+
         glViewport(
             0,
             0,
