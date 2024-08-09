@@ -1,0 +1,65 @@
+(prototypeID, scriptID, baseDepthOffset){
+    # movement parameters
+    let accelLow = 1.5;
+    let accelHigh = 2 * accelLow;
+
+    let dragCoefficientLow = 0.001;
+    let dragCoefficientHigh = 0.003;
+
+    let secsBeforeExplodeLow = 0.8;
+    let secsBeforeExplodeHigh = 1.2;
+
+    # spawning parameters
+    let numSpawnsBase = diff(5, 9, 12);
+    let numSpawnsRange = 1;
+    let speedLow = 25.0;
+    let speedHigh = 39.4;
+
+    let accel = random(accelLow, accelHigh);
+    let secsBeforeExplode = random(
+        secsBeforeExplodeLow,
+        secsBeforeExplodeHigh
+    );
+    let dragCoefficient = random(
+        dragCoefficientLow,
+        dragCoefficientHigh
+    );
+
+    let secs = 0.0;
+    let secInc = 1.0 / updatesPerSecond();
+    let velocity = getVelocity();
+    let speed = velocity.r;
+    let drag;
+    let accelVector = <<accel, 90.0>>;
+    while(secs < secsBeforeExplode){
+        velocity = getVelocity();
+        velocity = velocity + accelVector;
+        speed = velocity.r;
+
+        drag = 0.5 * speed * speed * dragCoefficient;
+        velocity.r = speed - drag;
+        setVelocity(velocity);
+
+        secs = secs + secInc;
+        yield;
+    }
+
+    # spawn
+    let pos = getPosition();
+    let numSpawns = numSpawnsBase
+        + random(-numSpawnsRange, numSpawnsRange);
+    for(let i = 0; i < numSpawns; i = i + 1){
+        let speed = random(speedLow, speedHigh);
+        let angle = randomAngle();
+        let vel = <<speed, angle>>;
+        spawn(
+            prototypeID,
+            pos,
+            vel,
+            baseDepthOffset + i,
+            scriptID
+        );
+    }
+
+    die();
+}

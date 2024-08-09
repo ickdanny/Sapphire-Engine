@@ -1,0 +1,11 @@
+# shared bullet script for four spawners
+
+(danmakuScript){
+    let slowTicks = 50;
+
+    shiftSpeedPeriod(0.0, slowTicks);
+    addScript(danmakuScript, 3);
+
+    wait !isSpawning();
+    die();
+}

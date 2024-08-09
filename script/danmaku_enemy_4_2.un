@@ -1,7 +1,7 @@
 # danmaku script for spawning sea star
 
 let symmetry = diff(6, 7, 8);
-let speed = 48.4;
+let speed = 53.4;
 
 let pos = getPosition();
 func spawnBullet(vel, depthOffset){

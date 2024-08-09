@@ -1,0 +1,28 @@
+# bullet script spawned from laser
+
+let initWaitSecs = 0.8;
+let finalSpeed = diff(30.0, 35.0, 40.0);
+let speedTicks = 90.0;
+
+let distAngleCalcMulti = 0.005;
+let xAngleCalcMulti = 0.005;
+let yAngleCalcMulti = 0.005;
+
+func calculateAngle(){
+    let dist
+        = pointDist(getPosition(), getPlayerPos());
+    let multi = sin(dist * distAngleCalcMulti)
+        + sin(getX() * xAngleCalcMulti)
+        + cos(getY() * yAngleCalcMulti);
+    let playerPos = getPlayerPos();
+    let base = 360.0 * (sin(playerPos.x * 2.0)
+        + cos(playerPos.y * 1.2));
+    return normalizeAngle(base + 360.0 * multi);
+}
+
+secTimer(initWaitSecs);
+shiftVelocityPeriod(
+    finalSpeed,
+    calculateAngle(),
+    speedTicks
+);

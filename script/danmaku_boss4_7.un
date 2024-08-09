@@ -1,0 +1,83 @@
+# danmaku script for starfall
+
+let secsBetweenSpawns = 0.85;
+let speedLow = 150.0;
+let speedHigh = 200.0;
+let baseAngle = 270.0;
+let angleRange = 47.3;
+let bulletsPerSpawn = 8;
+
+func spawnBullet(vel, depthOffset){
+    # a, b, c, d, e, f becomes...
+    # r, o, y, g, b, v
+
+    let r = random(0.0, 1.0);
+    if(r < 1.0 / 6.0){
+        spawn(
+            "medium_red",
+            getPosition(),
+            vel,
+            depthOffset,
+            "bullet_boss4_7_a"
+        );
+    }
+    else if(r < 2.0 / 6.0){
+        spawn(
+            "medium_orange",
+            getPosition(),
+            vel,
+            depthOffset,
+            "bullet_boss4_7_b"
+        );
+    }
+    else if(r < 3.0 / 6.0){
+        spawn(
+            "medium_lyellow",
+            getPosition(),
+            vel,
+            depthOffset,
+            "bullet_boss4_7_c"
+        );
+    }
+    else if(r < 4.0 / 6.0){
+        spawn(
+            "medium_lgreen",
+            getPosition(),
+            vel,
+            depthOffset,
+            "bullet_boss4_7_d"
+        );
+    }
+    else if(r < 5.0 / 6.0){
+        spawn(
+            "medium_lblue",
+            getPosition(),
+            vel,
+            depthOffset,
+            "bullet_boss4_7_e"
+        );
+    }
+    else{
+        spawn(
+            "medium_lpurple",
+            getPosition(),
+            vel,
+            depthOffset,
+            "bullet_boss4_7_f"
+        );
+    }
+}
+
+func spawnBullets(){
+    for(let i = 0; i < bulletsPerSpawn; i = i + 1){
+        let speed = random(speedLow, speedHigh);
+        let angle = baseAngle
+            + random(-angleRange, angleRange);
+        spawnBullet(<<speed, angle>>, i);
+    }
+}
+
+while(true){
+    spawnBullets();
+    secTimer(secsBetweenSpawns);
+}

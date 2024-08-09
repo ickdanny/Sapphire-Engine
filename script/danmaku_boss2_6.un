@@ -8,9 +8,9 @@ let speedOffset = 80;
 
 let pos = getPosition();
 
-let innerSymmetry = diff(6, 8, 10);
-let middleSymmetry = diff(9, 13, 17);
-let outerSymmetry = diff(13, 17, 21);
+let innerSymmetry = diff(8, 9, 10);
+let middleSymmetry = diff(11, 14, 17);
+let outerSymmetry = diff(15, 18, 21);
 
 func spawnBulletA(vel, depthOffset){
     spawn(

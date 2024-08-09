@@ -1,0 +1,164 @@
+# bullet script for double turning laser spawners
+
+# control parameters
+let turnAngle = -diff(30, 60, 90);
+let shiftTicks = 50;
+let waitSecs = 0.4;
+let midSpeed = 50.0;
+let endSpeedBeforeGravity = 20;
+let endSpeedTicks = 20;
+
+let gravAccel = 0.5;
+let gravDragLow = 0.001;
+let gravDragHigh = 0.0015;
+let gravDrag = random(gravDragLow, gravDragHigh);
+let gravDirectionRange = 10.0;
+
+let segmentsBeforeSpawner
+    = _bullet_boss4_9_segmentsBeforeSpawner();
+
+# laser spawning funcs
+let segmentCount = 1;
+func spawnLaserSegmentB(pos, angle, depthOffset){
+    let scriptID = "laser_boss4_9_a";
+    if(segmentCount == segmentsBeforeSpawner){
+        scriptID = "laser_boss4_9_b";
+        segmentCount = 0;
+    }
+    spawn(
+        "laser_red",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        scriptID
+    );
+    segmentCount = segmentCount + 1;
+}
+func spawnLaserSegmentC(pos, angle, depthOffset){
+    let scriptID = "laser_boss4_9_a";
+    if(segmentCount == segmentsBeforeSpawner){
+        scriptID = "laser_boss4_9_c";
+        segmentCount = 0;
+    }
+    spawn(
+        "laser_orange",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        scriptID
+    );
+    segmentCount = segmentCount + 1;
+}
+func spawnLaserSegmentD(pos, angle, depthOffset){
+    let scriptID = "laser_boss4_9_a";
+    if(segmentCount == segmentsBeforeSpawner){
+        scriptID = "laser_boss4_9_d";
+        segmentCount = 0;
+    }
+    spawn(
+        "laser_lyellow",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        scriptID
+    );
+    segmentCount = segmentCount + 1;
+}
+func spawnLaserSegmentE(pos, angle, depthOffset){
+    let scriptID = "laser_boss4_9_a";
+    if(segmentCount == segmentsBeforeSpawner){
+        scriptID = "laser_boss4_9_e";
+        segmentCount = 0;
+    }
+    spawn(
+        "laser_lgreen",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        scriptID
+    );
+    segmentCount = segmentCount + 1;
+}
+func spawnLaserSegmentF(pos, angle, depthOffset){
+    let scriptID = "laser_boss4_9_a";
+    if(segmentCount == segmentsBeforeSpawner){
+        scriptID = "laser_boss4_9_f";
+        segmentCount = 0;
+    }
+    spawn(
+        "laser_lblue",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        scriptID
+    );
+    segmentCount = segmentCount + 1;
+}
+func spawnLaserSegmentG(pos, angle, depthOffset){
+    let scriptID = "laser_boss4_9_a";
+    if(segmentCount == segmentsBeforeSpawner){
+        scriptID = "laser_boss4_9_g";
+        segmentCount = 0;
+    }
+    spawn(
+        "laser_lpurple",
+        pos,
+        <<0, angle>>,
+        depthOffset,
+        scriptID
+    );
+    segmentCount = segmentCount + 1;
+}
+
+func spawnRandomLaser(){
+    let r = random(0.0, 1.0);
+    let pos = getPosition();
+    let angle = getAngle();
+    if(r < 1.0/6.0){
+        spawnLaser(pos, angle, spawnLaserSegmentB);
+    }
+    else if(r < 2.0/6.0){
+        spawnLaser(pos, angle, spawnLaserSegmentC);
+    }
+    else if(r < 3.0/6.0){
+        spawnLaser(pos, angle, spawnLaserSegmentD);
+    }
+    else if(r < 4.0/6.0){
+        spawnLaser(pos, angle, spawnLaserSegmentE);
+    }
+    else if(r < 5.0/6.0){
+        spawnLaser(pos, angle, spawnLaserSegmentF);
+    }
+    else{
+        spawnLaser(pos, angle, spawnLaserSegmentG);
+    }
+}
+
+shiftVelocityTurnPeriod(
+    0,
+    getAngle() + turnAngle,
+    shiftTicks
+);
+
+spawnRandomLaser();
+secTimer(waitSecs);
+
+shiftVelocityTurnPeriod(
+    midSpeed,
+    getAngle() - turnAngle,
+    shiftTicks
+);
+shiftVelocityTurnPeriod(
+    0,
+    getAngle() - turnAngle,
+    shiftTicks
+);
+
+spawnRandomLaser();
+secTimer(waitSecs);
+
+shiftSpeedPeriod(endSpeedBeforeGravity, endSpeedTicks);
+
+let gravDirection = 90.0
+    + random(-gravDirectionRange, gravDirectionRange);
+gravity(gravDirection, gravAccel, gravDrag);

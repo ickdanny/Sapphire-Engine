@@ -1,0 +1,38 @@
+# spawner for the credits elements
+
+let secsBetweenSpawns = 8.0 * (60.0 / 115.0);
+let spawnPoint = [320.0 / 2.0, -50.0];
+let initSpeed = 167.0;
+
+func spawnCredits(prototypeID, scriptID){
+    spawn(
+        prototypeID,
+        spawnPoint,
+        <<initSpeed, 270.0>>,
+        0,
+        scriptID
+    );
+}
+
+spawnCredits("credits1", "credits_n");
+secTimer(secsBetweenSpawns);
+
+spawnCredits("credits2", "credits_n");
+secTimer(secsBetweenSpawns);
+
+spawnCredits("credits3", "credits_n");
+secTimer(secsBetweenSpawns);
+
+spawnCredits("credits4", "credits_n");
+secTimer(secsBetweenSpawns);
+
+spawnCredits("credits5", "credits_n");
+secTimer(secsBetweenSpawns);
+
+spawnCredits("credits6", "credits_n");
+secTimer(secsBetweenSpawns);
+
+spawnCredits("credits7", "credits_n");
+secTimer(secsBetweenSpawns);
+
+spawnCredits("credits8", "credits_final");

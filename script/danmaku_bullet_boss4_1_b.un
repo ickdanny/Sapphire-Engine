@@ -1,0 +1,20 @@
+# blue spawner danmaku script - medium rings
+
+let symmetry = diff(15, 20, 25);
+let speed = 18.2;
+
+let pos = getPosition();
+func spawnBullet(vel, depthOffset){
+    spawn(
+        "medium_lblue",
+        pos,
+        vel,
+        depthOffset
+    );
+}
+
+ring(
+    <<speed, randomAngle()>>,
+    symmetry,
+    spawnBullet
+);

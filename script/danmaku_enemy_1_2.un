@@ -1,4 +1,4 @@
-let symmetry = diff(8, 12, 18);
+let symmetry = diff(6, 12, 18);
 let speedOuter = 74;
 let speedInner = 53;
 

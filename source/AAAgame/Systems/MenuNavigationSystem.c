@@ -305,9 +305,17 @@ bool parseMenuCommand(
                 = commandData.sceneData.sceneID;
             return true; /* exiting is critical */
 
-        case menu_startTrack:
-            //todo start music for music room buttons
-            return false;
+        case menu_startTrack:{
+                String *trackIDPtr
+                    = &(gamePtr->messages
+                        .startMusicString);
+                stringClear(trackIDPtr);
+                stringAppendC(
+                    trackIDPtr,
+                    commandData.trackName
+                );
+                return false;
+            }
         case menu_toggleSound:
             gamePtr->messages.toggleSoundFlag = true;
             return false;

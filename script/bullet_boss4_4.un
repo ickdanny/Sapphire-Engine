@@ -1,0 +1,30 @@
+# bullet script for rotating star spawner
+
+let outbound = -200;
+let outwardSpeed = 20.0;
+let centerPos = getPosition();
+let currentAngle = getAngle();
+let currentDist = 0.0;
+let distInc = outwardSpeed / updatesPerSecond();
+
+let angleVel = -0.5;
+
+setOutbound(outbound);
+addScript("danmaku_bullet_boss4_4", 3);
+
+while(true){
+    currentAngle = normalizeAngle(
+        currentAngle + angleVel
+    );
+    currentDist = currentDist + distInc;
+    let nextPos = centerPos
+        + <<currentDist, currentAngle>>;
+    let currentPos = getPosition();
+    let nextSpeed = (pointDist(currentPos, nextPos)
+        * updatesPerSecond());
+    let nextAngle = pointAngle(currentPos, nextPos);
+    let nextVel = <<nextSpeed, nextAngle>>;
+    setVelocity(nextVel);
+
+    yield;
+}

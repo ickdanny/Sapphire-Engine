@@ -2,11 +2,11 @@
 
 let arcSym = diff(1, 2, 3);
 let arcInc = diff(0.0, 40.0, 30.0);
-let ringSym = 3;
+let ringSym = diff(4, 3, 3);
 let speed = 92;
 let angleRange = 1.0;
 
-let angleVel = 5.0;
+let angleVel = diff(15.0, 10.0, 5.0);
 let angleAccel = 1.0;
 
 if(chance(0.5)){

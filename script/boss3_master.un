@@ -54,7 +54,7 @@ setVelocity(<<0, 0>>);
 flagBulletClear();
 addScript("spawn_power_large", 3);
 
-secTimer(2.0);
+secTimer(1.5);
 
 # phase 5: square spirals
 addScript("attack_boss3_5", 3);

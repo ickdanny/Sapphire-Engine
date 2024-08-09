@@ -1632,6 +1632,26 @@ DECLARE_PROTOTYPE(explode_laser){
     addAnimations(componentListPtr, &animations);
 }
 
+#define DECLARE_CREDITS_PROTOTYPE(NAME, SPRITEID) \
+    DECLARE_PROTOTYPE(NAME){ \
+        addVisible(componentListPtr); \
+        addSpriteInstructionSimple( \
+            componentListPtr, \
+            gamePtr, \
+            #SPRITEID, \
+            config_foregroundDepth + depthOffset, \
+            (Vector2D){0} \
+        ); \
+    }
+DECLARE_CREDITS_PROTOTYPE(credits1, credits1)
+DECLARE_CREDITS_PROTOTYPE(credits2, credits2)
+DECLARE_CREDITS_PROTOTYPE(credits3, credits3)
+DECLARE_CREDITS_PROTOTYPE(credits4, credits4)
+DECLARE_CREDITS_PROTOTYPE(credits5, credits5)
+DECLARE_CREDITS_PROTOTYPE(credits6, credits6)
+DECLARE_CREDITS_PROTOTYPE(credits7, credits7)
+DECLARE_CREDITS_PROTOTYPE(credits8, credits8)
+
 /* map from char* (unowned) to PrototypeFunction */
 static HashMap prototypeFunctionMap;
 static bool initialized = false;
@@ -1777,6 +1797,14 @@ static void init(){
         addPrototypeFunction(explode_enemy);
         addPrototypeFunction(explode_boss);
         addPrototypeFunction(explode_laser);
+        addPrototypeFunction(credits1);
+        addPrototypeFunction(credits2);
+        addPrototypeFunction(credits3);
+        addPrototypeFunction(credits4);
+        addPrototypeFunction(credits5);
+        addPrototypeFunction(credits6);
+        addPrototypeFunction(credits7);
+        addPrototypeFunction(credits8);
 
         #undef addPrototypeFunction
 

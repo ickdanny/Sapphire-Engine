@@ -1,6 +1,6 @@
 # speed up script for tris
 
-let finalSpeed = 137;
+let finalSpeed = diff(90, 115, 137);
 let waitSecs = 1.5;
 let speedTicks = 88;
 

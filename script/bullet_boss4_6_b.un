@@ -1,0 +1,11 @@
+let lifetimeSecs = 14.0;
+
+if(chance(0.5)){
+    setSpin(-1.0);
+}
+else{
+    setSpin(1.0);
+}
+
+secTimer(lifetimeSecs);
+die();

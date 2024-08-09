@@ -1,0 +1,105 @@
+# final spell danmaku script: turning lasers
+
+let symmetry = diff(10, 13, 16);
+let secsBetweenSpawns1 = 2.9;
+let secsBetweenSpawns2 = 0.4;
+let secsBetweenSpawns3 = 3.5;
+
+let initSpeedAB = 60.0;
+let baseInitSpeedC = 70;
+let initSpeedOffsetC = 20;
+let angleOffsetC = -5.1;
+let numRingsC = 3;
+
+let spawnerPrototype = "tri_black";
+
+let pos = getPosition();
+func spawnBulletA(vel, depthOffset){
+    spawn(
+        spawnerPrototype,
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss4_9_a" # turn direction A
+    );
+    yield;
+}
+func spawnBulletB(vel, depthOffset){
+    spawn(
+        spawnerPrototype,
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss4_9_b" # turn direction B
+    );
+    yield;
+}
+func spawnBulletC(vel, depthOffset){
+    spawn(
+        spawnerPrototype,
+        pos,
+        vel,
+        depthOffset,
+        "bullet_boss4_9_c" # no turn
+    );
+    yield;
+}
+
+func spawnRingA(){
+    ring(
+        <<initSpeedAB, randomAngle()>>,
+        symmetry,
+        spawnBulletA
+    );
+}
+func spawnRingB(){
+    ring(
+        <<initSpeedAB, randomAngle()>>,
+        symmetry,
+        spawnBulletB
+    );
+}
+func spawnRingsC(){
+    let angle = randomAngle();
+    let initSpeed = baseInitSpeedC;
+    for(let i = 0; i < numRingsC; i = i + 1){
+        ring(
+            <<initSpeed, angle>>,
+            symmetry,
+            spawnBulletC
+        );
+        angle = angle + angleOffsetC;
+        initSpeed = initSpeed + initSpeedOffsetC;
+        secTimer(secsBetweenSpawns2);
+    }
+}
+func spawnRingsD(){ # same as C but other direction
+    let angle = randomAngle();
+    let initSpeed = baseInitSpeedC;
+    for(let i = 0; i < numRingsC; i = i + 1){
+        ring(
+            <<initSpeed, angle>>,
+            symmetry,
+            spawnBulletC
+        );
+        angle = angle - angleOffsetC;
+        initSpeed = initSpeed + initSpeedOffsetC;
+        secTimer(secsBetweenSpawns2);
+    }
+}
+
+while(true){
+    spawnRingA();
+    secTimer(secsBetweenSpawns1);
+    spawnRingB();
+    secTimer(secsBetweenSpawns1);
+    spawnRingsC();
+    secTimer(secsBetweenSpawns3);
+
+    spawnRingB();
+    secTimer(secsBetweenSpawns1);
+    spawnRingA();
+    secTimer(secsBetweenSpawns1);
+    spawnRingsD();
+    secTimer(secsBetweenSpawns3);
+}

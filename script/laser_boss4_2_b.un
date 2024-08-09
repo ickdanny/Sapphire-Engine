@@ -1,0 +1,9 @@
+laser(_laser_boss4_2_lifetimeSecs());
+
+spawn(
+    "small_yellow",
+    getPosition(),
+    <<0,0>>,
+    random(1, 999),
+    "bullet_boss4_2"
+);
