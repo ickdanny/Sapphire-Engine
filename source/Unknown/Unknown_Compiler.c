@@ -259,7 +259,7 @@ static void unCompilerError(
         buffer,
         bufferSize - 1,
         "%lu: Error",
-        tokenPtr->lineNumber
+        (unsigned long)tokenPtr->lineNumber
     );
     pgWarning(buffer);
 

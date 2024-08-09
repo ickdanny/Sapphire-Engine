@@ -181,7 +181,7 @@ size_t unProgramDisassembleInstruction(
     size_t offset
 ){
     /* print the address of the instruction */
-    printf("%04lu ", offset);
+    printf("%04lu ", (unsigned long)offset);
 
     /* print line info */
     if(offset > 0
