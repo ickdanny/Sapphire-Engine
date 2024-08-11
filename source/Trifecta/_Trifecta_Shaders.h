@@ -17,6 +17,12 @@
 
 #endif /* end WIN32 */
 
+#ifdef __linux__
+
+#include <GL/glew.h>
+
+#endif
+
 /* Loads the shaders and returns the programID */
 GLuint _loadShaders();
 

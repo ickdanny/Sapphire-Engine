@@ -28,8 +28,8 @@
 
 #ifdef __linux__
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <GL/gl.h>
 
 #endif /* end __linux__ */
 

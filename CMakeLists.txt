@@ -86,5 +86,6 @@ elseif(APPLE)
     target_link_libraries(OceanEngine ${LIBS})
     set_target_properties(OceanEngine PROPERTIES LINK_FLAGS "-Wl,-F/Library/Frameworks")
 elseif(UNIX)
-    # todo:
+    add_compile_definitions(GLEW_STATIC)
+    set_target_properties(OceanEngine PROPERTIES LINK_FLAGS "-lm")
 endif()

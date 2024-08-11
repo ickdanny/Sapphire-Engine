@@ -17,6 +17,12 @@
 
 #endif /* end WIN32 */
 
+#ifdef __linux__
+
+#include <GL/glew.h>
+
+#endif /* end __linux__ */
+
 #include "ZMath.h"
 #include "Trifecta_Sprite.h"
 #include "Trifecta_GlyphMap.h"

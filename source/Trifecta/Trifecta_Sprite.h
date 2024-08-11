@@ -19,9 +19,10 @@
 
 #ifdef __linux__
 
+#include <GL/glew.h>
 #include <GL/gl.h>
 
-#endif
+#endif /* end __linux__ */
 
 #include "ZMath.h"
 
