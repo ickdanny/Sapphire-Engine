@@ -3,13 +3,13 @@
 
 #include <stdbool.h>
 
-#ifdef __APPLE__
+#ifdef __unix__
 
 #include <pthread.h>
 
 typedef pthread_t Thread;
 
-#endif /* end __APPLE__ */
+#endif /* end __unix__ */
 
 #ifdef WIN32
 
@@ -19,9 +19,7 @@ typedef HANDLE Thread;
 
 #endif /* end WIN32 */
 
-//todo: declare a macro for DECLARE_RUNNABLE_FUNC?
-
-#ifdef __APPLE__
+#ifdef __unix__
 
 /* 
  * A typedef for a function which can be passed
@@ -32,7 +30,7 @@ typedef void*(*RunnableFuncPtr)(void*);
 #define DECLARE_RUNNABLE_FUNC(FUNCNAME, PARAMNAME) \
     void* FUNCNAME(void *PARAMNAME)
 
-#endif /* end __APPLE__ */
+#endif /* end __unix__ */
 
 #ifdef WIN32
 

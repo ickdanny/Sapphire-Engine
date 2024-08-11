@@ -17,6 +17,12 @@
 
 #endif /* end WIN32 */
 
+#ifdef __linux__
+
+#include <GL/gl.h>
+
+#endif
+
 #include "ZMath.h"
 
 #define _minScale 0.01f

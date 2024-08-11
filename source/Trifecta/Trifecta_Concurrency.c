@@ -2,7 +2,7 @@
 
 #include "PGUtil.h"
 
-#ifdef __APPLE__
+#ifdef __unix__
 
 #include <sys/errno.h>
 #include <signal.h>
@@ -68,7 +68,7 @@ JoinReturnCode threadJoin(Thread thread){
     return joinSuccess;
 }
 
-#endif /* end __APPLE__ */
+#endif /* end __unix__ */
 
 #ifdef WIN32
 

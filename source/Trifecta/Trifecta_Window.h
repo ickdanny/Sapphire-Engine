@@ -26,6 +26,13 @@
 
 #endif /* end WIN32 */
 
+#ifdef __linux__
+
+#include <GLFW/glfw3.h>
+#include <GL/gl.h>
+
+#endif /* end __linux__ */
+
 #include "Constructure.h"
 
 #include "Trifecta_Sprite.h"

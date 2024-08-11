@@ -12,11 +12,11 @@
  */
 #define secondsToNano(SECONDS) (SECONDS * _oneBillion)
 
-#ifdef __APPLE__
+#ifdef __unix__
 
 typedef struct timespec TimePoint;
 
-#endif /* end __APPLE__ */
+#endif /* end __unix__ */
 
 #ifdef WIN32
 
