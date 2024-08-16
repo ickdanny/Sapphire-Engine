@@ -86,14 +86,14 @@ elseif(APPLE)
     target_link_libraries(OceanEngine ${LIBS})
     set_target_properties(OceanEngine PROPERTIES LINK_FLAGS "-Wl,-F/Library/Frameworks")
 elseif(UNIX)
-    add_compile_definitions(GLEW_STATIC)
+    add_compile_definitions(GLEW_STATIC _POSIX_C_SOURCE)
     set(LIBS
         "GL"
         "glfw3"
         "pthread"
         "m"
         "GLEW"
+        "asound"
     )
     target_link_libraries(OceanEngine ${LIBS})
-    set_target_properties(OceanEngine PROPERTIES LINK_FLAGS "-lm")
 endif()

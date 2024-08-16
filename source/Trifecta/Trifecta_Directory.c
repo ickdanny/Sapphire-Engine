@@ -2,7 +2,7 @@
 
 #include "PGUtil.h"
 
-#ifdef __APPLE__
+#ifdef __unix__
 
 #include <unistd.h>
 #include <errno.h>
@@ -160,7 +160,7 @@ void tfDirectoryFree(TFDirectory *dirPtr){
     }
 }
 
-#endif /* __APPLE__ */
+#endif /* __unix__ */
 
 #ifdef WIN32
 

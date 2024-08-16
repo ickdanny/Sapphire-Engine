@@ -1,11 +1,11 @@
 #ifndef TRIFECTA_DIRECTORY_H
 #define TRIFECTA_DIRECTORY_H
 
-#ifdef __APPLE__
+#ifdef __unix__
 
 #include <dirent.h>
 
-#endif /* __APPLE__ */
+#endif /* __unix__ */
 
 #ifdef WIN32
 
@@ -22,11 +22,11 @@ typedef struct TFDirectory{
      */
     char *_dirName;
 
-    #ifdef __APPLE__
+    #ifdef __unix__
 
     DIR *_dirPtr;
     
-    #endif /* __APPLE__ */
+    #endif /* __unix__ */
 
     #ifdef WIN32
 

@@ -2,6 +2,7 @@
 #define MOKYOMIDI_MIDIOUT_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __APPLE__
 
@@ -17,11 +18,17 @@
 
 #endif /* end WIN32 */
 
+#ifdef __linux__
+
+#include <alsa/asoundlib.h>
+
+#endif /* end __linux__ */
+
 /*
  * The MMMidiOut class provides wrapper functions for
  * basic midi output.
  */
-typedef struct MidiOut{
+typedef struct MMMidiOut{
     #ifdef __APPLE__
 
     AUGraph graph;
@@ -30,20 +37,31 @@ typedef struct MidiOut{
     #endif /* end __APPLE__ */
 
     #ifdef WIN32
+
     HMIDIOUT midiOutHandle;
+
     #endif /* end WIN32 */
-    //todo other platforms
+    
+    #ifdef __linux__
+
+    snd_seq_t *seqPtr;
+    snd_rawmidi_t *rawmidiPtr;
+    snd_seq_addr_t sender;
+    snd_seq_addr_t dest;
+    bool valid;
+
+    #endif /* end __linux__ */
 } MMMidiOut;
 
 /*
  * Constructs a new MMMidiOut and returns it by value.
  */
-MMMidiOut midiOutMake();
+MMMidiOut mmMidiOutMake();
 
-/* Starts a MidiOut's output */
+/* Starts a MMMidiOut's output */
 void mmMidiOutStart(MMMidiOut *midiOutPtr);
 
-/* Stops a MidiOut's output */
+/* Stops a MMMidiOut's output */
 void mmMidiOutStop(MMMidiOut *midiOutPtr);
 
 /* Outputs a short message */

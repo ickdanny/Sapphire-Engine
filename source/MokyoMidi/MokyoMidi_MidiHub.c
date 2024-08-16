@@ -8,7 +8,7 @@ MidiHub midiHubMake(bool muted){
     MidiHub toRet = {0};
     toRet.midiOutPtr
         = pgAlloc(1, sizeof(*(toRet.midiOutPtr)));
-    *(toRet.midiOutPtr) = midiOutMake();
+    *(toRet.midiOutPtr) = mmMidiOutMake();
     toRet.midiSequencer = midiSequencerMake(
         toRet.midiOutPtr
     );
