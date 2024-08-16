@@ -83,6 +83,12 @@ static const Rectangle fullTexRect = {
  */
 static void _tfGraphicsInit(){
     #ifdef WIN32
+    #define _GLEW_NEEDED_
+    #elif defined __linux__
+    #define _GLEW_NEEDED_
+    #endif
+
+    #ifdef _GLEW_NEEDED_
 
     static bool glewInitialized = false;
     
@@ -94,7 +100,9 @@ static void _tfGraphicsInit(){
         glewInitialized = true;
     }
 
-    #endif
+    #endif /* end _GLEW_NEEDED_ */
+
+    #undef _GLEW_NEEDED_
 }
 
 /* 

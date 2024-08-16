@@ -406,7 +406,8 @@ static bool connectPorts(
          * function should fail
          */
         pgWarning(
-            "ALSA connection already established"
+            "ALSA connection to port 128:0 already "
+            "established"
         );
         return false;
     }
@@ -417,7 +418,10 @@ static bool connectPorts(
         subInfoPtr
     );
     if(retVal != 0){
-        pgWarning("failed to make ALSA connection");
+        pgWarning(
+            "failed to make ALSA connection to port "
+            "128:0"
+        );
         return false;
     }
     return true;
@@ -472,7 +476,8 @@ static bool disconnectPorts(
          * function should fail
          */
         pgWarning(
-            "ALSA connection not yet established"
+            "ALSA connection to port 128:0 not "
+            "established"
         );
         return false;
     }
@@ -483,7 +488,10 @@ static bool disconnectPorts(
         subInfoPtr
     );
     if(retVal != 0){
-        pgWarning("failed to remove ALSA connection");
+        pgWarning(
+            "failed to remove ALSA connection to port "
+            "128:0"
+        );
         return false;
     }
     return true;
@@ -616,12 +624,31 @@ void mmMidiOutShortMsg(
     MMMidiOut *midiOutPtr, 
     uint32_t output
 ){
-    char msg[3] = {
+    uint8_t msg[3] = {
         getByte(output, 0),
         getByte(output, 1),
         getByte(output, 2)
     };
-    snd_rawmidi_write(midiOutPtr->rawmidiPtr, msg, 3);
+
+    /* most midi messages have 2 data bytes */
+    int numBytesToWrite = 3;
+    switch(msg[0] & mm_statusMask){
+        /*
+         * program change and channel pressure
+         * messages only have 1 data byte
+         */
+        case mm_programChange:
+        case mm_channelPressure:
+            numBytesToWrite = 2;
+            break;
+        default:
+            /* do nothing */
+    }
+    snd_rawmidi_write(
+        midiOutPtr->rawmidiPtr,
+        msg,
+        numBytesToWrite
+    );
 }
 
 /* Outputs a system exclusive message */
@@ -640,6 +667,7 @@ void mmMidiOutSysex(
 /* Frees the given MMMidiOut */
 void mmMidiOutFree(MMMidiOut *midiOutPtr){
     if(midiOutPtr->valid){
+        mmMidiOutStop(midiOutPtr);
         snd_seq_close(midiOutPtr->seqPtr);
         snd_rawmidi_close(midiOutPtr->rawmidiPtr);
     }

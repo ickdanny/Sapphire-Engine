@@ -92,8 +92,8 @@ elseif(UNIX)
         "glfw3"
         "pthread"
         "m"
-        "GLEW"
         "asound"
+        ${CMAKE_SOURCE_DIR}/libraries/libGLEW.a
     )
     target_link_libraries(OceanEngine ${LIBS})
 endif()

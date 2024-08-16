@@ -141,6 +141,12 @@ void tfWindowMakeVisible(TFWindow *windowPtr){
  * fullscreen, false otherwise
  */
 bool tfWindowToggleFullscreen(TFWindow *windowPtr){
+    #ifdef WIN32
+    #define _VIEWPORT_CHANGES_NEEDED_
+    #elif defined __linux__
+    #define _VIEWPORT_CHANGES_NEEDED_
+    #endif
+
     /* if window is fullscreen, make it windowed */
     if(windowPtr->_fullscreen){
         glfwSetWindowMonitor(
@@ -153,7 +159,7 @@ bool tfWindowToggleFullscreen(TFWindow *windowPtr){
             GLFW_DONT_CARE
         );
 
-        #ifdef WIN32
+        #ifdef _VIEWPORT_CHANGES_NEEDED_
 
         #define titleYOffset 30
 
@@ -172,7 +178,7 @@ bool tfWindowToggleFullscreen(TFWindow *windowPtr){
             windowPtr->_windowHeight
         );
 
-        #endif /* WIN32 */
+        #endif /* end _VIEWPORT_CHANGES_NEEDED_ */
     }
     /* if window is windowed, make it fullscreen */
     else{
@@ -189,14 +195,16 @@ bool tfWindowToggleFullscreen(TFWindow *windowPtr){
             GLFW_DONT_CARE
         );
 
-        #ifdef WIN32
+        #ifdef _VIEWPORT_CHANGES_NEEDED_
 
         glViewport(0, 0, width, height);
 
-        #endif /* WIN32 */
+        #endif /* end _VIEWPORT_CHANGES_NEEDED_ */
     }
     windowPtr->_fullscreen = !windowPtr->_fullscreen;
     return windowPtr->_fullscreen;
+
+    #undef _VIEWPORT_CHANGES_NEEDED_
 }
 
 /* 
