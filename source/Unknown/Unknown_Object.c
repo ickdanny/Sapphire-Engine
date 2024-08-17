@@ -249,15 +249,17 @@ UNObjectFunc *unObjectFuncMake(
 
 /*
  * Creates and returns a new UNObjectNativeFunc by
- * pointer
+ * pointer and also inserts the object at the start of
+ * the given object list
  */
 UNObjectNativeFunc *unObjectNativeFuncMake(
-    UNNativeFunc func
+    UNNativeFunc func,
+    UNObject **listHeadPtrPtr
 ){
     UNObjectNativeFunc *toRet = unObjectAlloc(
         UNObjectNativeFunc,
         un_nativeFuncObject,
-        NULL /* null for list; called by compiler */
+        listHeadPtrPtr
     );
     toRet->func = func;
     return toRet;

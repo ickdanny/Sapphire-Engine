@@ -513,6 +513,23 @@ bool _windArchetypeRemoveEntity(
                         ->_componentStorageArray),
                     i
                 );
+            /* run destructor if needed */
+            if(componentMetadata._destructor){
+                /* get ptr to component */
+                void *componentPtr = _sparseSetGetPtr(
+                    componentStoragePtr,
+                    entityID,
+                    componentMetadata._componentSize
+                    #ifdef _DEBUG
+                    , componentMetadata._typeName
+                    #endif
+                );
+                if(componentPtr){
+                    componentMetadata._destructor(
+                        componentPtr
+                    );
+                }
+            }
             /*
              * sparse set remove will return true if
              * it successfully removes an element

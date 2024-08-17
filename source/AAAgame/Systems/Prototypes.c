@@ -1808,6 +1808,8 @@ static void init(){
 
         #undef addPrototypeFunction
 
+        registerSystemDestructor(destroy);
+
         initialized = true;
     }
 }

@@ -167,7 +167,8 @@ static void unVirtualMachineDefineNativeFunc(
     unVirtualMachineStackPush(
         vmPtr,
         unObjectValue(unObjectNativeFuncMake(
-            nameNativeFuncPair._func
+            nameNativeFuncPair._func,
+            &(vmPtr->objectListHeadPtr)
         ))
     );
     UNObjectString *namePtr = unObjectAsString(

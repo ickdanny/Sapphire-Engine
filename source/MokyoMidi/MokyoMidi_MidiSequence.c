@@ -843,6 +843,8 @@ MidiSequence parseMidiFile(const char *fileName){
 		pgError("Error unsupported MIDI format");
 	}
 	
+    fclose(filePtr);
+
 	return midiSequence;
 }
 

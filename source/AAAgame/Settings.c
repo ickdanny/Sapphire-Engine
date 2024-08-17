@@ -63,5 +63,7 @@ void writeSettingsToFile(
             1,
             filePtr
         );
+
+        fclose(filePtr);
     }
 }

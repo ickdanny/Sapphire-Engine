@@ -111,6 +111,7 @@ void sceneMessagesFree(
     arrayListFree(MenuNavigationCommand,
         &(messagesPtr->menuNavigationCommands)
     );
+    zmtFree(&(messagesPtr->prng));
     arrayListFree(GameCommand,
         &(messagesPtr->gameCommands)
     );

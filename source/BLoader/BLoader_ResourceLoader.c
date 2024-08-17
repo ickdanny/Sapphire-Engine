@@ -169,6 +169,9 @@ void blResourceLoaderParseDirectory(
             typePtr->_userPtr
         );
     }
+
+    tfDirectoryFree(&directory);
+
     #undef bufferSize
 }
 

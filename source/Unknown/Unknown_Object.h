@@ -212,10 +212,12 @@ UNObjectFunc *unObjectFuncMake(
 
 /*
  * Creates and returns a new UNObjectNativeFunc by
- * pointer
+ * pointer and also inserts the object at the start of
+ * the given object list
  */
 UNObjectNativeFunc *unObjectNativeFuncMake(
-    UNNativeFunc func
+    UNNativeFunc func,
+    UNObject **listHeadPtrPtr
 );
 
 /*

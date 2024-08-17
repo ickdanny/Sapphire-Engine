@@ -41,6 +41,7 @@ static char* loadSourceFile(const char *fileName){
     buffer[bytesRead] = 0;
 
     fclose(filePtr);
+    
     return buffer;
 }
 

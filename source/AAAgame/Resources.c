@@ -247,14 +247,16 @@ static void loadUserFuncIntoResources(
 
     /*
      * add the func to the set using the c string
-     * owned by the stringID object, whose life should
-     * extend throughout the use of the user func
+     * owned by the stringID object
      */
     unUserFuncSetAdd(
         userFuncSetPtr,
         stringID._ptr,
         funcPtr
     );
+    
+    /* free our string; it gets heap copied */
+    stringFree(&stringID);
 }
 
 /*

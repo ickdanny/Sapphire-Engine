@@ -409,6 +409,10 @@
 #define addDeathScripts(LISTPTR, DEATHSCRIPTS) \
     addComponent(LISTPTR, DeathScripts, DEATHSCRIPTS)
 
+/* Frees a single component data pair */
+#define _freeComponentData(COMPONENTDATAPAIR) \
+    pgFree((COMPONENTDATAPAIR)->componentPtr)
+
 /*
  * Adds an entity to the specified scene and frees
  * the component list, storing the returned WindEntity
@@ -433,6 +437,10 @@
                 (LISTPTR) \
             ); \
         } \
+        arrayListApply(WindComponentDataPair, \
+            (LISTPTR), \
+            _freeComponentData \
+        ); \
         arrayListFree(WindComponentDataPair, \
             (LISTPTR) \
         ); \
@@ -450,6 +458,10 @@
         windWorldQueueAddEntity( \
             &((SCENEPTR)->ecsWorld), \
             (LISTPTR) \
+        ); \
+        arrayListApply(WindComponentDataPair, \
+            (LISTPTR), \
+            _freeComponentData \
         ); \
         arrayListFree(WindComponentDataPair, \
             (LISTPTR) \
