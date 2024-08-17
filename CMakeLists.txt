@@ -72,6 +72,7 @@ if(WIN32)
     )
     target_link_libraries(OceanEngine PRIVATE ${LIBS})
 elseif(APPLE)
+    add_compile_definitions(__unix__) # not sure why undefined
     # https://stackoverflow.com/questions/17070101/why-i-cannot-link-the-mac-framework-file-with-cmake
     set(LIBS 
         "-framework CoreServices"
