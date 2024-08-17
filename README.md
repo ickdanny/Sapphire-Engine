@@ -1,1 +1,1 @@
-C-based shmup engine using GLFW
+C-based archetype ECS shmup engine built for Windows, Mac, and Linux using GLFW
