@@ -1,3 +1,0 @@
-(){
-    tickTimer(12 * 3); # frames * animation rate
-}

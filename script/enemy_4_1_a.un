@@ -1,7 +1,0 @@
-# normal crystal script
-
-let health = 10000;
-
-setHealth(health);
-addScript("danmaku_enemy_4_1", 4);
-addDeathScript("spawn_power_small", 4);

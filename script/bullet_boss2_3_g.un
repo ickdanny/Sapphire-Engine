@@ -1,4 +1,0 @@
-let speed = 50;
-let speedTicks = 60;
-
-shiftSpeedPeriod(speed, speedTicks);

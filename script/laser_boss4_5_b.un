@@ -1,9 +1,0 @@
-laser(_laser_boss4_5_lifetimeSecs());
-
-spawn(
-    "sharp_blue",
-    getPosition(),
-    <<0, getAngleToPlayer()>>,
-    random(1, 999),
-    "bullet_boss4_5"
-);

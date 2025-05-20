@@ -1,4 +1,0 @@
-shiftSpeedIncrement(
-    -1.4 * updatesPerSecond(),
-    -0.05 * updatesPerSecond()
-);

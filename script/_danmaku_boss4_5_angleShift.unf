@@ -1,4 +1,0 @@
-# shift of laser angle each spawn
-(){
-    return 1.5 * pi();
-}

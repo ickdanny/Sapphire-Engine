@@ -1,5 +1,0 @@
-# credit element script for final element
-
-let slowTicks = 120;
-
-shiftSpeedPeriod(0, slowTicks);

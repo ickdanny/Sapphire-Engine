@@ -1,9 +1,0 @@
-# spiral with variable angular vel
-
-let health = 46000;
-let secsBeforeStart = 0.5;
-
-setHealth(health);
-
-secTimer(secsBeforeStart);
-addScript("danmaku_boss1_3", 4);

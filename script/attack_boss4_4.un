@@ -1,6 +1,0 @@
-# spiraling star spawner attack script
-
-let health = 250000;
-
-setHealth(health);
-addScript("danmaku_boss4_4", 4);

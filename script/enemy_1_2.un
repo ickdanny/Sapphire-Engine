@@ -1,5 +1,0 @@
-let health = 1;
-
-setHealth(health);
-addScript("danmaku_enemy_1_2", 3);
-addDeathScript("spawn_power_small_2", 4);

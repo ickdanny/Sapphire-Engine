@@ -1,7 +1,0 @@
-spawn(
-    "power_large",
-    getPosition(),
-    <<initPickupSpeed(), -90.0>>,
-    0,
-    "pickup_fall"
-);

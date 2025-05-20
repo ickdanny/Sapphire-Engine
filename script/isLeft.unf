@@ -1,7 +1,0 @@
-# returns true if the position is closer to the left
-#   side than the right side, false otherwise
-(point){
-    # account for game offset
-    point = point - gameOffset();
-    return point.x < (gameWidth() / 2.0);
-}

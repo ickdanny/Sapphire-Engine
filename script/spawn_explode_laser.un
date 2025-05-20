@@ -1,7 +1,0 @@
-spawn(
-    "explode_laser",
-    getPosition(),
-    getVelocity(),
-    0,
-    "remove_explode_laser"
-);

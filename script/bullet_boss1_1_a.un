@@ -1,8 +1,0 @@
-# speed up script for tris
-
-let finalSpeed = diff(70, 80, 90);
-let waitSecs = 0.5;
-let speedTicks = 48;
-
-secTimer(waitSecs);
-shiftSpeedPeriod(finalSpeed, speedTicks);

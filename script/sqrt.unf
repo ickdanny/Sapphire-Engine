@@ -1,3 +1,0 @@
-(root){
-    return pow(root, 0.5);
-}

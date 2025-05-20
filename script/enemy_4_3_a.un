@@ -1,6 +1,0 @@
-let midAngle = 0.0;
-if(!isLeft(getPosition())){
-    midAngle = 180.0;
-}
-
-_enemy_4_3(midAngle, getAngle());

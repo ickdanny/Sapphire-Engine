@@ -1,9 +1,0 @@
-# arms of the sea star bullet script
-
-let targetAngle = randomAngle();
-let shiftTicksLow = 60;
-let shiftTicksHigh = 120;
-
-let shiftTicks = random(shiftTicksLow, shiftTicksHigh);
-
-shiftAngleLongPeriod(targetAngle, shiftTicks);

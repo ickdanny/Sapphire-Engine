@@ -1,6 +1,0 @@
-(lifetimeSecs){
-    secTimer(0.5);
-    setCollidable();
-    secTimer(lifetimeSecs);
-    die();
-}

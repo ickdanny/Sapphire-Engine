@@ -1,7 +1,0 @@
-# bomb crystal script
-
-let health = 15000;
-
-setHealth(health);
-addScript("danmaku_enemy_4_1", 4);
-addDeathScript("spawn_bomb_wisp_4", 4);

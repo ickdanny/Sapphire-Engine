@@ -1,7 +1,0 @@
-spawn(
-    "explode_bomb",
-    getPosition(),
-    <<0, 0>>,
-    0,
-    "remove_explode_bomb"
-);

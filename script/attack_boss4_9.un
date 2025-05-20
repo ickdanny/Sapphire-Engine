@@ -1,6 +1,0 @@
-# final spell attack script: turning lasers
-
-let health = 600000;
-
-setHealth(health);
-addScript("danmaku_boss4_9", 4);

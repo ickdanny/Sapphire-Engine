@@ -1,7 +1,0 @@
-let slowTicks = 58;
-let waitSecs = 0.4;
-let finalSpeed = -getSpeed();
-
-shiftSpeedPeriod(0.0, slowTicks);
-secTimer(waitSecs);
-setSpeed(finalSpeed);

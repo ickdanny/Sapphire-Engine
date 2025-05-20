@@ -1,8 +1,0 @@
-# attack script for counter rotating laser spawners
-
-let health = 150000;
-
-setHealth(health);
-addScript("danmaku_boss4_5_a", 4);
-
-# danmaku script A will add script B in slot 3 after

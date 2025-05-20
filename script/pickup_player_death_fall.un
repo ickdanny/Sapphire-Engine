@@ -1,2 +1,0 @@
-tickTimer(50);
-setVelocity(<<80, 90>>);

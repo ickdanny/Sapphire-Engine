@@ -1,4 +1,0 @@
-let accel = 0.1;
-let drag = 0.000001; # fastest
-
-gravity(90.0, accel, drag);

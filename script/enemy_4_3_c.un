@@ -1,4 +1,0 @@
-let midAngle = 90.0;
-let finalAngle = flipY(160.0);
-
-_enemy_4_3(midAngle, finalAngle);
