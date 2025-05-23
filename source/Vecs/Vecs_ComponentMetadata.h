@@ -6,7 +6,7 @@
 #include "Vecs_Component.h"
 
 /* The function prototype for component destructors */
-typedef void VecsComponentDestructor(void*);
+typedef void (*VecsComponentDestructor)(void*);
 
 /* Stores RTTI for components */
 typedef struct VecsComponentMetadata{

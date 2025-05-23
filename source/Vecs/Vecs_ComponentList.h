@@ -7,7 +7,7 @@
 
 /* Stores RTTI for all components of an ECS world */
 typedef struct VecsComponentList{
-    Array _componentArray; //todo: init to num bits in vecsComponentSet
+    Array _componentArray;
     /*
      * used to indicate whether a component of a
      * specific ID has already been specified

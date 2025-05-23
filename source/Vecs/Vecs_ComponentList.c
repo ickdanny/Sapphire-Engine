@@ -1,60 +1,56 @@
 #include "Vecs_ComponentList.h"
 
-//todo: implement this
+/*
+ * numComponents is the max number of bits in a
+ * component set
+ */
+#define numComponents (8 * sizeof(VecsComponentSet))
 
 /*
  * Constructs and returns a new empty component list
  * by value
  */
-VecsComponentList windComponentsMake(
-    WindComponentIDType numComponents
-){
-    WindComponents toRet = {0};
+VecsComponentList vecsComponentsMake(){
+    VecsComponentList toRet = {0};
     toRet._componentArray = arrayMake(
-        WindComponentMetadata,
+        VecsComponentMetadata,
         numComponents
     );
-    toRet._setComponentIDs = bitsetMake(numComponents);
+    toRet._validComponentTypes = NULL;
     return toRet;
 }
 
 /*
- * Inserts the specified WindComponentMetadata into
- * the given WindComponents at the specified ID; error
+ * Inserts the specified component metadata into the
+ * given VecsComponentList at the specified ID; error
  * if the componentID has already been used or is out
  * of bounds
  */
-void windComponentsInsert(
-    WindComponents *componentsPtr,
-    WindComponentMetadata componentMetadata,
-    WindComponentIDType componentID 
+void vecsComponentListInsert(
+    VecsComponentList *componentListPtr,
+    VecsComponentMetadata componentMetadata,
+    VecsComponentSet componentID 
 ){
     assertFalse(
-        componentID >= windComponentsNumComponents(
-            componentsPtr
-        ),
-        "component ID out of bounds; "
-        SRC_LOCATION
-    );
-    assertFalse(
-        bitsetGet(
-            &(componentsPtr->_setComponentIDs),
+        vecsComponentSetContainsAny(
+            componentListPtr->_validComponentTypes,
             componentID
         ),
         "component ID already set; "
         SRC_LOCATION
     );
     /* add the metadata to the array */
-    arraySet(WindComponentMetadata,
+    arraySet(VecsComponentMetadata,
         &(componentsPtr->_componentArray),
         componentID,
         componentMetadata
     );
-    /* set present in the bitset */
-    bitsetSet(
-        &(componentsPtr->_setComponentIDs),
-        componentID
-    );
+    /* set present in the component set */
+    componentListPtr->_validComponentTypes
+        = vecsComponentSetUnion(
+            componentListPtr->_validComponentTypes,
+            componentID
+        );
 }
 
 /*
