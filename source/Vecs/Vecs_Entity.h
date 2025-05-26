@@ -10,7 +10,7 @@
 typedef uint64_t VecsEntity;
 
 /* Returns the id of the given entity */
-#define vecsEntityID(entity) \
+#define vecsEntityId(entity) \
     /* bits 0-31 */ \
     (entity & 0xFFFFFFFFULL)
 

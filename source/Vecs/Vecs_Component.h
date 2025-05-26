@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-//todo: make the common case fast by adding a componentID type
-// which is just the numeric value i.e. 0-63
-
 /*
  * VECS supports up to 64 components, each one having
  * id of the form 2^k
