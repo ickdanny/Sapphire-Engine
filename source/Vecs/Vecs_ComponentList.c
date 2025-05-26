@@ -1,12 +1,6 @@
 #include "Vecs_ComponentList.h"
 
 /*
- * numComponents is the max number of bits in a
- * component set
- */
-#define numComponents (8 * sizeof(VecsComponentSet))
-
-/*
  * Constructs and returns a new empty component list
  * by value
  */
@@ -14,7 +8,7 @@ VecsComponentList vecsComponentsMake(){
     VecsComponentList toRet = {0};
     toRet._componentArray = arrayMake(
         VecsComponentMetadata,
-        numComponents
+        vecsMaxNumComponents
     );
     toRet._validComponentTypes = NULL;
     return toRet;
@@ -22,75 +16,84 @@ VecsComponentList vecsComponentsMake(){
 
 /*
  * Inserts the specified component metadata into the
- * given VecsComponentList at the specified ID; error
- * if the componentID has already been used or is out
+ * given VecsComponentList at the specified id; error
+ * if the component id has already been used or is out
  * of bounds
  */
 void vecsComponentListInsert(
     VecsComponentList *componentListPtr,
     VecsComponentMetadata componentMetadata,
-    VecsComponentSet componentID 
+    VecsComponentId componentId
 ){
     assertFalse(
-        vecsComponentSetContainsAny(
+        componentId > vecsMaxComponentId,
+        "component Id out of bounds; "
+        SRC_LOCATION
+    );
+    assertFalse(
+        vecsComponentSetContainsId(
             componentListPtr->_validComponentTypes,
-            componentID
+            componentId
         ),
-        "component ID already set; "
+        "component Id already set; "
         SRC_LOCATION
     );
     /* add the metadata to the array */
     arraySet(VecsComponentMetadata,
-        &(componentsPtr->_componentArray),
-        componentID,
+        &(componentListPtr->_componentArray),
+        componentId,
         componentMetadata
     );
     /* set present in the component set */
     componentListPtr->_validComponentTypes
-        = vecsComponentSetUnion(
+        = vecsComponentSetAddId(
             componentListPtr->_validComponentTypes,
-            componentID
+            componentId
         );
 }
 
 /*
  * Returns a copy of the component metadata for the
- * specified ID; errors if id is out of bounds or not
+ * specified id; errors if id is out of bounds or not
  * registered
  */
-WindComponentMetadata windComponentsGet(
-    WindComponents *componentsPtr,
-    WindComponentIDType componentID
+VecsComponentMetadata vecsComponentListGetMetadata(
+    VecsComponentList *componentListPtr,
+    VecsComponentId componentId
 ){
     assertFalse(
-        componentID >= windComponentsNumComponents(
-            componentsPtr
-        ),
-        "component ID out of bounds; "
+        componentId > vecsMaxComponentId,
+        "component id out of bounds; "
         SRC_LOCATION
     );
     assertTrue(
-        bitsetGet(
-            &(componentsPtr->_setComponentIDs),
-            componentID
+        vecsComponentSetContainsId(
+            componentListPtr->_validComponentTypes,
+            componentId
         ),
-        "component ID not present; "
+        "component id not present; "
         SRC_LOCATION
     );
-    return arrayGet(WindComponentMetadata,
-        &(componentsPtr->_componentArray),
-        componentID
+    return arrayGet(VecsComponentMetadata,
+        &(componentListPtr->_componentArray),
+        componentId
     );
 }
 
 /*
  * Frees the memory associated with the specified
- * WindComponents
+ * VecsComponentList
  */
-void windComponentsFree(WindComponents *componentsPtr){
+void vecsComponentListFree(
+    VecsComponentList *componentListPtr
+){
     /* component metadata itself doesn't need free */
-    arrayFree(WindComponentMetadata,
-        &(componentsPtr->_componentArray)
+    arrayFree(VecsComponentMetadata,
+        &(componentListPtr->_componentArray)
     );
-    bitsetFree(&(componentsPtr->_setComponentIDs));
+    memset(
+        componentListPtr,
+        0,
+        sizeof(*componentListPtr)
+    );
 }

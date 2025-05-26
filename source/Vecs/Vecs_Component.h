@@ -13,10 +13,29 @@
 typedef uint64_t VecsComponentSet;
 
 /*
+ * A human-readable component id ranging from
+ * 0 to vecsMaxComponentId (inclusive)
+ */
+typedef uint32_t VecsComponentId;
+
+/* the max number of bits in a component set */
+#define vecsMaxNumComponents \
+    (8 * sizeof(VecsComponentSet))
+
+/* The max component id inclusive */
+#define vecsMaxComponentId (vecsMaxNumComponents - 1)
+
+/*
  * Each defined component must have an accompanying
  * global symbol TYPENAME##ID defined
  */
 #define vecsComponentGetID(TYPENAME) TYPENAME##ID
+
+/* * * * * * * * * * * * * * * * * * * * * * *
+ *                                           *
+ * Component set to component set operations *
+ *                                           *
+ * * * * * * * * * * * * * * * * * * * * * * */
 
 /* Calculates the set union of two component sets */
 #define vecsComponentSetUnion(left, right) \
@@ -48,8 +67,50 @@ typedef uint64_t VecsComponentSet;
  * of the components specified in the second, false
  * otherwise
  */
-#define vecsComponentSetContainsAll \
+#define vecsComponentSetContainsAll(left, right) \
     (right == \
         vecsComponentSetIntersection(left, right))
+
+/* * * * * * * * * * * * * * * * * * * * * * *
+ *                                           *
+ * Component set to component id operations  *
+ *                                           *
+ * * * * * * * * * * * * * * * * * * * * * * */
+
+/*
+ * Converts the given component id to a component set
+ * containing exactly that component
+ */
+#define vecsComponentSetFromId(id) (0x1ULL << id)
+
+/*
+ * Adds the specified component id to the given
+ * component set
+ */
+#define vecsComponentSetAddId(set, id) \
+    vecsComponentSetUnion( \
+        set, \
+        vecsComponentSetFromId(id) \
+    )
+
+/*
+ * Removes the specified component id from the given
+ * component set
+ */
+#define vecsComponentSetRemoveId(set, id) \
+    vecsComponentSetDifference( \
+        set, \
+        vecsComponentSetFromId(id) \
+    )
+
+/*
+ * Returns true if the specified component set contains
+ * the given component id, false otherwise
+ */
+#define vecsComponentSetContainsId(set, id) \
+    vecsComponentSetContainsAll( \
+        set, \
+        vecsComponentSetFromId(id) \
+    )
 
 #endif
