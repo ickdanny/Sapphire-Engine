@@ -8,6 +8,8 @@
 typedef struct _VecsEntityMetadata{
     VecsComponentSet _componentSet;
 
+    //todo: possibly ptr to archetype
+
     /* Used to detect generational differences */
     VecsEntity _canonicalEntity;
 } _VecsEntityMetadata;
@@ -25,14 +27,6 @@ _VecsEntityMetadata _vecsEntityMetadataMake(
  * generation
  */
 void _vecsEntityMetadataIncrementGeneration(
-    _VecsEntityMetadata *metadataPtr
-);
-
-/*
- * Frees the memory associated with the specified
- * entity metadata
- */
-void _vecsEntityMetadataFree(
     _VecsEntityMetadata *metadataPtr
 );
 

@@ -9,6 +9,8 @@
  */
 typedef uint64_t VecsComponentSet;
 
+#define vecsEmptyComponentSet 0
+
 /*
  * A human-readable component id ranging from
  * 0 to vecsMaxComponentId (inclusive)
