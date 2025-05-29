@@ -13,6 +13,15 @@ _VecsEntityMetadata _vecsEntityMetadataMake(
     };
 }
 
+/* Flags the entity metadata as live */
+void _vecsEntityMetadataFlagLive(
+    _VecsEntityMetadata *metadataPtr
+){
+    metadataPtr->_canonicalEntity = vecsEntityFlagLive(
+        metadataPtr->_canonicalEntity
+    );
+}
+
 /*
  * Advances the specified entity metadata to the next
  * generation

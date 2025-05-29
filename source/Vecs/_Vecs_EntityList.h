@@ -16,7 +16,9 @@ typedef struct _VecsEntityList{
  * Constructs and returns a new empty entity list
  * by value
  */
-_VecsEntityList _vecsEntityListMake();
+_VecsEntityList _vecsEntityListMake(
+    size_t maxEntities
+);
 
 /* Clears all entity data from the given entity list */
 void _vecsEntityListClear(

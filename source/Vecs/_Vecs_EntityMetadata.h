@@ -22,6 +22,11 @@ _VecsEntityMetadata _vecsEntityMetadataMake(
     VecsEntity entityId
 );
 
+/* Flags the entity metadata as live */
+void _vecsEntityMetadataFlagLive(
+    _VecsEntityMetadata *metadataPtr
+);
+
 /*
  * Advances the specified entity metadata to the next
  * generation
