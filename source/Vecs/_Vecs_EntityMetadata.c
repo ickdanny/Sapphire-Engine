@@ -24,7 +24,7 @@ void _vecsEntityMetadataFlagLive(
 
 /*
  * Advances the specified entity metadata to the next
- * generation
+ * generation and marks the entity as not live
  */
 void _vecsEntityMetadataIncrementGeneration(
     _VecsEntityMetadata *metadataPtr

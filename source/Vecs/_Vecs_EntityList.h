@@ -25,8 +25,8 @@ void _vecsEntityListClear(
     _VecsEntityList *entityListPtr
 );
 
-/* Creates a new entity and returns it */
-VecsEntity _vecsEntityListCreate(
+/* Allocates a new entity and returns it */
+VecsEntity _vecsEntityListAllocate(
     _VecsEntityList *entityListPtr
 );
 
@@ -102,6 +102,5 @@ _VecsEntityMetadata *_vecsEntityListIdGetMetadata(
 void _vecsEntityListFree(
     _VecsEntityList *entityListPtr
 );
-
 
 #endif

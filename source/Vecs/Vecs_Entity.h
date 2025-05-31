@@ -42,6 +42,12 @@ typedef uint64_t VecsEntity;
  */
 #define vecsEntityIsLive(entity) (entity & liveMask)
 
+/*
+ * Returns true if the entity is dead, false otherwise
+ */
+#define vecsEntityIsDead(entity) \
+    (!(vecsEntityIsLive(entity)))
+
 /* Flags the given entity as live */
 #define vecsEntityFlagLive(entity) (entity | liveMask)
 
