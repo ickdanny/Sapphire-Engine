@@ -1,4 +1,4 @@
-#include "Vecs_EntityMetadata.h"
+#include "_Vecs_EntityMetadata.h"
 
 /*
  * Constructs and returns a new entity metadata object

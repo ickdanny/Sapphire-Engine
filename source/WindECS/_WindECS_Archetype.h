@@ -331,7 +331,7 @@ void *__windArchetypeItrGetPtr(
     )
 
 /*
- * Returns the ID of the etity curently being pointed
+ * Returns the ID of the entity curently being pointed
  * to by the given archetype iterator; error if the
  * archetype is out of entities
  */

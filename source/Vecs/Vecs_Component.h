@@ -28,7 +28,7 @@ typedef uint32_t VecsComponentId;
  * Each defined component must have an accompanying
  * global symbol TYPENAME##ID defined
  */
-#define vecsComponentGetID(TYPENAME) TYPENAME##ID
+#define vecsComponentGetId(TYPENAME) TYPENAME##ID
 
 /* * * * * * * * * * * * * * * * * * * * * * *
  *                                           *
