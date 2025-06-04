@@ -1,5 +1,7 @@
 #include "Vecs_ComponentList.h"
 
+#include "Vecs_Entity.h"
+
 /*
  * Constructs and returns a new empty component list
  * by value
@@ -10,7 +12,15 @@ VecsComponentList vecsComponentsMake(){
         VecsComponentMetadata,
         vecsMaxNumComponents
     );
-    toRet._validComponentTypes = NULL;
+    toRet._validComponentTypes = vecsEmptyComponentSet;
+
+    /* insert metadata for component 0 - entity id */
+    vecsComponentListInsert(
+        &toRet,
+        vecsComponentMetadataMake(VecsEntity, NULL),
+        VecsEntityId
+    );
+
     return toRet;
 }
 

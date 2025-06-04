@@ -21,15 +21,15 @@ typedef struct _VecsArchetype{
      * C array of arraylists for storing component data
      * indexed by component id
      */
-    ArrayList _componentLists[vecsMaxNumComponents];
+    ArrayList _componentStorageLists[
+        vecsMaxNumComponents
+    ];
 
     /* pointer to the component metadata list */
     VecsComponentList *_componentListPtr;
 
     /* pointer to the entity metadata list */
     _VecsEntityList *_entityListPtr;
-
-    //todo: probably needs ptr to entity metadata also?
 
     /* internal value for tracking modifications */
     size_t _modificationCount;

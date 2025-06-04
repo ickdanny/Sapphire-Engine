@@ -13,7 +13,8 @@ typedef uint64_t VecsComponentSet;
 
 /*
  * A human-readable component id ranging from
- * 0 to vecsMaxComponentId (inclusive)
+ * 0 to vecsMaxComponentId (inclusive); component 0 is
+ * reserved for entity id
  */
 typedef uint32_t VecsComponentId;
 
@@ -25,10 +26,16 @@ typedef uint32_t VecsComponentId;
 #define vecsMaxComponentId (vecsMaxNumComponents - 1)
 
 /*
- * Each defined component must have an accompanying
- * global symbol TYPENAME##ID defined
+ * The component id 0 is reserved for entity id and is
+ * used internally by vecs
  */
-#define vecsComponentGetId(TYPENAME) TYPENAME##ID
+#define VecsEntityId 0
+
+/*
+ * Each defined component must have an accompanying
+ * global symbol TYPENAME##Id defined
+ */
+#define vecsComponentGetId(TYPENAME) TYPENAME##Id
 
 /* * * * * * * * * * * * * * * * * * * * * * *
  *                                           *
