@@ -110,18 +110,37 @@ static void __componentStorageClear(
 }
 
 /*
+ * Reclaims all entities present in the archetype;
+ * should be used when clearing all data
+ */
+static void __vecsArchetypeReclaimAllEntities(
+    _VecsArchetype *archetypePtr
+){
+    /*
+     * assume all archetypes have component 0 for
+     * entities - use it to kill the entities in the
+     * entity list
+     */
+    ArrayList *entityListPtr
+        = &(archetypePtr
+            ->_componentStorageLists[VecsEntityId]);
+    for(size_t i = 0; i < entityListPtr->size; ++i){
+        _vecsEntityListReclaim(
+            archetypePtr->_entityListPtr,
+            arrayListGet(VecsEntity,
+                entityListPtr,
+                i
+            )
+        );
+    }
+}
+
+/*
  * Clears all component data from the specified
  * archetype
  */
 void _vecsArchetypeClear(_VecsArchetype *archetypePtr){
-
-    //todo: reset entity metadata?
-    /* assume all archetypes have component 0 */
-    ArrayList *entityListPtr
-        = &(archetypePtr->_componentStorageLists[0]);
-    for(size_t i = 0; i < entityListPtr->size; ++i){
-        //todo: kill all listed entities
-    }
+    __vecsArchetypeReclaimAllEntities(archetypePtr);
 
     /* clear component data */
     for(VecsComponentId i = 0;
@@ -174,6 +193,134 @@ void _vecsArchetypeErrorIfBadComponent(
 }
 
 /*
+ * Errors if the specified entity id is not within the
+ * given archetype
+ */
+void _vecsArchetypeErrorIfBadEntity(
+    _VecsArchetype *archetypePtr,
+    VecsEntity entity
+){
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            archetypePtr->_entityListPtr,
+            entity
+        );
+    assertNotNull(
+        entityMetadataPtr,
+        "failed to retrieve entity metadata ptr; "
+        SRC_LOCATION
+    );
+    assertTrue(
+        archetypePtr->_componentSet 
+            == entityMetadataPtr->_archetypePtr
+                ->_componentSet,
+        "entity points to a different archetype; "
+        SRC_LOCATION
+    );
+}
+
+/*
+ * Returns a pointer to the component specified by
+ * the given component id of the entity specified by
+ * the given entity id; error if the component or the
+ * entity is invalid; returns NULL if the component
+ * is a marker
+ */
+void *__vecsArchetypeGetPtr(
+    _VecsArchetype *archetypePtr,
+    VecsComponentId componentId,
+    VecsEntity entity
+){
+    _vecsArchetypeErrorIfBadComponent(
+        archetypePtr,
+        componentId
+    );
+    _vecsArchetypeErrorIfBadEntity(
+        archetypePtr,
+        entity
+    );
+
+    VecsComponentMetadata componentMetadata
+        = vecsComponentListGetMetadata(
+            archetypePtr->_componentListPtr,
+            componentId
+        );
+    
+    /* return NULL if component is a marker */
+    if(componentMetadata._componentSize == 0){
+        return NULL;
+    }
+
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            archetypePtr->_entityListPtr,
+            entity
+        );
+    size_t index
+        = entityMetadataPtr->_indexInArchetype;
+
+    ArrayList *componentListPtr
+        = &(archetypePtr
+            ->_componentStorageLists[componentId]);
+
+    return _arrayListGetPtr(
+        componentListPtr,
+        index,
+        componentMetadata._componentSize
+        #ifdef _DEBUG
+        , componentMetadata._typename
+        #endif
+    );
+}
+
+/*
+ * Sets the component specified by the given
+ * component id of the entity specified by the given
+ * entity id to the value stored in the given void ptr;
+ * error if the component id is invalid; does nothing
+ * if NULL is passed or if the component is a marker
+ */
+void __vecsArchetypeSetPtr(
+    _VecsArchetype *archetypePtr,
+    VecsComponentId componentId,
+    VecsEntity entity,
+    void *componentPtr
+){
+    _vecsArchetypeErrorIfBadComponent(
+        archetypePtr,
+        componentId
+    );
+    _vecsArchetypeErrorIfBadEntity(
+        archetypePtr,
+        entity
+    );
+
+    /* do nothing if NULL passed */
+    if(!componentPtr){
+        return;
+    }
+
+    VecsComponentMetadata componentMetadata
+        = vecsComponentListGetMetadata(
+            archetypePtr->_componentListPtr,
+            componentId
+        );
+    
+    /* do nothing if component is a marker */
+    if(componentMetadata._componentSize == 0){
+        return;
+    }
+
+    //todo: how to know whether to run destructor?
+    //maybe can leverage entity component set
+}
+
+
+
+
+
+
+/*
  * Frees all the memory associated with the specified
  * component storage using the provided RTTI
  */
@@ -194,15 +341,4 @@ static void __componentStorageFree(
         , componentMetadata._typeName
         #endif
     );
-}
-
-/*
- * Errors if the specified entity id is not within the
- * given archetype
- */
-void _vecsArchetypeErrorIfBadEntity(
-    _VecsArchetype *archetypePtr,
-    VecsEntity entity
-){
-    //todo: component 0 for entity id to get metadata
 }

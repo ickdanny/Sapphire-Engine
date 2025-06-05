@@ -9,6 +9,8 @@ _VecsEntityMetadata _vecsEntityMetadataMake(
 ){
     return (_VecsEntityMetadata){
         ._componentSet = vecsEmptyComponentSet,
+        ._archetypePtr = NULL,
+        ._indexInArchetype = SIZE_MAX,
         ._canonicalEntity = vecsEntityMake(entityId, 0)
     };
 }
@@ -30,6 +32,8 @@ void _vecsEntityMetadataIncrementGeneration(
     _VecsEntityMetadata *metadataPtr
 ){
     metadataPtr->_componentSet = vecsEmptyComponentSet;
+    metadataPtr->_archetypePtr = NULL;
+    metadataPtr->_indexInArchetype = SIZE_MAX;
     metadataPtr->_canonicalEntity
         = vecsEntityIncrementGeneration(
             metadataPtr->_canonicalEntity

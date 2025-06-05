@@ -1,14 +1,26 @@
 #ifndef VECS_ENTITYMETADATA_H
 #define VECS_ENTITYMETADATA_H
 
+#include <stdlib.h>
+
 #include "Vecs_Entity.h"
 #include "Vecs_Component.h"
+
+/*
+ * Forward declaration for archetype needed to have
+ * entity metadata store a pointer to the enclosing
+ * archetype
+ */
+struct _VecsArchetype;
 
 /* Represents the current state of a single entity */
 typedef struct _VecsEntityMetadata{
     VecsComponentSet _componentSet;
 
-    //todo: possibly ptr to archetype
+    struct _VecsArchetype *_archetypePtr;
+
+    /* the index of the entity in its archetype */
+    size_t *_indexInArchetype;
 
     /* Used to detect generational differences */
     VecsEntity _canonicalEntity;

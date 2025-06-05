@@ -78,6 +78,7 @@ VecsEntity _vecsEntityListAllocate(
         }
     }
 
+    //todo: what to do about archetype and index?
     _vecsEntityMetadataFlagLive(arrayGetPtr(
         _VecsEntityMetadata,
         &(entityListPtr->_entityMetadataArray),
