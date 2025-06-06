@@ -25,7 +25,10 @@ void _vecsEntityListClear(
     _VecsEntityList *entityListPtr
 );
 
-/* Allocates a new entity and returns it */
+/*
+ * Allocates a new entity with no components and
+ * returns it
+ */
 VecsEntity _vecsEntityListAllocate(
     _VecsEntityList *entityListPtr
 );

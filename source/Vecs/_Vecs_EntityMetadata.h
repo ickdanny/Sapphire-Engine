@@ -15,11 +15,22 @@ struct _VecsArchetype;
 
 /* Represents the current state of a single entity */
 typedef struct _VecsEntityMetadata{
+    /*
+     * The component set of the entity determines its
+     * archetype
+     */
     VecsComponentSet _componentSet;
+
+    /*
+     * The initialized component set records which
+     * components of an entity have actually been
+     * initialized in memory; used internally
+     */
+    VecsComponentSet _initializedComponentSet;
 
     struct _VecsArchetype *_archetypePtr;
 
-    /* the index of the entity in its archetype */
+    /* The index of the entity in its archetype */
     size_t *_indexInArchetype;
 
     /* Used to detect generational differences */

@@ -171,7 +171,77 @@ void __vecsArchetypeSetPtr(
     entityId, \
     component \
 ) \
-    //todo: must be done via macro; expects values
+    do{ \
+        vecsComponentId componentId \
+            = vecsComponentGetId(typename); \
+        _vecsArchetypeErrorIfBadComponent( \
+            archetypePtr, \
+            componentId \
+        ); \
+        _vecsArchetypeErrorIfBadEntity( \
+            archetypePtr, \
+            entity \
+        ); \
+        VecsComponentMetadata componentMetadata \
+            = vecsComponentListGetMetadata( \
+                archetypePtr->_componentListPtr, \
+                componentId \
+            ); \
+        assertFalse( \
+            componentMetadata._componentSize == 0, \
+            "cannot use archetype set on a marker; " \
+            SRC_LOCATION \
+        }; \
+        assertTrue( \
+            componentMetadata._componentSize \
+                == sizeof(typename), \
+            "mismatching component size between " \
+            "metadata and sizeof; " \
+            SRC_LOCATION \
+        ); \
+        _VecsEntityMetadata *entityMetadataPtr \
+            = _vecsEntityListGetMetadata( \
+                archetypePtr->_entityListPtr, \
+                entity \
+            ); \
+        size_t index \
+            = entityMetadataPtr->_indexInArchetype; \
+        ArrayList *componentListPtr \
+            = &(archetypePtr->_componentStorageLists \
+                [componentId]); \
+        void *componentSlotPtr = arrayListGetPtr( \
+            typename, \
+            componentListPtr, \
+            index \
+        ); \
+        if(vecsComponentSetContainsId( \
+            entityMetadataPtr \
+                ->_initializedComponentSet, \
+            componentId \
+        )){ \
+            if(componentMetadata._destructor){ \
+                componentMetadata._destructor( \
+                    componentSlotPtr \
+                ); \
+            } \
+        } \
+        else{ \
+            entityMetadataPtr \
+            ->_initializedComponentSet \
+                = vecsComponentSetAddId( \
+                    entityMetadataPtr \
+                        ->_initializedComponentSet, \
+                    componentId \
+                ); \
+        } \
+        arrayListSet( \
+            typename, \
+            componentListPtr, \
+            index, \
+            component \
+        ); \
+        ++(archetypePtr->_modificationCount); \
+    } while(false)
 
 /*
  * Moves the entity identified by the given entity id

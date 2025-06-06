@@ -311,11 +311,206 @@ void __vecsArchetypeSetPtr(
         return;
     }
 
-    //todo: how to know whether to run destructor?
-    //maybe can leverage entity component set
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            archetypePtr->_entityListPtr,
+            entity
+        );
+    size_t index
+        = entityMetadataPtr->_indexInArchetype;
+
+    ArrayList *componentListPtr
+        = &(archetypePtr
+            ->_componentStorageLists[componentId]);
+
+    void *componentSlotPtr = _arrayListGetPtr(
+        componentListPtr,
+        index,
+        componentMetadata._componentSize
+        #ifdef _DEBUG
+        , componentMetadata._typename
+        #endif
+    );
+
+    /*
+     * case 1: this operation replaces a preexisting
+     * component
+     */
+    if(vecsComponentSetContainsId(
+        entityMetadataPtr->_initializedComponentSet,
+        componentId
+    )){
+        /* run component destructor if needed */
+        if(componentMetadata._destructor){
+            componentMetadata._destructor(
+                componentSlotPtr
+            );
+        }
+    }
+    /*
+     * case 2: this operation adds a new component
+     */
+    else{
+        /*
+         * mark the component as initialized for the
+         * entity
+         */
+        entityMetadataPtr->_initializedComponentSet
+            = vecsComponentSetAddId(
+                entityMetadataPtr
+                    ->_initializedComponentSet,
+                componentId
+            );
+    }
+
+    _arrayListSetPtr(
+        componentListPtr,
+        index,
+        componentPtr,
+        componentMetadata._componentSize
+        #ifdef _DEBUG
+        , componentMetadata._typename
+        #endif
+    );
+
+    ++(archetypePtr->_modificationCount);
 }
 
+/*
+ * Moves the entity identified by the given entity id
+ * to the specified other archetype; error if the
+ * same archetype is provided or if the entity is
+ * invalid
+ */
+void _vecsArchetypeMoveEntity(
+    _VecsArchetype *srcArchetypePtr,
+    _VecsArchetype *destArchetypePtr,
+    VecsEntity entity
+){
+    assertFalse(
+        srcArchetypePtr == destArchetypePtr,
+        "same archetype passed for move; "
+        SRC_LOCATION
+    );
 
+    _vecsArchetypeErrorIfBadEntity(
+        srcArchetypePtr,
+        entity
+    );
+
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            srcArchetypePtr->_entityListPtr,
+            entity
+        );
+    size_t srcIndex
+        = entityMetadataPtr->_indexInArchetype;
+
+    /*
+     * the entity will be pushed to the back of the
+     * destination archetype, whose index can be
+     * retrieved from the always-present entity
+     * component storage
+     */
+    size_t destIndex
+        = destArchetypePtr
+            ->_componentStorageLists[VecsEntityId]
+                .size;
+
+    /* iterate over all possible components */
+    for(VecsComponentId i = 0;
+        i < vecsMaxNumComponents;
+        ++i
+    ){
+        /*
+         * skip if component not within archetype, or
+         * equivalently, if entity lacks component
+         */
+        if(!vecsComponentSetContainsId(
+            srcArchetypePtr->_componentSet,
+            i
+        )){
+            continue;
+        }
+
+        VecsComponentMetadata componentMetadata
+            = vecsComponentListGetMetadata(
+                srcArchetypePtr->_componentListPtr,
+                i
+            );
+    
+        /* skip if component is a marker */
+        if(componentMetadata._componentSize == 0){
+            return;
+        }
+
+        ArrayList *srcComponentListPtr
+            = &(srcArchetypePtr
+                ->_componentStorageLists[i]);
+
+        void *srcComponentPtr = _arrayListGetPtr(
+            srcComponentListPtr,
+            index,
+            componentMetadata._componentSize
+            #ifdef _DEBUG
+            , componentMetadata._typename
+            #endif
+        );
+
+        /*
+         * if component is in new archetype,
+         * shallow copy it
+         */
+        if(vecsComponentSetContainsId(
+            destArchetypePtr->_componentSet,
+            i
+        )){
+            ArrayList *destComponentListPtr
+                = &(destArchetypePtr
+                    ->_componentStorageLists[i]);
+            _arrayListPushBackPtr(
+                destComponentListPtr,
+                srcComponentPtr,
+                componentMetadata._componentSize
+            );
+        }
+
+        /*
+         * if component not in new archetype, call
+         * destructor on it if needed
+         */
+        else{
+            if(componentMetadata._destructor){
+                componentMetadata._destructor(
+                    srcComponentPtr
+                );
+            }
+            entityMetadataPtr->_initializedComponentSet
+                = vecsComponentSetRemoveId(
+                    entityMetadataPtr
+                        ->_initializedComponentSet,
+                    i
+                );
+        }
+
+        /*
+         * remove component from old storage
+         * efficiently by copying over the last element
+         */
+        //todo: implement this
+    }
+
+    /*
+     * update entity metadata to reflect new archetype
+     */
+    entityMetadataPtr->_componentSet
+        = destArchetypePtr->_componentSet;
+    /* initialized component set updated in the loop */
+    entityMetadataPtr->_archetypePtr
+        = destArchetypePtr;
+    entityMetadataPtr->_indexInArchetype = destIndex;
+
+}
 
 
 
