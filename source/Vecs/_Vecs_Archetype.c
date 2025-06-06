@@ -77,19 +77,19 @@ _VecsArchetype _vecsArchetypeMake(
  * storage using the provided RTTI but does not free
  * the storage itself
  */
-static void __componentStorageClear(
-    ArrayList *componentStoragePtr,
+static void componentStorageListClear(
+    ArrayList *componentStorageListPtr,
     VecsComponentMetadata componentMetadata
 ){
     /* run destructor on all elements in storage */
     if(componentMetadata._destructor){
         for(size_t i = 0;
-            i < componentStoragePtr->size;
+            i < componentStorageListPtr->size;
             ++i
         ){
             componentMetadata._destructor(
                 _arrayListGetPtr(
-                    componentStoragePtr,
+                    componentStorageListPtr,
                     i,
                     componentMetadata._componentSize
                     #ifdef _DEBUG
@@ -101,7 +101,7 @@ static void __componentStorageClear(
     }
 
     _arrayListClear(
-        componentStoragePtr,
+        componentStorageListPtr,
         componentMetadata._componentSize
         #ifdef _DEBUG
         , componentMetadata._typeName
@@ -167,7 +167,7 @@ void _vecsArchetypeClear(_VecsArchetype *archetypePtr){
             continue;
         }
 
-        __componentStorageClear(
+        componentStorageListClear(
             &(archetypePtr->_componentStorageLists[i]),
             componentMetadata
         );
@@ -259,12 +259,12 @@ void *__vecsArchetypeGetPtr(
     size_t index
         = entityMetadataPtr->_indexInArchetype;
 
-    ArrayList *componentListPtr
+    ArrayList *componentStorageListPtr
         = &(archetypePtr
             ->_componentStorageLists[componentId]);
 
     return _arrayListGetPtr(
-        componentListPtr,
+        componentStorageListPtr,
         index,
         componentMetadata._componentSize
         #ifdef _DEBUG
@@ -319,12 +319,12 @@ void __vecsArchetypeSetPtr(
     size_t index
         = entityMetadataPtr->_indexInArchetype;
 
-    ArrayList *componentListPtr
+    ArrayList *componentStorageListPtr
         = &(archetypePtr
             ->_componentStorageLists[componentId]);
 
     void *componentSlotPtr = _arrayListGetPtr(
-        componentListPtr,
+        componentStorageListPtr,
         index,
         componentMetadata._componentSize
         #ifdef _DEBUG
@@ -364,7 +364,7 @@ void __vecsArchetypeSetPtr(
     }
 
     _arrayListSetPtr(
-        componentListPtr,
+        componentStorageListPtr,
         index,
         componentPtr,
         componentMetadata._componentSize
@@ -374,6 +374,66 @@ void __vecsArchetypeSetPtr(
     );
 
     ++(archetypePtr->_modificationCount);
+}
+
+/*
+ * Removes the component at the specified index of the
+ * given component list by copying in the last element;
+ * does not run the destructor
+ */
+static void componentStorageListFastRemove(
+    ArrayList *componentStorageListPtr,
+    VecsComponentMetadata componentMetadata,
+    size_t index
+){
+    assertTrue(
+        index < componentStorageListPtr->size,
+        "Error: index out of bounds for component "
+        "list remove; "
+        SRC_LOCATION
+    );
+    assertFalse(
+        arrayListIsEmpty(componentStorageListPtr),
+        "Error: component list is empty; "
+        SRC_LOCATION
+    );
+
+    /*
+     * special case: removing the final element does
+     * not require a copy
+     */
+    if(index == componentStorageListPtr->size - 1){
+        _arrayListPopBack(
+            componentStorageListPtr
+            #ifdef _DEBUG
+            , componentMetadata._typeName
+            #endif
+        );
+        return;
+    }
+
+    /* normal case: copy final element into index */
+    _arrayListSetPtr(
+        componentStorageListPtr,
+        index,
+        _arrayListBackPtr(
+            componentStorageListPtr,
+            componentMetadata._componentSize
+            #ifdef _DEBUG
+            , componentMetadata._typeName
+            #endif
+        ),
+        componentMetadata._componentSize
+        #ifdef _DEBUG
+        , componentMetadata._typeName
+        #endif
+    );
+    _arrayListPopBack(
+        componentStorageListPtr
+        #ifdef _DEBUG
+        , componentMetadata._typeName
+        #endif
+    );
 }
 
 /*
@@ -444,12 +504,12 @@ void _vecsArchetypeMoveEntity(
             return;
         }
 
-        ArrayList *srcComponentListPtr
+        ArrayList *srcComponentStorageListPtr
             = &(srcArchetypePtr
                 ->_componentStorageLists[i]);
 
         void *srcComponentPtr = _arrayListGetPtr(
-            srcComponentListPtr,
+            srcComponentStorageListPtr,
             index,
             componentMetadata._componentSize
             #ifdef _DEBUG
@@ -465,11 +525,11 @@ void _vecsArchetypeMoveEntity(
             destArchetypePtr->_componentSet,
             i
         )){
-            ArrayList *destComponentListPtr
+            ArrayList *destComponentStorageListPtr
                 = &(destArchetypePtr
                     ->_componentStorageLists[i]);
             _arrayListPushBackPtr(
-                destComponentListPtr,
+                destComponentStorageListPtr,
                 srcComponentPtr,
                 componentMetadata._componentSize
             );
@@ -497,7 +557,11 @@ void _vecsArchetypeMoveEntity(
          * remove component from old storage
          * efficiently by copying over the last element
          */
-        //todo: implement this
+        componentStorageListFastRemove(
+            srcComponentStorageListPtr,
+            componentMetadata,
+            srcIndex
+        );
     }
 
     /*
@@ -509,31 +573,190 @@ void _vecsArchetypeMoveEntity(
     entityMetadataPtr->_archetypePtr
         = destArchetypePtr;
     entityMetadataPtr->_indexInArchetype = destIndex;
-
 }
 
+/*
+ * Removes the entity identified by the given entity
+ * id; returns true if entity successfully removed,
+ * false if entity was not originally in the archetype
+ */
+bool _vecsArchetypeRemoveEntity(
+    _VecsArchetype *archetypePtr,
+    VecsEntity entity
+){
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            archetypePtr->_entityListPtr,
+            entity
+        );
+    if(!entityMetadataPtr){
+        return false;
+    }
+    if(archetypePtr->_componentSet 
+        != entityMetadataPtr->_archetypePtr
+            ->_componentSet
+    ){
+        return false;
+    }
 
+    size_t index
+        = entityMetadataPtr->_indexInArchetype;
 
+    /*
+     * if reached here, entity exists in archetype;
+     * remove all its components by iterating
+     */
+    for(VecsComponentId i = 0;
+        i < vecsMaxNumComponents;
+        ++i
+    ){
+        /*
+         * skip if component not within archetype, or
+         * equivalently, if entity lacks component
+         */
+        if(!vecsComponentSetContainsId(
+            archetypePtr->_componentSet,
+            i
+        )){
+            continue;
+        }
+        VecsComponentMetadata componentMetadata
+            = vecsComponentListGetMetadata(
+                archetypePtr->_componentListPtr,
+                i
+            );
+    
+        /* skip if component is a marker */
+        if(componentMetadata._componentSize == 0){
+            return;
+        }
+
+        ArrayList *componentStorageListPtr
+            = &(archetypePtr
+                ->_componentStorageLists[i]);
+
+        /* run destructor if needed */
+        if(componentMetadata._destructor){
+            void *componentPtr = _arrayListGetPtr(
+                componentStorageListPtr,
+                index,
+                componentMetadata._componentSize
+                #ifdef _DEBUG
+                , componentMetadata._typename
+                #endif
+            );
+            assertNotNull(
+                componentPtr,
+                "Error: expect successful component "
+                "retrieval; "
+                SRC_LOCATION
+            );
+            componentMetadata._destructor(
+                componentPtr
+            );
+        }
+
+        /*
+         * remove component from old storage
+         * efficiently by copying over the last element
+         */
+        componentStorageListFastRemove(
+            componentStorageListPtr,
+            componentMetadata,
+            index
+        );
+    }
+    ++(archetypePtr->_modificationCount);
+    return true;
+}
 
 /*
  * Frees all the memory associated with the specified
  * component storage using the provided RTTI
  */
-static void __componentStorageFree(
-    ArrayList *componentStoragePtr,
+static void componentStorageListFree(
+    ArrayList *componentStorageListPtr,
     VecsComponentMetadata componentMetadata
 ){
     /* run destructor on all elements in storage */
-    __componentStorageClear(
-        componentStoragePtr,
+    componentStorageListClear(
+        componentStorageListPtr,
         componentMetadata
     );
 
     /* free the storage */
     _arrayListFree(
-        componentStoragePtr
+        componentStorageListPtr
         #ifdef _DEBUG
         , componentMetadata._typeName
         #endif
     );
+}
+
+/*
+ * Frees all the component storage lists owned by the
+ * given archetype
+ */
+static void __vecsArchetypeFreeComponentStorageLists(
+    _VecsArchetype *archetypePtr
+){
+    for(VecsComponentId i = 0;
+        i < vecsMaxNumComponents;
+        ++i
+    ){
+        /*
+         * skip if component not within archetype
+         */
+        if(!vecsComponentSetContainsId(
+            archetypePtr->_componentSet,
+            i
+        )){
+            continue;
+        }
+
+        VecsComponentMetadata componentMetadata
+            = vecsComponentListGetMetadata(
+                archetypePtr->_componentListPtr,
+                i
+            );
+        /* skip if component is a marker */
+        if(componentMetadata._componentSize == 0){
+            return;
+        }
+
+        ArrayList *componentStorageListPtr
+            = &(archetypePtr
+                ->_componentStorageLists[i]);
+
+        componentStorageListFree(
+            componentStorageListPtr,
+            componentMetadata
+        );
+    }
+}
+
+/*
+ * Frees the memory associated with the given
+ * archetype
+ */
+void _vecsArchetypeFree(_VecsArchetype *archetypePtr){
+    /* component set does not need to be freed */
+
+    __vecsArchetypeFreeComponentStorageLists(
+        archetypePtr
+    );
+
+    /*
+     * the array of arraylists does not need to be
+     * freed 
+     */
+
+    archetypePtr->_componentListPtr = NULL;
+    archetypePtr->_entityListPtr = NULL;
+
+    /*
+     * increase modification count in case iterators
+     * still out there
+     */
+    ++(archetypePtr->_modificationCount);
 }
