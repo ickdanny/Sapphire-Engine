@@ -278,7 +278,8 @@ void *__vecsArchetypeGetPtr(
  * component id of the entity specified by the given
  * entity id to the value stored in the given void ptr;
  * error if the component id is invalid; does nothing
- * if NULL is passed or if the component is a marker
+ * if NULL is passed or if the component is a marker;
+ * assumes entity index has already been assigned
  */
 void __vecsArchetypeSetPtr(
     _VecsArchetype *archetypePtr,
@@ -573,6 +574,9 @@ void _vecsArchetypeMoveEntity(
     entityMetadataPtr->_archetypePtr
         = destArchetypePtr;
     entityMetadataPtr->_indexInArchetype = destIndex;
+
+    ++(srcArchetypePtr->_modificationCount);
+    ++(destArchetypePtr->_modificationCount);
 }
 
 /*
@@ -601,6 +605,28 @@ bool _vecsArchetypeRemoveEntity(
 
     size_t index
         = entityMetadataPtr->_indexInArchetype;
+
+    /* get info about last entity */
+    ArrayList *entityStorageListPtr
+        = &(archetypePtr
+            ->_componentStorageLists[VecsEntityId]);
+    
+    VecsComponentMetadata entityComponentMetadata
+        = vecsComponentListGetMetadata(
+            archetypePtr->_componentListPtr,
+            VecsEntityId
+        );
+
+    size_t lastIndex = entityStorageListPtr->size - 1;
+    VecsEntity *lastEntityPtr = _arrayListGetPtr(
+        entityStorageListPtr,
+        lastIndex,
+        entityComponentMetadata._componentSize
+        #ifdef _DEBUG
+        , entityComponentMetadata->_typeName
+        #endif
+    );
+    VecsEntity lastEntity = *lastEntityPtr;
 
     /*
      * if reached here, entity exists in archetype;
@@ -666,6 +692,26 @@ bool _vecsArchetypeRemoveEntity(
             index
         );
     }
+
+    /* update entity metadata for removed entity */
+    _vecsEntityMetadataIncrementGeneration(
+        entityMetadataPtr
+    );
+
+    /*
+     * update entity metadata for entity which was
+     * moved from the tail of the list, if needed
+     */
+    if(index != lastIndex){
+        _VecsEntityMetadata *lastEntityMetadataPtr
+            = _vecsEntityListGetMetadata(
+                archetypePtr->_entityListPtr,
+                lastEntity
+            );
+        lastEntityMetadataPtr->_indexInArchetype
+            = index;
+    }
+
     ++(archetypePtr->_modificationCount);
     return true;
 }
@@ -678,7 +724,10 @@ static void componentStorageListFree(
     ArrayList *componentStorageListPtr,
     VecsComponentMetadata componentMetadata
 ){
-    /* run destructor on all elements in storage */
+    /*
+     * run destructor on all elements in storagel this
+     * call also updates entity metadata
+     */
     componentStorageListClear(
         componentStorageListPtr,
         componentMetadata
@@ -742,6 +791,10 @@ static void __vecsArchetypeFreeComponentStorageLists(
 void _vecsArchetypeFree(_VecsArchetype *archetypePtr){
     /* component set does not need to be freed */
 
+    /*
+     * free component storage and update entity
+     * metadata
+     */
     __vecsArchetypeFreeComponentStorageLists(
         archetypePtr
     );

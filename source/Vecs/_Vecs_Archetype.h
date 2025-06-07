@@ -121,12 +121,16 @@ void *__vecsArchetypeGetPtr(
         )) \
     )
 
+//todo: probably need an interface for allocating space
+//for a new entity i.e. index
+
 /*
  * Sets the component specified by the given
  * component id of the entity specified by the given
  * entity id to the value stored in the given void ptr;
  * error if the component id is invalid; does nothing
- * if NULL is passed or if the component is a marker
+ * if NULL is passed or if the component is a marker;
+ * assumes entity index has already been assigned
  */
 void __vecsArchetypeSetPtr(
     _VecsArchetype *archetypePtr,
@@ -141,7 +145,8 @@ void __vecsArchetypeSetPtr(
  * in the given void ptr; error if the specified
  * archetype does not hold the component in question;
  * does nothing if NULL is passed or if the component
- * is a marker
+ * is a marker; assumes entity index has already been
+ * assigned
  */
 #define _vecsArchetypeSetPtr( \
     typename, \
@@ -163,7 +168,8 @@ void __vecsArchetypeSetPtr(
  * specified by the given entity id to the given
  * component; error if the specified archetype does
  * not hold the component in question; should not be
- * used for marker components
+ * used for marker components; assumes entity index
+ * has already been assigned
  */
 #define _vecsArchetypeSet( \
     typename, \
