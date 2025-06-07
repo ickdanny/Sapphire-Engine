@@ -268,7 +268,7 @@ void *__vecsArchetypeGetPtr(
         index,
         componentMetadata._componentSize
         #ifdef _DEBUG
-        , componentMetadata._typename
+        , componentMetadata._typeName
         #endif
     );
 }
@@ -328,7 +328,7 @@ void __vecsArchetypeSetPtr(
         index,
         componentMetadata._componentSize
         #ifdef _DEBUG
-        , componentMetadata._typename
+        , componentMetadata._typeName
         #endif
     );
 
@@ -369,7 +369,7 @@ void __vecsArchetypeSetPtr(
         componentPtr,
         componentMetadata._componentSize
         #ifdef _DEBUG
-        , componentMetadata._typename
+        , componentMetadata._typeName
         #endif
     );
 
@@ -513,7 +513,7 @@ void _vecsArchetypeMoveEntity(
             index,
             componentMetadata._componentSize
             #ifdef _DEBUG
-            , componentMetadata._typename
+            , componentMetadata._typeName
             #endif
         );
 
@@ -642,7 +642,7 @@ bool _vecsArchetypeRemoveEntity(
                 index,
                 componentMetadata._componentSize
                 #ifdef _DEBUG
-                , componentMetadata._typename
+                , componentMetadata._typeName
                 #endif
             );
             assertNotNull(
@@ -759,4 +759,116 @@ void _vecsArchetypeFree(_VecsArchetype *archetypePtr){
      * still out there
      */
     ++(archetypePtr->_modificationCount);
+}
+
+/* Returns an iterator over the specified archetype */
+_VecsArchetypeItr _vecsArchetypeItr(
+    _VecsArchetype *archetypePtr
+){
+    return (_VecsArchetypeItr) {
+        ._archetypePtr = archetypePtr,
+        ._currentIndex = 0,
+        ._storedModificationCount
+            = archetypePtr->_modificationCount
+    };
+}
+
+/*
+ * Throws error if concurrent modification detected
+ * for the specified archetype iterator
+ */
+static void errorIfConcurrentModification(
+    _VecsArchetypeItr *itrPtr
+){
+    assertTrue(
+        itrPtr->_storedModificationCount
+            == itrPtr->_archetypePtr
+                ->_modificationCount,
+        "error: archetype concurrent modification; "
+        SRC_LOCATION
+    );
+}
+
+/*
+ * Returns true if the specified archetype iterator
+ * has more elements, false otherwise
+ */
+bool _vecsArchetypeItrHasEntity(
+    _VecsArchetypeItr *itrPtr
+){
+    errorIfConcurrentModification(itrPtr);
+
+    _VecsArchetype *archetypePtr
+        = itrPtr->_archetypePtr;
+
+    /*
+     * check the storage list for entity; entity is
+     * present in every archetype
+     */
+    ArrayList *componentStorageListPtr
+        = &(archetypePtr
+            ->_componentStorageLists[VecsEntityId]);
+    
+    return itrPtr->_currentIndex
+        < componentStorageListPtr->size;
+}
+
+/*
+ * Advances the specified archetype itr to point to the
+ * next entity
+ */
+void _vecsArchetypeItrAdvance(
+    _VecsArchetypeItr *itrPtr
+){
+    errorIfConcurrentModification(itrPtr);
+    ++(itrPtr->_currentIndex);
+}
+
+/*
+ * Returns a pointer to the component specified by
+ * the given component id of the entity currently being
+ * pointed to by the given archetype iterator; error
+ * if the component id is invalid; returns NULL if the
+ * component is a marker
+ */
+void *__vecsArchetypeItrGetPtr(
+    _VecsArchetypeItr *itrPtr,
+    VecsComponentId componentId
+){
+    errorIfConcurrentModification(itrPtr);
+    assertTrue(
+        _vecsArchetypeItrHasEntity(itrPtr),
+        "error: archetype itr out of entities; "
+        SRC_LOCATION
+    );
+        
+    _VecsArchetype *archetypePtr
+        = itrPtr->_archetypePtr;
+    _vecsArchetypeErrorIfBadComponent(
+        archetypePtr,
+        componentId
+    );
+
+    VecsComponentMetadata componentMetadata
+        = vecsComponentListGetMetadata(
+            archetypePtr->_componentListPtr,
+            componentId
+        );
+
+    if(componentMetadata._componentSize == 0){
+        return NULL;
+    }
+
+    ArrayList *componentStorageListPtr
+        = &(archetypePtr
+            ->_componentStorageLists[componentId]);
+
+    return _arrayListGetPtr(
+        componentStorageListPtr,
+        itrPtr->_currentIndex,
+        componentMetadata._componentSize
+        #ifdef _DEBUG
+        , componentMetadata->_typeName
+        #endif
+    );
 }

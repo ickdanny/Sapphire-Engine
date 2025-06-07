@@ -272,7 +272,9 @@ bool _vecsArchetypeRemoveEntity(
 void _vecsArchetypeFree(_VecsArchetype *archetypePtr);
 
 /*
- * Iterates over the entities of a specific archetype
+ * Iterates over the entities of a specific archetype;
+ * to get the entity being iterated over, use the
+ * built-in VecsEntity component (i.e. component id 0)
  */
 typedef struct _VecsArchetypeItr{
     /* pointer to the archetype to iterate over */
@@ -286,8 +288,6 @@ typedef struct _VecsArchetypeItr{
      * modified during iteration
      */
     size_t _storedModificationCount;
-
-    //todo: component 0 should always be real; entity
 } _VecsArchetypeItr;
 
 /* Returns an iterator over the specified archetype */
@@ -357,8 +357,6 @@ void *__vecsArchetypeItrGetPtr(
             itrPtr \
         )) \
     )
-
-//todo: component 0 should be entity
 
 /* the archetype itr does not need to be freed */
 
