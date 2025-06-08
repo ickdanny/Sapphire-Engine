@@ -833,6 +833,9 @@ _VecsArchetypeItr _vecsArchetypeItr(
 static void errorIfConcurrentModification(
     _VecsArchetypeItr *itrPtr
 ){
+    if(!itrPtr || !(itrPtr->_archetypePtr)){
+        return;
+    }
     assertTrue(
         itrPtr->_storedModificationCount
             == itrPtr->_archetypePtr

@@ -16,7 +16,7 @@ typedef struct VecsQuery{
     /* a pointer to the entire archetype list */
     ArrayList *_archetypeListPtr;
 
-    /* stores a list of archetypes by index */
+    /* stores a list of archetypes by index (size_t) */
     ArrayList _archetypeIndexList;
 
     /* internal value for tracking modifications */
@@ -69,6 +69,9 @@ typedef struct VecsQueryItr{
 
     size_t _storedModificationCount;
 } VecsQueryItr;
+
+/* Returns an iterator over the specified query */
+VecsQueryItr vecsQueryItr(VecsQuery *queryPtr);
 
 /*
  * Returns true if the specified query iterator
