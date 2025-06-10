@@ -107,7 +107,7 @@ VecsEntity _vecsEntityListAllocate(
 
 /*
  * Reclaims an entity and puts its id back into the
- * pool; error if the entity is not alive
+ * pool; error if the entity is not live
  */
 void _vecsEntityListReclaim(
     _VecsEntityList *entityListPtr,
@@ -136,10 +136,10 @@ void _vecsEntityListReclaim(
 }
 
 /*
- * Returns true if the specified entity is alive,
+ * Returns true if the specified entity is live,
  * false otherwise
  */
-bool _vecsEntityListIsAlive(
+bool _vecsEntityListIsEntityLive(
     _VecsEntityList *entityListPtr,
     VecsEntity entity
 ){
@@ -172,9 +172,9 @@ bool _vecsEntityListIsAlive(
 
 /*
  * Returns true if an entity with the same id as the
- * provided entity is currently alive, false otherwise
+ * provided entity is currently live, false otherwise
  */
-bool _vecsEntityListIsIdAlive(
+bool _vecsEntityListIsIdLive(
     _VecsEntityList *entityListPtr,
     VecsEntity entityId
 ){
@@ -184,20 +184,20 @@ bool _vecsEntityListIsIdAlive(
         vecsEntityId(entityId)
     );
 
-    return vecsEntityIsAlive(
+    return vecsEntityIsLive(
         metadataPtr->_canonicalEntity
     );
 }
 
 /*
  * Returns a pointer to the metadata for the specified
- * entity, or NULL if that entity is not alive
+ * entity, or NULL if that entity is not live
  */
 _VecsEntityMetadata *_vecsEntityListGetMetadata(
     _VecsEntityList *entityListPtr,
     VecsEntity entity
 ){
-    if(_vecsEntityListIsDead(entityListPtr, entity)){
+    if(_vecsEntityListIsEntityDead(entityListPtr, entity)){
         return NULL;
     }
     return arrayGetPtr(_VecsEntityMetadata,
@@ -208,7 +208,7 @@ _VecsEntityMetadata *_vecsEntityListGetMetadata(
 
 /*
  * Returns a pointer to the metadata for the specified
- * entity id, or NULL if no such entity is alive
+ * entity id, or NULL if no such entity is live
  */
 _VecsEntityMetadata *_vecsEntityListIdGetMetadata(
     _VecsEntityList *entityListPtr,

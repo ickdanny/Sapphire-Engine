@@ -64,7 +64,7 @@ VecsQueryItr vecsWorldRequestQueryItr(
 
 /*
  * Gets the entity specified by the given id; error if
- * no such entity is currently alive
+ * no such entity is currently live
  */
 VecsEntity vecsWorldGetEntityById(
     VecsWorld *worldPtr,
@@ -91,7 +91,7 @@ bool vecsWorldIsEntityLive(
  * Returns true if the entity described by the given
  * id is live (ignoring generation), false otherwise
  */
-bool vecsWorldIsIdAlive(
+bool vecsWorldIsIdLive(
     VecsWorld *worldPtr,
     VecsEntity entityId
 );
@@ -101,7 +101,7 @@ bool vecsWorldIsIdAlive(
  * id is dead (ignoring generation), false otherwise
  */
 #define vecsWorldIsIdDead(worldPtr, entityId) \
-    (!(vecsWorldIsIdAlive(worldPtr, entityId)))
+    (!(vecsWorldIsIdLive(worldPtr, entityId)))
 
 /*
  * Returns true if the given entity contains a

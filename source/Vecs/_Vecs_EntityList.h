@@ -35,7 +35,7 @@ VecsEntity _vecsEntityListAllocate(
 
 /*
  * Reclaims an entity and puts its id back into the
- * pool; error if the entity is not alive
+ * pool; error if the entity is not live
  */
 void _vecsEntityListReclaim(
     _VecsEntityList *entityListPtr,
@@ -43,10 +43,10 @@ void _vecsEntityListReclaim(
 );
 
 /*
- * Returns true if the specified entity is alive,
+ * Returns true if the specified entity is live,
  * false otherwise
  */
-bool _vecsEntityListIsAlive(
+bool _vecsEntityListIsEntityLive(
     _VecsEntityList *entityListPtr,
     VecsEntity entity
 );
@@ -55,34 +55,34 @@ bool _vecsEntityListIsAlive(
  * Returns true if the specified entity is dead,
  * false otherwise
  */
-#define _vecsEntityListIsDead(entityListPtr, entity) \
-    (!(_vecsEntityListIsAlive(entityListPtr, entity)))
+#define _vecsEntityListIsEntityDead(entityListPtr, entity) \
+    (!(_vecsEntityListIsEntityLive(entityListPtr, entity)))
 
 /*
  * Returns true if an entity with the same id as the
- * provided entity is currently alive, false otherwise
+ * provided entity is currently live, false otherwise
  */
-bool _vecsEntityListIsIdAlive(
+bool _vecsEntityListIsIdLive(
     _VecsEntityList *entityListPtr,
     VecsEntity entityId
 );
 
 /*
  * Returns true if no entity with the specified id is
- * currently alive, false otherwise
+ * currently live, false otherwise
  */
 #define _vecsEntityListIsIdDead( \
     entityListPtr, \
     entity \
 ) \
-    (!(_vecsEntityListIsIdAlive( \
+    (!(_vecsEntityListIsIdLive( \
         entityListPtr, \
         entity \
     )))
 
 /*
  * Returns a pointer to the metadata for the specified
- * entity, or NULL if that entity is not alive
+ * entity, or NULL if that entity is not live
  */
 _VecsEntityMetadata *_vecsEntityListGetMetadata(
     _VecsEntityList *entityListPtr,
@@ -91,7 +91,7 @@ _VecsEntityMetadata *_vecsEntityListGetMetadata(
 
 /*
  * Returns a pointer to the metadata for the specified
- * entity id, or NULL if no such entity is alive
+ * entity id, or NULL if no such entity is live
  */
 _VecsEntityMetadata *_vecsEntityListIdGetMetadata(
     _VecsEntityList *entityListPtr,
