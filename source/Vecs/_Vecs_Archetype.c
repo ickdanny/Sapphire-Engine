@@ -221,10 +221,9 @@ void _vecsArchetypeErrorIfBadEntity(
 
 /*
  * Returns a pointer to the component specified by
- * the given component id of the entity specified by
- * the given entity id; error if the component or the
- * entity is invalid; returns NULL if the component
- * is a marker
+ * the given component id of the specified entity;
+ * error if the component or the entity is invalid;
+ * returns NULL if the component is a marker
  */
 void *__vecsArchetypeGetPtr(
     _VecsArchetype *archetypePtr,

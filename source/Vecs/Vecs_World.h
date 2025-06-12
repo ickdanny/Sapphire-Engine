@@ -292,7 +292,7 @@ bool _vecsWorldEntityAddComponent(
 bool _vecsWorldIdAddComponent(
     VecsWorld *worldPtr,
     VecsComponentId componentId,
-    VecsEntity entity,
+    VecsEntity entityId,
     void *componentPtr
 );
 
@@ -491,7 +491,8 @@ bool _vecsWorldEntityQueueSetComponent(
 
 /*
  * Removes the specified component from the given
- * entity, returns true if successful, false otherwise
+ * entity, returns true if successful, false otherwise;
+ * cannot remove entity id component
  */
 bool _vecsWorldEntityRemoveComponent(
     VecsWorld *worldPtr,
@@ -501,7 +502,8 @@ bool _vecsWorldEntityRemoveComponent(
 
 /*
  * Removes the specified component from the given
- * entity, returns true if successful, false otherwise
+ * entity, returns true if successful, false otherwise;
+ * cannot remove entity id component
  */
 #define vecsWorldEntityRemoveComponent( \
     typeName, \
@@ -517,7 +519,8 @@ bool _vecsWorldEntityRemoveComponent(
 /*
  * Removes the specified component from the entity
  * specified by the given id, returns true if
- * successful, false otherwise
+ * successful, false otherwise; cannot remove entity
+ * id component
  */
 bool _vecsWorldIdRemoveComponent(
     VecsWorld *worldPtr,
@@ -528,7 +531,8 @@ bool _vecsWorldIdRemoveComponent(
 /*
  * Removes the specified component from the entity
  * specified by the given id, returns true if
- * successful, false otherwise
+ * successful, false otherwise; cannot remove entity
+ * id component
  */
 #define vecsWorldIdRemoveComponent( \
     typeName, \

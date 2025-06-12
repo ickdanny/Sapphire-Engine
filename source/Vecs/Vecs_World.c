@@ -399,57 +399,57 @@ bool _vecsWorldEntityContainsComponent(
     );
 }
 
-//todo: continue
 /*
- * Returns true if the entity described by the given
- * ID contains a component of the specified ID, false
- * otherwise (including if entity is dead)
+ * Returns true if the given entity contains a
+ * component of the specified id, false otherwise
+ * (including if entity is dead)
  */
-bool _windWorldIDContainsComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntityIDType entityID
+bool _vecsWorldEntityContainsComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity
 ){
-    if(windWorldIsIDDead(worldPtr, entityID)){
+    if(vecsWorldIsIdDead(worldPtr, entity)){
         return false;
     }
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesIDGetMetadata(
-            &(worldPtr->_entities),
-            entityID
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            &(worldPtr->_entityList),
+            entity
         );
-    return bitsetGet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
+    return vecsComponentSetContainsId(
+        entityMetadataPtr->_componentSet,
+        componentId
     );
 }
 
 /*
  * Initializes a new archetype and inserts it into the
  * given ECS world; error if a mapping for the given
- * Bitset already exists; does not take ownership of
- * the bitset passed in
+ * component set already exists
  */
-static _WindArchetype *windWorldInsertArchetype(
-    WindWorld *worldPtr,
-    Bitset *bitsetPtr
+static _VecsArchetype *vecsWorldInsertArchetype(
+    VecsWorld *worldPtr,
+    VecsComponentSet componentSet
 ){
     assertFalse(
-        hashMapHasKeyPtr(Bitset, size_t,
+        hashMapHasKeyPtr(VecsComponentSet, size_t,
             &(worldPtr->_archetypeIndexMap),
-            bitsetPtr
+            &componentSet
         ),
         "error: trying to insert archetype when "
         "mapping already exists; "
         SRC_LOCATION
     );
     /* archetype ctor makes a copy of the bitset */
-    _WindArchetype newArchetype = _windArchetypeMake(
-        bitsetPtr,
-        worldPtr->_entities._entityMetadata.size,
-        worldPtr->_componentsPtr
+    _VecsArchetype newArchetype = _vecsArchetypeMake(
+        componentSet,
+        worldPtr->_entityList._entityMetadataArray
+            .size,
+        worldPtr->_componentListPtr,
+        &(worldPtr->_entityList)
     );
-    arrayListPushBack(_WindArchetype,
+    arrayListPushBack(_VecsArchetype,
         &(worldPtr->_archetypeList),
         newArchetype
     );
@@ -460,8 +460,8 @@ static _WindArchetype *windWorldInsertArchetype(
         i < worldPtr->_queryList.size;
         ++i
     ){
-        windQueryTryAcceptArchetype(
-            arrayListGetPtr(WindQuery,
+        vecsQueryTryAcceptArchetype(
+            arrayListGetPtr(VecsQuery,
                 &(worldPtr->_queryList),
                 i
             ),
@@ -473,59 +473,42 @@ static _WindArchetype *windWorldInsertArchetype(
      * free
      */
 
-    /* make a copy of the bitset for the hashmap */
-    Bitset copyBitset = bitsetCopy(bitsetPtr);
-    /*
-     * map the bitset to the last list index;
-     * the bitset is now owned by the hashmap
-     */
-    hashMapPutPtr(Bitset, size_t,
+    /* map the component set to the last list index */
+    hashMapPutPtr(VecsComponentSet, size_t,
         &(worldPtr->_archetypeIndexMap),
-        &copyBitset,
+        &componentSet,
         &lastArchetypeListIndex
     );
     
-    return arrayListBackPtr(_WindArchetype,
+    return arrayListBackPtr(_VecsArchetype,
         &(worldPtr->_archetypeList)
     );
 }
 
 /*
- * Returns a pointer to the archetype of the entity
- * specified by the given handle; error if the entity
- * is dead
+ * Returns a pointer to the archetype having the given
+ * component set; creates such an archetype if needed
  */
-static _WindArchetype *windWorldHandleGetArchetype(
-    WindWorld *worldPtr,
-    WindEntity handle
+static _VecsArchetype *vecsWorldGetArchetype(
+    VecsWorld *worldPtr,
+    VecsComponentSet componentSet
 ){
-    assertTrue(
-        windWorldIsHandleLive(
-            worldPtr,
-            handle
-        ),
-        "error: try to get archetype of dead entity; "
-        SRC_LOCATION
-    );
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesGetMetadata(
-            &(worldPtr->_entities),
-            handle
-        );
-    size_t *indexPtr = hashMapGetPtr(Bitset, size_t,
+    size_t *indexPtr = hashMapGetPtr(
+        VecsComponentSet,
+        size_t,
         &(worldPtr->_archetypeIndexMap),
-        &(entityMetadataPtr->_componentSet)
+        &componentSet
     );
     size_t index = 0;
     /*
      * if failed to retrieve index ptr, make a new
-     * archetype for the entity
+     * archetype
      */
     if(!indexPtr){
         index = worldPtr->_archetypeIndexMap.size;
-        windWorldInsertArchetype(
+        vecsWorldInsertArchetype(
             worldPtr,
-            &(entityMetadataPtr->_componentSet)
+            componentSet
         );
     }
     else{
@@ -536,255 +519,271 @@ static _WindArchetype *windWorldHandleGetArchetype(
         "error: archetype index out of bounds; "
         SRC_LOCATION
     );
-    return arrayListGetPtr(_WindArchetype,
+    return arrayListGetPtr(_VecsArchetype,
         &(worldPtr->_archetypeList),
         index
     );
 }
 
 /*
- * Returns a pointer to the archetype of the entity
- * specified by the given ID; error if the entity
- * is dead
+ * Returns a pointer to the archetype of the given
+ * entity; error if the entity is dead
  */
-static _WindArchetype *windWorldIDGetArchetype(
-    WindWorld *worldPtr,
-    WindEntityIDType entityID
+static _VecsArchetype *vecsWorldEntityGetArchetype(
+    VecsWorld *worldPtr,
+    VecsEntity entity
 ){
     assertTrue(
-        windWorldIsIDLive(
+        vecsWorldIsEntityLive(
             worldPtr,
-            entityID
+            entity
         ),
         "error: try to get archetype of dead entity; "
         SRC_LOCATION
     );
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesIDGetMetadata(
-            &(worldPtr->_entities),
-            entityID
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            &(worldPtr->_entityList),
+            entity
         );
-    size_t *indexPtr = hashMapGetPtr(Bitset, size_t,
-        &(worldPtr->_archetypeIndexMap),
-        &(entityMetadataPtr->_componentSet)
-    );
-    size_t index = 0;
-    /*
-     * if failed to retrieve index ptr, make a new
-     * archetype for the entity
-     */
-    if(!indexPtr){
-        index = worldPtr->_archetypeIndexMap.size;
-        windWorldInsertArchetype(
-            worldPtr,
-            &(entityMetadataPtr->_componentSet)
-        );
-    }
-    else{
-        index = *indexPtr;
-    }
-    assertTrue(
-        index < worldPtr->_archetypeIndexMap.size,
-        "error: archetype index out of bounds; "
+    assertNotNull(
+        entityMetadataPtr,
+        "error: entity is live but has no metadata; "
         SRC_LOCATION
     );
-    return arrayListGetPtr(_WindArchetype,
-        &(worldPtr->_archetypeList),
-        index
+    assertNotNull(
+        entityMetadataPtr->_archetypePtr,
+        "error: entity is live but has no archetype; "
+        SRC_LOCATION
     );
+    return entityMetadataPtr->_archetypePtr;
+}
+
+/*
+ * Returns a pointer to the archetype of the entity
+ * specified by the given id; error if the entity
+ * is dead
+ */
+static _VecsArchetype *vecsWorldIdGetArchetype(
+    VecsWorld *worldPtr,
+    VecsEntity entityId
+){
+    assertTrue(
+        vecsWorldIsIdLive(
+            worldPtr,
+            entityId
+        ),
+        "error: try to get archetype of dead entity; "
+        SRC_LOCATION
+    );
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListIdGetMetadata(
+            &(worldPtr->_entityList),
+            entityId
+        );
+    assertNotNull(
+        entityMetadataPtr,
+        "error: entity is live but has no metadata; "
+        SRC_LOCATION
+    );
+    assertNotNull(
+        entityMetadataPtr->_archetypePtr,
+        "error: entity is live but has no archetype; "
+        SRC_LOCATION
+    );
+    return entityMetadataPtr->_archetypePtr;
 }
 
 /*
  * Returns a pointer to the component specified by the
- * given componentID of the entity specified by the
- * given handle; error if the componentID is invalid;
- * returns NULL if the component is a marker or if the
- * entity is dead
+ * given component id of the given entity; error if the
+ * component id is invalid; returns NULL if the
+ * component is a marker or if the entity is dead
  */
-void *_windWorldHandleGetPtr(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntity handle
+void *_vecsWorldEntityGetPtr(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity
 ){
     /* return NULL if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return NULL;
     }
     /* error if component ID is invalid */
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesGetMetadata(
-            &(worldPtr->_entities),
-            handle
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            &(worldPtr->_entityList),
+            entity
         );
     assertTrue(
-        bitsetGet(
-            &(entityMetadataPtr->_componentSet),
-            componentID
+        vecsComponentSetContainsId(
+            entityMetadataPtr->_componentSet,
+            componentId
         ),
         "error: trying to get component entity lacks; "
         SRC_LOCATION
     );
     /* return NULL if component is marker */
-    WindComponentMetadata componentMetadata
-        = windComponentsGet(
-            worldPtr->_componentsPtr,
-            componentID
+    VecsComponentMetadata componentMetadata
+        = vecsComponentListGetMetadata(
+            worldPtr->_componentListPtr,
+            componentId
         );
     if(componentMetadata._componentSize == 0){
         return NULL;
     }
 
     /* get ptr to archetype */
-    _WindArchetype *archetypePtr
-        = windWorldHandleGetArchetype(
+    _VecsArchetype *archetypePtr
+        = vecsWorldEntityGetArchetype(
             worldPtr,
-            handle
+            entity
         );
     /* ask archetype to get a ptr to the component */
-    return __windArchetypeGetPtr(
+    return __vecsArchetypeGetPtr(
         archetypePtr,
-        componentID,
-        handle.entityID
+        componentId,
+        entity
     );
 }
 
 /*
  * Returns a pointer to the component specified by the
- * given componentID of the entity specified by the
- * given ID; error if the componentID is invalid;
+ * given component id of the entity specified by the
+ * given id; error if the component id is invalid;
  * returns NULL if the component is a marker or if the
  * entity is dead
  */
-void *_windWorldIDGetPtr(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntityIDType entityID
+void *_vecsWorldIdGetPtr(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entityId
 ){
     /* return NULL if entity dead */
-    if(windWorldIsIDDead(worldPtr, entityID)){
+    if(vecsWorldIsIdDead(worldPtr, entityId)){
         return NULL;
     }
     /* error if component ID is invalid */
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesIDGetMetadata(
-            &(worldPtr->_entities),
-            entityID
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListIdGetMetadata(
+            &(worldPtr->_entityList),
+            entityId
         );
     assertTrue(
-        bitsetGet(
-            &(entityMetadataPtr->_componentSet),
-            componentID
+        vecsComponentSetContainsId(
+            entityMetadataPtr->_componentSet,
+            componentId
         ),
         "error: trying to get component entity lacks; "
         SRC_LOCATION
     );
     /* return NULL if component is marker */
-    WindComponentMetadata componentMetadata
-        = windComponentsGet(
-            worldPtr->_componentsPtr,
-            componentID
+    VecsComponentMetadata componentMetadata
+        = vecsComponentListGetMetadata(
+            worldPtr->_componentListPtr,
+            componentId
         );
     if(componentMetadata._componentSize == 0){
         return NULL;
     }
 
     /* get ptr to archetype */
-    _WindArchetype *archetypePtr
-        = windWorldIDGetArchetype(
+    _VecsArchetype *archetypePtr
+        = vecsWorldIdGetArchetype(
             worldPtr,
-            entityID
+            entityId
         );
     /* ask archetype to get a ptr to the component */
-    return __windArchetypeGetPtr(
+    return __vecsArchetypeGetPtr(
         archetypePtr,
-        componentID,
-        entityID
+        componentId,
+        entityMetadataPtr->_canonicalEntity
     );
 }
 
 /*
- * Adds the given component to the entity specified
- * by the given handle, returns true if successful,
- * false otherwise; the componentPtr is shallow copied
- * and is not freed by the ECS
+ * Adds the given component to the specified entity,
+ * returns true if successful, false otherwise; the
+ * componentPtr is shallow copied and is not freed by
+ * the ECS
  */
-bool _windWorldHandleAddComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntity handle,
+bool _vecsWorldEntityAddComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity,
     void *componentPtr
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
-    return _windWorldIDAddComponent(
+    return _vecsWorldIdAddComponent(
         worldPtr,
-        componentID,
-        handle.entityID,
+        componentId,
+        vecsEntityId(entity),
         componentPtr
     );
 }
 
 /*
  * Adds the given component to the entity specified
- * by the given ID, returns true if successful,
+ * by the given id, returns true if successful,
  * false otherwise; the componentPtr is shallow copied
  * and is not freed by the ECS
  */
-bool _windWorldIDAddComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntityIDType entityID,
+bool _vecsWorldIdAddComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entityId,
     void *componentPtr
 ){
     /* return false if entity dead */
-    if(windWorldIsIDDead(worldPtr, entityID)){
+    if(vecsWorldIsIdDead(worldPtr, entityId)){
         return false;
     }
     /* return false if entity already has component */
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesIDGetMetadata(
-            &(worldPtr->_entities),
-            entityID
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListIdGetMetadata(
+            &(worldPtr->_entityList),
+            entityId
         );
-    if(bitsetGet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
+    if(vecsComponentSetContainsId(
+        entityMetadataPtr->_componentSet,
+        componentId
     )){
         return false;
     }
     /* get old archetype */
-    _WindArchetype *oldArchetypePtr
-        = windWorldIDGetArchetype(
+    _VecsArchetype *oldArchetypePtr
+        = vecsWorldIdGetArchetype(
             worldPtr,
-            entityID
+            entityId
         );
-    /* update component set */
-    bitsetSet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
-    );
     /* get new archetype */
-    _WindArchetype *newArchetypePtr
-        = windWorldIDGetArchetype(
+    VecsComponentSet newComponentSet
+        = vecsComponentSetAddId(
+            entityMetadataPtr->_componentSet,
+            componentId
+        );
+    _VecsArchetype *newArchetypePtr
+        = vecsWorldGetArchetype(
             worldPtr,
-            entityID
+            newComponentSet
         );
     /* move components from old archetype to new */
-    _windArchetypeMoveEntity(
+    _vecsArchetypeMoveEntity(
         oldArchetypePtr,
-        entityID,
-        newArchetypePtr
+        newArchetypePtr,
+        entityMetadataPtr->_canonicalEntity
     );
     /*
      * add component to the entity in the new 
      * archetype (as long as it is not a marker)
      */
-    __windArchetypeSetPtr(
+    __vecsArchetypeSetPtr(
         newArchetypePtr,
-        componentID,
-        entityID,
+        componentId,
+        entityMetadataPtr->_canonicalEntity,
         componentPtr
     );
     
@@ -793,26 +792,25 @@ bool _windWorldIDAddComponent(
 
 /*
  * Queues an order to add the given component to the
- * entity specified by the given handle, returns true
- * if successful, false otherwise (e.g. the handle
- * is dead); the componentPtr is shallow copied to the
- * heap and the original pointer is not freed by the
- * ECS
+ * specified entity, returns true if successful, false
+ * otherwise (e.g. the entity is dead); the
+ * componentPtr is shallow copied to the heap and the
+ * original pointer is not freed by the ECS
  */
-bool _windWorldHandleQueueAddComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntity handle,
+bool _vecsWorldEntityQueueAddComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity,
     void *componentPtr
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
-    WindComponentMetadata componentMetadata
-        = windComponentsGet(
-               worldPtr->_componentsPtr,
-               componentID
+    VecsComponentMetadata componentMetadata
+        = vecsComponentListGetMetadata(
+            worldPtr->_componentListPtr,
+            componentId
         );
     void *heapCopy = NULL;
     /* make a heap copy if component not marker */
@@ -829,8 +827,8 @@ bool _windWorldHandleQueueAddComponent(
     }
     /* queue up the order */
     AddComponentOrder order = {
-        handle,
-        componentID,
+        entity,
+        componentId,
         heapCopy
     };
     arrayListPushBack(AddComponentOrder,
@@ -841,74 +839,75 @@ bool _windWorldHandleQueueAddComponent(
 }
 
 /*
- * Sets the given component to the entity specified
- * by the given handle, returns true if successful,
- * false otherwise; the componentPtr is shallow copied
- * and is not freed by the ECS
+ * Sets the given component to the specified entity,
+ * returns true if successful, false otherwise; the
+ * componentPtr is shallow copied and is not freed by
+ * the ECS
  */
-bool _windWorldHandleSetComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntity handle,
+bool _vecsWorldEntitySetComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity,
     void *componentPtr
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
-    return _windWorldIDSetComponent(
+    return _vecsWorldIdSetComponent(
         worldPtr,
-        componentID,
-        handle.entityID,
+        componentId,
+        vecsEntityId(entity),
         componentPtr
     );
 }
 
 /*
  * Sets the given component to the entity specified
- * by the given ID, returns true if successful,
+ * by the given id, returns true if successful,
  * false otherwise; the componentPtr is shallow copied
  * and is not freed by the ECS
  */
-bool _windWorldIDSetComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntityIDType entityID,
+bool _vecsWorldIdSetComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entityId,
     void *componentPtr
 ){
     /* return false if entity dead */
-    if(windWorldIsIDDead(worldPtr, entityID)){
+    if(vecsWorldIsIdDead(worldPtr, entityId)){
         return false;
     }
-    _WindArchetype *oldArchetypePtr
-        = windWorldIDGetArchetype(
+
+    _VecsArchetype *oldArchetypePtr
+        = vecsWorldIdGetArchetype(
             worldPtr,
-            entityID
+            entityId
+        );
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListIdGetMetadata(
+            &(worldPtr->_entityList),
+            entityId
         );
     /* if entity has component, replace it */
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesIDGetMetadata(
-            &(worldPtr->_entities),
-            entityID
-        );
-    if(bitsetGet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
+    if(vecsComponentSetContainsId(
+        entityMetadataPtr->_componentSet,
+        componentId
     )){
-        WindComponentMetadata componentMetadata
-            = windComponentsGet(
-                worldPtr->_componentsPtr,
-                componentID
+        VecsComponentMetadata componentMetadata
+            = vecsComponentListGetMetadata(
+                worldPtr->_componentListPtr,
+                componentId
             );
         /* do nothing if component is marker */
         if(componentMetadata._componentSize == 0){
             return true;
         }
         void *componentPtrIntoArchetype
-            = __windArchetypeGetPtr(
+            = __vecsArchetypeGetPtr(
                 oldArchetypePtr,
-                componentID,
-                entityID
+                componentId,
+                entityMetadataPtr->_canonicalEntity
             );
         /* run destructor on old component if needed */
         if(componentMetadata._destructor){
@@ -925,31 +924,30 @@ bool _windWorldIDSetComponent(
         return true;
     }
     /* otherwise, move archetypes (same as add) */
-    /* update component set */
-    bitsetSet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
-    );
-    /* get new archetype */
-    _WindArchetype *newArchetypePtr
-        = windWorldIDGetArchetype(
+    VecsComponentSet newComponentSet
+        = vecsComponentSetAddId(
+            entityMetadataPtr->_componentSet,
+            componentId
+        );
+    _VecsArchetype *newArchetypePtr
+        = vecsWorldGetArchetype(
             worldPtr,
-            entityID
+            newComponentSet
         );
     /* move components from old archetype to new */
-    _windArchetypeMoveEntity(
+    _vecsArchetypeMoveEntity(
         oldArchetypePtr,
-        entityID,
-        newArchetypePtr
+        newArchetypePtr,
+        entityMetadataPtr->_canonicalEntity
     );
     /*
      * add component to the entity in the new 
      * archetype (as long as it is not a marker)
      */
-    __windArchetypeSetPtr(
+    __vecsArchetypeSetPtr(
         newArchetypePtr,
-        componentID,
-        entityID,
+        componentId,
+        entityMetadataPtr->_canonicalEntity,
         componentPtr
     );
     
@@ -958,26 +956,26 @@ bool _windWorldIDSetComponent(
 
 /*
  * Queues an order to set the given component of the
- * entity specified by the given handle to the 
- * provided value, returns true if successful, false
- * otherwise (e.g. the handle is dead); the
- * componentPtr is shallow copied to the heap and the
- * original pointer is not freed by the ECS
+ * specified entity to the provided value, returns true
+ * if successful, false otherwise (e.g. the entity is
+ * dead); the componentPtr is shallow copied to the
+ * heap and the original pointer is not freed by the
+ * ECS
  */
-bool _windWorldHandleQueueSetComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntity handle,
+bool _vecsWorldEntityQueueSetComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity,
     void *componentPtr
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
-    WindComponentMetadata componentMetadata
-        = windComponentsGet(
-               worldPtr->_componentsPtr,
-               componentID
+    VecsComponentMetadata componentMetadata
+        = vecsComponentListGetMetadata(
+               worldPtr->_componentListPtr,
+               componentId
         );
     void *heapCopy = NULL;
     /* make a heap copy if component not marker */
@@ -994,8 +992,8 @@ bool _windWorldHandleQueueSetComponent(
     }
     /* queue up the order */
     SetComponentOrder order = {
-        handle,
-        componentID,
+        entity,
+        componentId,
         heapCopy
     };
     arrayListPushBack(SetComponentOrder,
@@ -1006,75 +1004,91 @@ bool _windWorldHandleQueueSetComponent(
 }
 
 /*
- * Removes the specified component from the entity
- * specified by the given handle; returns true if
- * successful, false otherwise
+ * Removes the specified component from the given
+ * entity, returns true if successful, false otherwise;
+ * cannot remove entity id component
  */
-bool _windWorldHandleRemoveComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntity handle
+bool _vecsWorldEntityRemoveComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
-    return _windWorldIDRemoveComponent(
+
+    return _vecsWorldIdRemoveComponent(
         worldPtr,
-        componentID,
-        handle.entityID
+        componentId,
+        vecsEntityId(entity)
     );
 }
 
 /*
  * Removes the specified component from the entity
- * specified by the given ID; returns true if
- * successful, false otherwise
+ * specified by the given id, returns true if
+ * successful, false otherwise; cannot remove entity
+ * id component
  */
-bool _windWorldIDRemoveComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntityIDType entityID
+bool _vecsWorldIdRemoveComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entityId
 ){
     /* return false if entity dead */
-    if(windWorldIsIDDead(worldPtr, entityID)){
+    if(vecsWorldIsIdDead(worldPtr, entityId)){
+        return false;
+    }
+    /*
+     * return false if attempting to remove entity id
+     */
+    if(componentId == VecsEntityId){
         return false;
     }
     /* return false if entity doesn't have component */
-    _WindEntityMetadata *entityMetadataPtr
-        = _windEntitiesIDGetMetadata(
-            &(worldPtr->_entities),
-            entityID
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListIdGetMetadata(
+            &(worldPtr->_entityList),
+            entityId
         );
-    if(!bitsetGet(
-        &(entityMetadataPtr->_componentSet),
-        componentID
+    if(!vecsComponentSetContainsId(
+        entityMetadataPtr->_componentSet,
+        componentId
     )){
         return false;
     }
     /* get old archetype */
-    _WindArchetype *oldArchetypePtr
-        = windWorldIDGetArchetype(
+    _VecsArchetype *oldArchetypePtr
+        = vecsWorldIdGetArchetype(
             worldPtr,
-            entityID
+            entityId
         );
     /* do not run destructor; archetype move will */
     
     /* update component set */
     bitsetUnset(
         &(entityMetadataPtr->_componentSet),
-        componentID
+        componentId
     );
     /* get new archetype */
-    _WindArchetype *newArchetypePtr
-        = windWorldIDGetArchetype(
-            worldPtr,
-            entityID
+    VecsComponentSet newComponentSet
+        = vecsComponentSetRemoveId(
+            entityMetadataPtr->_componentSet,
+            componentId
         );
-    /* move components from old archetype to new */
-    _windArchetypeMoveEntity(
+    _VecsArchetype *newArchetypePtr
+        = vecsWorldGetArchetype(
+            worldPtr,
+            newComponentSet
+        );
+    /*
+     * move components from old archetype to new,
+     * essentially truncating the entity
+     */
+    _vecsArchetypeMoveEntity(
         oldArchetypePtr,
-        entityID,
+        entityId,
         newArchetypePtr
     );
     return true;
@@ -1082,21 +1096,21 @@ bool _windWorldIDRemoveComponent(
 
 /*
  * Queues an order to remove the specified component
- * from the entity specified by the given handle
+ * from the given entity
  */
-bool _windWorldHandleQueueRemoveComponent(
-    WindWorld *worldPtr,
-    WindComponentIDType componentID,
-    WindEntity handle
+bool _vecsWorldEntityQueueRemoveComponent(
+    VecsWorld *worldPtr,
+    VecsComponentId componentId,
+    VecsEntity entity
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
     /* queue up the order */
     RemoveComponentOrder order = {
-        handle,
-        componentID
+        entity,
+        componentId
     };
     arrayListPushBack(RemoveComponentOrder,
         &(worldPtr->_removeComponentQueue),
@@ -1107,22 +1121,23 @@ bool _windWorldHandleQueueRemoveComponent(
 
 /*
  * Adds the specified entity to the given ECS world
- * and returns its handle; takes ownership of the
+ * and returns the new entity; takes ownership of the
  * provided components but does not free the component
  * list
  */
-WindEntity windWorldAddEntity(
-    WindWorld *worldPtr,
+VecsEntity vecsWorldAddEntity(
+    VecsWorld *worldPtr,
     ArrayList *componentDataPairListPtr
-){
+);
+    //todo: continue
     /* generate a new entity */
     WindEntity handle = _windEntitiesCreate(
-        &(worldPtr->_entities)
+        &(worldPtr->_entityList)
     );
     /* grab entity metadata */
-    _WindEntityMetadata *entityMetadataPtr
+    _VecsEntityMetadata *entityMetadataPtr
         = _windEntitiesGetMetadata(
-            &(worldPtr->_entities),
+            &(worldPtr->_entityList),
             handle
         );
     assertNotNull(
@@ -1131,59 +1146,59 @@ WindEntity windWorldAddEntity(
         "entity; " SRC_LOCATION
     );
     /* toggle the component set for each component */
-    WindComponentIDType componentID = 0;
+    WindComponentIDType componentId = 0;
     for(size_t i = 0;
         i < componentDataPairListPtr->size;
         ++i
     ){
-        componentID = arrayListGet(
+        componentId = arrayListGet(
             WindComponentDataPair,
             componentDataPairListPtr,
             i
-        ).componentID;
+        ).componentId;
         assertFalse(
             bitsetGet(
                 &(entityMetadataPtr->_componentSet),
-                componentID
+                componentId
             ),
             "error: duplicate component; "
             SRC_LOCATION
         );
         bitsetSet(
             &(entityMetadataPtr->_componentSet),
-            componentID
+            componentId
         );
     }
     /* get the entity's archetype */
-    _WindArchetype *archetypePtr
-        = windWorldHandleGetArchetype(
+    _VecsArchetype *archetypePtr
+        = vecsWorldEntityGetArchetype(
             worldPtr,
             handle
         );
     /* shallow copy each component into archetype */
-    WindComponentMetadata componentMetadata = {0};
+    VecsComponentMetadata componentMetadata = {0};
     for(size_t i = 0;
         i < componentDataPairListPtr->size;
         ++i
     ){
-        componentID = arrayListGet(
+        componentId = arrayListGet(
             WindComponentDataPair,
             componentDataPairListPtr,
             i
-        ).componentID;
-        componentMetadata = windComponentsGet(
-            worldPtr->_componentsPtr,
-            componentID
+        ).componentId;
+        componentMetadata = vecsComponentListGetMetadata(
+            worldPtr->_componentListPtr,
+            componentId
         );
         /* skip markers */
         if(componentMetadata._componentSize == 0){
             continue;
         }
         /* shallow copy each component from its ptr */
-        __windArchetypeSetPtr(
+        __vecsArchetypeSetPtr(
             archetypePtr,
-            componentID,
-            handle.entityID,
+            componentId,
+            handle.entityId,
             arrayListGet(WindComponentDataPair,
                 componentDataPairListPtr,
                 i
@@ -1225,7 +1240,7 @@ void windWorldQueueAddEntity(
         numComponents
     );
     /* shallow copy every component */
-    WindComponentMetadata componentMetadata = {0};
+    VecsComponentMetadata componentMetadata = {0};
     WindComponentDataPair dataPair = {0};
     /*
      * optimization: only allocate a single block
@@ -1242,9 +1257,9 @@ void windWorldQueueAddEntity(
             componentDataPairListPtr,
             i
         );
-        componentMetadata = windComponentsGet(
-            worldPtr->_componentsPtr,
-            dataPair.componentID
+        componentMetadata = vecsComponentListGetMetadata(
+            worldPtr->_componentListPtr,
+            dataPair.componentId
         );
         entireComponentDataSize
             += componentMetadata._componentSize;
@@ -1275,9 +1290,9 @@ void windWorldQueueAddEntity(
             componentDataPairListPtr,
             i
         );
-        componentMetadata = windComponentsGet(
-            worldPtr->_componentsPtr,
-            dataPair.componentID
+        componentMetadata = vecsComponentListGetMetadata(
+            worldPtr->_componentListPtr,
+            dataPair.componentId
         );
         /* if marker, use NULL as the component */
         if(componentMetadata._componentSize == 0){
@@ -1315,12 +1330,12 @@ bool windWorldHandleRemoveEntity(
     WindEntity handle
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, handle)){
         return false;
     }
     return windWorldIDRemoveEntity(
         worldPtr,
-        handle.entityID
+        handle.entityId
     );
 }
 
@@ -1331,27 +1346,27 @@ bool windWorldHandleRemoveEntity(
  */
 bool windWorldIDRemoveEntity(
     WindWorld *worldPtr,
-    WindEntityIDType entityID
+    WindEntityIDType entityId
 ){
     /* return false if entity dead */
-    if(windWorldIsIDDead(worldPtr, entityID)){
+    if(vecsWorldIsIdDead(worldPtr, entityId)){
         return false;
     }
     /* get archetype */
-    _WindArchetype *archetypePtr
-        = windWorldIDGetArchetype(
+    _VecsArchetype *archetypePtr
+        = vecsWorldIdGetArchetype(
             worldPtr,
-            entityID
+            entityId
         );
     /* clear entity metadata */
     _windEntitiesReclaim(
-        &(worldPtr->_entities),
-        windWorldMakeHandle(worldPtr, entityID)
+        &(worldPtr->_entityList),
+        windWorldMakeHandle(worldPtr, entityId)
     );
     /* clear entity component data */
     bool success = _windArchetypeRemoveEntity(
         archetypePtr,
-        entityID
+        entityId
     );
     assertTrue(
         success,
@@ -1372,7 +1387,7 @@ bool windWorldHandleQueueRemoveEntity(
     WindEntity handle
 ){
     /* return false if entity dead */
-    if(windWorldIsHandleDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, handle)){
         return false;
     }
     RemoveEntityOrder order = {handle};
@@ -1431,7 +1446,7 @@ static void windWorldHandleRemoveComponentOrders(
         );
         _windWorldHandleRemoveComponent(
             worldPtr,
-            order.componentID,
+            order.componentId,
             order.handle
         );
     }
@@ -1493,7 +1508,7 @@ static void windWorldHandleAddComponentOrders(
         );
         _windWorldHandleAddComponent(
             worldPtr,
-            orderPtr->componentID,
+            orderPtr->componentId,
             orderPtr->handle,
             orderPtr->componentPtr
         );
@@ -1528,7 +1543,7 @@ static void windWorldHandleSetComponentOrders(
         );
         _windWorldHandleSetComponent(
             worldPtr,
-            orderPtr->componentID,
+            orderPtr->componentId,
             orderPtr->handle,
             orderPtr->componentPtr
         );
@@ -1584,11 +1599,11 @@ void windWorldFree(WindWorld *worldPtr){
      */
     windWorldHandleOrders(worldPtr);
 
-    arrayListApply(_WindArchetype,
+    arrayListApply(_VecsArchetype,
         &(worldPtr->_archetypeList),
         _windArchetypeFree
     );
-    arrayListFree(_WindArchetype,
+    arrayListFree(_VecsArchetype,
         &(worldPtr->_archetypeList)
     );
 
@@ -1614,7 +1629,7 @@ void windWorldFree(WindWorld *worldPtr){
         &(worldPtr->_queryIndexMap)
     );
 
-    _windEntitiesFree(&(worldPtr->_entities));
+    _windEntitiesFree(&(worldPtr->_entityList));
 
     /*
      * since orders were ran earlier, simply free
