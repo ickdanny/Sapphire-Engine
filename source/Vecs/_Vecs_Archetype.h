@@ -271,6 +271,15 @@ bool _vecsArchetypeRemoveEntity(
 );
 
 /*
+ * Allocates space for storing a new entity and adds
+ * the entity component
+ */
+void _vecsArchetypeAddEntity(
+    _VecsArchetype *archetypePtr,
+    VecsEntity entity
+);
+
+/*
  * Frees the memory associated with the given
  * archetype
  */

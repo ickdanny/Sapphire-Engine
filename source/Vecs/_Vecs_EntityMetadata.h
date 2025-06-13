@@ -31,7 +31,7 @@ typedef struct _VecsEntityMetadata{
     struct _VecsArchetype *_archetypePtr;
 
     /* The index of the entity in its archetype */
-    size_t *_indexInArchetype;
+    size_t _indexInArchetype;
 
     /* Used to detect generational differences */
     VecsEntity _canonicalEntity;

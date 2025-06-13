@@ -716,6 +716,92 @@ bool _vecsArchetypeRemoveEntity(
 }
 
 /*
+ * Allocates space for storing a new entity and adds
+ * the entity component
+ */void _vecsArchetypeAddEntity(
+    _VecsArchetype *archetypePtr,
+    VecsEntity entity
+){
+    _VecsEntityMetadata *entityMetadataPtr
+        = _vecsEntityListGetMetadata(
+            archetypePtr->_entityListPtr,
+            entity
+        );
+    assertTrue(
+        archetypePtr->_componentSet
+            == entityMetadataPtr->_componentSet,
+        "error: adding entity to archetype with "
+        "different component sets; "
+        SRC_LOCATION
+    );
+    entityMetadataPtr->_archetypePtr = archetypePtr;
+    
+    /*
+     * reserve the last slot in the component storage
+     */
+    entityMetadataPtr->_indexInArchetype
+        = archetypePtr->_componentStorageLists
+            [VecsEntityId].size;
+
+    /* iterate over all possible components */
+    for(VecsComponentId i = 1;
+        i < vecsMaxNumComponents;
+        ++i
+    ){
+        /*
+         * skip if component not within archetype, or
+         * equivalently, if entity lacks component
+         */
+        if(!vecsComponentSetContainsId(
+            archetypePtr->_componentSet,
+            i
+        )){
+            continue;
+        }
+
+        VecsComponentMetadata componentMetadata
+            = vecsComponentListGetMetadata(
+                archetypePtr->_componentListPtr,
+                i
+            );
+    
+        /* skip if component is a marker */
+        if(componentMetadata._componentSize == 0){
+            return;
+        }
+
+        /* allocate slot for each component */
+        ArrayList *componentStoragePtr
+            = &(archetypePtr
+                ->_componentStorageLists[i]);
+        assertTrue(
+            _arrayListGrowIfNeeded(
+                componentStoragePtr,
+                componentMetadata._componentSize
+            ),
+            "error: failed to grow for archetype add "
+            "entity; "
+            SRC_LOCATION
+        );
+        ++(componentStoragePtr->size);
+    }
+
+    /* add the entity component */
+    ArrayList *entityComponentStoragePtr
+        = &(archetypePtr
+            ->_componentStorageLists[VecsEntityId]);
+    arrayListSet(VecsEntity,
+        entityComponentStoragePtr,
+        entityMetadataPtr->_indexInArchetype,
+        entity
+    );
+    entityMetadataPtr->_initializedComponentSet
+        = vecsComponentSetFromId(VecsEntityId);
+
+    ++(archetypePtr->_modificationCount);
+}
+
+/*
  * Frees all the memory associated with the specified
  * component storage using the provided RTTI
  */

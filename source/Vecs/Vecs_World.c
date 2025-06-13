@@ -140,7 +140,7 @@ static void addEntityOrderFree(
     if(orderPtr->componentDataBasePtr){
         pgFree(orderPtr->componentDataBasePtr);
     }
-    arrayListFree(WindComponentDataPair,
+    arrayListFree(VecsComponentDataPair,
         &(orderPtr->componentDataPairList)
     );
 }
@@ -284,7 +284,7 @@ static VecsQuery *vecsWorldInsertQuery(
  * Returns a new query iterator; error if the accept
  * and reject sets intersect
  */
-VecsQueryItr windWorldRequestQueryItr(
+VecsQueryItr vecsWorldRequestQueryItr(
     VecsWorld *worldPtr,
     VecsComponentSet acceptComponentSet,
     VecsComponentSet rejectComponentSet
@@ -1128,53 +1128,79 @@ bool _vecsWorldEntityQueueRemoveComponent(
 VecsEntity vecsWorldAddEntity(
     VecsWorld *worldPtr,
     ArrayList *componentDataPairListPtr
-);
-    //todo: continue
-    /* generate a new entity */
-    WindEntity handle = _windEntitiesCreate(
+){
+    /* allocate a new entity */
+    VecsEntity entity = _vecsEntityListAllocate(
         &(worldPtr->_entityList)
     );
     /* grab entity metadata */
     _VecsEntityMetadata *entityMetadataPtr
-        = _windEntitiesGetMetadata(
+        = _vecsEntityListGetMetadata(
             &(worldPtr->_entityList),
-            handle
+            entity
         );
     assertNotNull(
         entityMetadataPtr,
         "error: failed to get entity metadata of new "
-        "entity; " SRC_LOCATION
+        "entity; "
+        SRC_LOCATION
     );
     /* toggle the component set for each component */
-    WindComponentIDType componentId = 0;
+    VecsComponentSet componentSet
+        = vecsEmptyComponentSet;
+    VecsComponentId componentId = 0;
     for(size_t i = 0;
         i < componentDataPairListPtr->size;
         ++i
     ){
         componentId = arrayListGet(
-            WindComponentDataPair,
+            VecsComponentDataPair,
             componentDataPairListPtr,
             i
         ).componentId;
         assertFalse(
-            bitsetGet(
-                &(entityMetadataPtr->_componentSet),
+            VecsComponentSetContainsId(
+                componentSet,
                 componentId
             ),
             "error: duplicate component; "
             SRC_LOCATION
         );
-        bitsetSet(
-            &(entityMetadataPtr->_componentSet),
+        componentSet = vecsComponentSetAddId(
+            componentSet,
             componentId
         );
     }
+    /*
+     * users should never manually add an entity
+     * component
+     */
+    assertFalse(
+        vecsComponentSetContainsId(
+            componentSet,
+            VecsEntityId
+        ),
+        "error: user cannot pass in an entity "
+        "component; "
+        SRC_LOCATION
+    );
+    /* toggle the entity component set */
+    componentSet = vecsComponentSetAddId(
+        componentSet,
+        VecsEntityId
+    );
+    entityMetadataPtr->_componentSet = componentSet;
     /* get the entity's archetype */
     _VecsArchetype *archetypePtr
-        = vecsWorldEntityGetArchetype(
+        = vecsWorldGetArchetype(
             worldPtr,
-            handle
+            componentSet
         );
+    /* allocate space for entity's components */
+    _vecsArchetypeAddEntity(
+        archetypePtr,
+        entity
+    );
     /* shallow copy each component into archetype */
     VecsComponentMetadata componentMetadata = {0};
     for(size_t i = 0;
@@ -1182,14 +1208,15 @@ VecsEntity vecsWorldAddEntity(
         ++i
     ){
         componentId = arrayListGet(
-            WindComponentDataPair,
+            VecsComponentDataPair,
             componentDataPairListPtr,
             i
         ).componentId;
-        componentMetadata = vecsComponentListGetMetadata(
-            worldPtr->_componentListPtr,
-            componentId
-        );
+        componentMetadata
+            = vecsComponentListGetMetadata(
+                worldPtr->_componentListPtr,
+                componentId
+            );
         /* skip markers */
         if(componentMetadata._componentSize == 0){
             continue;
@@ -1198,14 +1225,14 @@ VecsEntity vecsWorldAddEntity(
         __vecsArchetypeSetPtr(
             archetypePtr,
             componentId,
-            handle.entityId,
-            arrayListGet(WindComponentDataPair,
+            entity,
+            arrayListGet(VecsComponentDataPair,
                 componentDataPairListPtr,
                 i
             ).componentPtr
         );
     }
-    return handle;
+    return entity;
 }
 
 /*
@@ -1213,11 +1240,11 @@ VecsEntity vecsWorldAddEntity(
  * given ECS world; takes ownership of the provided
  * components and frees the component list when
  * the order is handled - the component list will be
- * shallow copied so the user must still free their
- * version of it
+ * shallow copied to the heap so the user must still
+ * free their version of it (the copy is 1-level deep)
  */
-void windWorldQueueAddEntity(
-    WindWorld *worldPtr,
+void vecsWorldQueueAddEntity(
+    VecsWorld *worldPtr,
     ArrayList *componentDataPairListPtr
 ){
     /* add a dummy to the queue; construct in place */
@@ -1236,12 +1263,12 @@ void windWorldQueueAddEntity(
     size_t numComponents
         = componentDataPairListPtr->size;
     *componentDataPairListCopyPtr = arrayListMake(
-        WindComponentDataPair,
+        VecsComponentDataPair,
         numComponents
     );
     /* shallow copy every component */
     VecsComponentMetadata componentMetadata = {0};
-    WindComponentDataPair dataPair = {0};
+    VecsComponentDataPair dataPair = {0};
     /*
      * optimization: only allocate a single block
      * on the heap for each component and keep track
@@ -1253,14 +1280,15 @@ void windWorldQueueAddEntity(
         i < numComponents;
         ++i
     ){
-        dataPair = arrayListGet(WindComponentDataPair,
+        dataPair = arrayListGet(VecsComponentDataPair,
             componentDataPairListPtr,
             i
         );
-        componentMetadata = vecsComponentListGetMetadata(
-            worldPtr->_componentListPtr,
-            dataPair.componentId
-        );
+        componentMetadata
+            = vecsComponentListGetMetadata(
+                worldPtr->_componentListPtr,
+                dataPair.componentId
+            );
         entireComponentDataSize
             += componentMetadata._componentSize;
     }
@@ -1286,7 +1314,7 @@ void windWorldQueueAddEntity(
         ++i
     ){
         /* make a value copy of the data pair */
-        dataPair = arrayListGet(WindComponentDataPair,
+        dataPair = arrayListGet(VecsComponentDataPair,
             componentDataPairListPtr,
             i
         );
@@ -1313,7 +1341,7 @@ void windWorldQueueAddEntity(
             );
         }
         /* push to the copy list */
-        arrayListPushBack(WindComponentDataPair,
+        arrayListPushBack(VecsComponentDataPair,
             componentDataPairListCopyPtr,
             dataPair
         );
@@ -1321,32 +1349,31 @@ void windWorldQueueAddEntity(
 }
 
 /*
- * Removes the entity specified by the given handle
- * from the given ECS world; returns true if
- * successful, false otherwise
+ * Removes the specified entity from the given ECS
+ * world, returns true if successful, false otherwise
  */
-bool windWorldHandleRemoveEntity(
-    WindWorld *worldPtr,
-    WindEntity handle
+bool vecsWorldEntityRemoveEntity(
+    VecsWorld *worldPtr,
+    VecsEntity entity
 ){
     /* return false if entity dead */
-    if(vecsWorldIsEntityDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
-    return windWorldIDRemoveEntity(
+    return vecsWorldIdRemoveEntity(
         worldPtr,
-        handle.entityId
+        vecsEntityId(entity)
     );
 }
 
 /*
- * Removes the entity specified by the given ID
- * from the given ECS world; returns true if
+ * Removes the entity specified by the given id
+ * from the given ECS world, returns true if
  * successful, false otherwise
  */
-bool windWorldIDRemoveEntity(
-    WindWorld *worldPtr,
-    WindEntityIDType entityId
+bool vecsWorldIdRemoveEntity(
+    VecsWorld *worldPtr,
+    VecsEntity entityId
 ){
     /* return false if entity dead */
     if(vecsWorldIsIdDead(worldPtr, entityId)){
@@ -1359,38 +1386,44 @@ bool windWorldIDRemoveEntity(
             entityId
         );
     /* clear entity metadata */
-    _windEntitiesReclaim(
+    VecsEntity entity = vecsWorldGetEntityById(
+        worldPtr,
+        entityId
+    );
+    _vecsEntityListReclaim(
         &(worldPtr->_entityList),
-        windWorldMakeHandle(worldPtr, entityId)
+        entity
     );
     /* clear entity component data */
-    bool success = _windArchetypeRemoveEntity(
+    bool success = _vecsArchetypeRemoveEntity(
         archetypePtr,
-        entityId
+        entity
     );
     assertTrue(
         success,
         "error: failed to remove entity from "
-        "archetype; " SRC_LOCATION
+        "archetype; "
+        SRC_LOCATION
     );
     return true;
 }
 
 /*
- * Queues an order to remove the entity specified by
- * the given handle from the given ECS world, returns
- * true if successful, false otherwise (e.g. if the
- * entity is already dead)
+ * Queues an order to remove the specified entity from
+ * the given ECS world, returns true if successful,
+ * false otherwise (e.g. if the entity is already dead)
  */
-bool windWorldHandleQueueRemoveEntity(
-    WindWorld *worldPtr,
-    WindEntity handle
+bool vecsWorldEntityQueueRemoveEntity(
+    VecsWorld *worldPtr,
+    VecsEntity entity
 ){
     /* return false if entity dead */
-    if(vecsWorldIsEntityDead(worldPtr, handle)){
+    if(vecsWorldIsEntityDead(worldPtr, entity)){
         return false;
     }
-    RemoveEntityOrder order = {handle};
+    RemoveEntityOrder order = {
+        .entity = entity
+    };
     arrayListPushBack(RemoveEntityOrder,
         &(worldPtr->_removeEntityQueue),
         order
@@ -1403,22 +1436,21 @@ bool windWorldHandleQueueRemoveEntity(
  * to the ECS world since the last time this
  * function was called
  */
-static void windWorldHandleRemoveEntityOrders(
-    WindWorld *worldPtr
+static void vecsWorldHandleRemoveEntityOrders(
+    VecsWorld *worldPtr
 ){
-    WindEntity handleToRemove = {0};
+    VecsEntity toRemove = {0};
     for(size_t i = 0;
         i < worldPtr->_removeEntityQueue.size;
         ++i
     ){
-        handleToRemove = arrayListGet(
-            RemoveEntityOrder,
+        toRemove = arrayListGet(RemoveEntityOrder,
             &(worldPtr->_removeEntityQueue),
             i
-        ).handle;
-        windWorldHandleRemoveEntity(
+        ).entity;
+        vecsWorldEntityRemoveEntity(
             worldPtr,
-            handleToRemove
+            toRemove
         );
     }
     arrayListClear(RemoveEntityOrder,
@@ -1431,23 +1463,22 @@ static void windWorldHandleRemoveEntityOrders(
  * to the ECS world since the last time this
  * function was called
  */
-static void windWorldHandleRemoveComponentOrders(
-    WindWorld *worldPtr
+static void vecsWorldHandleRemoveComponentOrders(
+    VecsWorld *worldPtr
 ){
     RemoveComponentOrder order = {0};
     for(size_t i = 0;
         i < worldPtr->_removeComponentQueue.size;
         ++i
     ){
-        order = arrayListGet(
-            RemoveComponentOrder,
+        order = arrayListGet(RemoveComponentOrder,
             &(worldPtr->_removeComponentQueue),
             i
         );
-        _windWorldHandleRemoveComponent(
+        _vecsWorldEntityRemoveComponent(
             worldPtr,
             order.componentId,
-            order.handle
+            order.entity
         );
     }
     arrayListClear(RemoveComponentOrder,
@@ -1460,8 +1491,8 @@ static void windWorldHandleRemoveComponentOrders(
  * to the ECS world since the last time this
  * function was called
  */
-static void windWorldHandleAddEntityOrders(
-    WindWorld *worldPtr
+static void vecsWorldHandleAddEntityOrders(
+    VecsWorld *worldPtr
 ){
     AddEntityOrder *orderPtr = NULL;
     for(size_t i = 0;
@@ -1473,7 +1504,7 @@ static void windWorldHandleAddEntityOrders(
             &(worldPtr->_addEntityQueue),
             i
         );
-        windWorldAddEntity(
+        vecsWorldAddEntity(
             worldPtr,
             &(orderPtr->componentDataPairList)
         );
@@ -1493,8 +1524,8 @@ static void windWorldHandleAddEntityOrders(
  * to the ECS world since the last time this
  * function was called
  */
-static void windWorldHandleAddComponentOrders(
-    WindWorld *worldPtr
+static void vecsWorldHandleAddComponentOrders(
+    VecsWorld *worldPtr
 ){
     AddComponentOrder *orderPtr = NULL;
     for(size_t i = 0;
@@ -1506,10 +1537,10 @@ static void windWorldHandleAddComponentOrders(
             &(worldPtr->_addComponentQueue),
             i
         );
-        _windWorldHandleAddComponent(
+        _vecsWorldEntityAddComponent(
             worldPtr,
             orderPtr->componentId,
-            orderPtr->handle,
+            orderPtr->entity,
             orderPtr->componentPtr
         );
         /*
@@ -1528,8 +1559,8 @@ static void windWorldHandleAddComponentOrders(
  * to the ECS world since the last time this
  * function was called
  */
-static void windWorldHandleSetComponentOrders(
-    WindWorld *worldPtr
+static void vecsWorldHandleSetComponentOrders(
+    VecsWorld *worldPtr
 ){
     SetComponentOrder *orderPtr = NULL;
     for(size_t i = 0;
@@ -1541,10 +1572,10 @@ static void windWorldHandleSetComponentOrders(
             &(worldPtr->_setComponentQueue),
             i
         );
-        _windWorldHandleSetComponent(
+        _vecsWorldEntitySetComponent(
             worldPtr,
             orderPtr->componentId,
-            orderPtr->handle,
+            orderPtr->entity,
             orderPtr->componentPtr
         );
         /*
@@ -1562,74 +1593,50 @@ static void windWorldHandleSetComponentOrders(
  * Handles all queued orders given to the ECS world
  * since the last time this function was called
  */
-void windWorldHandleOrders(WindWorld *worldPtr){
-    windWorldHandleRemoveEntityOrders(worldPtr);
-    windWorldHandleRemoveComponentOrders(worldPtr);
-    windWorldHandleAddEntityOrders(worldPtr);
-    windWorldHandleAddComponentOrders(worldPtr);
-    windWorldHandleSetComponentOrders(worldPtr);
-}
-
-/*
- * A version of bitsetFree that conforms to the
- * HashMap keyApply interface
- */
-void _bitsetFree(void *voidPtr){
-    bitsetFree(voidPtr);
-}
-
-/*
- * A version of bitsetPairFree that conforms to the
- * HashMap keyApply interface
- */
-void _bitsetPairFree(void *voidPtr){
-    bitsetPairFree(voidPtr);
+void vecsWorldHandleOrders(VecsWorld *worldPtr){
+    vecsWorldHandleRemoveEntityOrders(worldPtr);
+    vecsWorldHandleRemoveComponentOrders(worldPtr);
+    vecsWorldHandleAddEntityOrders(worldPtr);
+    vecsWorldHandleAddComponentOrders(worldPtr);
+    vecsWorldHandleSetComponentOrders(worldPtr);
 }
 
 /*
  * Frees the memory associated with the given ECS
  * world
  */
-void windWorldFree(WindWorld *worldPtr){
+void vecsWorldFree(VecsWorld *worldPtr){
     /* does not free the component metadata */
 
     /*
      * handle orders so we don't have to deal with
      * manually clearing out the order queues
      */
-    windWorldHandleOrders(worldPtr);
+    vecsWorldHandleOrders(worldPtr);
 
     arrayListApply(_VecsArchetype,
         &(worldPtr->_archetypeList),
-        _windArchetypeFree
+        _vecsArchetypeFree
     );
     arrayListFree(_VecsArchetype,
         &(worldPtr->_archetypeList)
     );
 
-    arrayListApply(WindQuery,
+    arrayListApply(VecsQuery,
         &(worldPtr->_queryList),
-        windQueryFree
+        vecsQueryFree
     );
-    arrayListFree(WindQuery, &(worldPtr->_queryList));
+    arrayListFree(VecsQuery, &(worldPtr->_queryList));
 
-    hashMapKeyApply(Bitset, size_t,
-        &(worldPtr->_archetypeIndexMap),
-        _bitsetFree
-    );
-    hashMapFree(Bitset, size_t,
+    hashMapFree(VecsComponentSet, size_t,
         &(worldPtr->_archetypeIndexMap)
     );
 
-    hashMapKeyApply(BitsetPair, size_t,
-        &(worldPtr->_queryIndexMap),
-        _bitsetPairFree
-    );
-    hashMapFree(BitsetPair, size_t,
+    hashMapFree(VecsComponentSetPair, size_t,
         &(worldPtr->_queryIndexMap)
     );
 
-    _windEntitiesFree(&(worldPtr->_entityList));
+    _vecsEntityListFree(&(worldPtr->_entityList));
 
     /*
      * since orders were ran earlier, simply free
