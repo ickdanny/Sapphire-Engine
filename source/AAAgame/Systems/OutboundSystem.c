@@ -20,8 +20,8 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PositionID);
-        bitsetSet(&accept, OutboundID);
+        bitsetSet(&accept, PositionId);
+        bitsetSet(&accept, OutboundId);
 
         registerSystemDestructor(destroy);
         
@@ -37,7 +37,7 @@ void outboundSystem(Game *gamePtr, Scene *scenePtr){
     init();
 
     /* get entities with position and velocity */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
@@ -56,13 +56,13 @@ void outboundSystem(Game *gamePtr, Scene *scenePtr){
             positionPtr->currentPos,
             bound)
         ){
-            windWorldIDQueueRemoveEntity(
+            windWorldIdQueueRemoveEntity(
                 &(scenePtr->ecsWorld),
-                windQueryItrCurrentID(&itr)
+                windQueryItrCurrentId(&itr)
             );
         }
         
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
-    windWorldHandleOrders(&(scenePtr->ecsWorld));
+    vecsWorldHandleOrders(&(scenePtr->ecsWorld));
 }

@@ -59,7 +59,7 @@ static void _tfGraphicsUpdateTexCoordBuffer(
     /* send the texCoord buffer */
     glBindBuffer(
         GL_ARRAY_BUFFER,
-        graphicsPtr->_texCoordBufferID
+        graphicsPtr->_texCoordBufferId
     );
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -120,30 +120,30 @@ _TFGraphics _tfGraphicsMake(
     toRet._graphicsHeight = graphicsHeight;
 
     /* set up VAO */
-    glGenVertexArrays(1, &(toRet._vaoID));
-    glBindVertexArray(toRet._vaoID);
+    glGenVertexArrays(1, &(toRet._vaoId));
+    glBindVertexArray(toRet._vaoId);
 
     /* load shaders */
-    toRet._programID = _loadShaders();
-    glUseProgram(toRet._programID);
+    toRet._programId = _loadShaders();
+    glUseProgram(toRet._programId);
 
     /* enable depth buffer */
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    /* get transform ID */
-    toRet._transformID = glGetUniformLocation(
-        toRet._programID,
+    /* get transform Id */
+    toRet._transformId = glGetUniformLocation(
+        toRet._programId,
         "transform"
     );
 
-    /* get sampler ID */
-    toRet._samplerID = glGetUniformLocation(
-        toRet._programID,
+    /* get sampler Id */
+    toRet._samplerId = glGetUniformLocation(
+        toRet._programId,
         "sampler"
     );
     /* set sampler to use texture 0 */
-    glUniform1i(toRet._samplerID, 0);
+    glUniform1i(toRet._samplerId, 0);
 
     /* load the vertex buffer for quads */
     static const GLfloat quadVertices[] = {
@@ -157,10 +157,10 @@ _TFGraphics _tfGraphicsMake(
         1.0f, -1.0f, 0.0f,   /* bottom right*/
     };
     /* set up vertex buffer */
-    glGenBuffers(1, &toRet._vertexBufferID);
+    glGenBuffers(1, &toRet._vertexBufferId);
     glBindBuffer(
         GL_ARRAY_BUFFER,
-        toRet._vertexBufferID
+        toRet._vertexBufferId
     );
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -172,7 +172,7 @@ _TFGraphics _tfGraphicsMake(
     glEnableVertexAttribArray(0);
     glBindBuffer(
         GL_ARRAY_BUFFER,
-        toRet._vertexBufferID
+        toRet._vertexBufferId
     );
     glVertexAttribPointer(
         0,          /* use attribute 0 */
@@ -185,7 +185,7 @@ _TFGraphics _tfGraphicsMake(
 
     /* load the texCoord buffer for quads */
     /* set up texCoord buffer */
-    glGenBuffers(1, &toRet._texCoordBufferID);
+    glGenBuffers(1, &toRet._texCoordBufferId);
     _tfGraphicsUpdateTexCoordBuffer(
         &toRet,
         fullTexRect
@@ -195,7 +195,7 @@ _TFGraphics _tfGraphicsMake(
     glEnableVertexAttribArray(1);
     glBindBuffer(
         GL_ARRAY_BUFFER,
-        toRet._texCoordBufferID
+        toRet._texCoordBufferId
     );
     glVertexAttribPointer(
         1,          /* use attribute 1 */
@@ -334,7 +334,7 @@ void _tfGraphicsDrawSprite(
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(
         GL_TEXTURE_2D,
-        spriteInstrPtr->spritePtr->_textureID
+        spriteInstrPtr->spritePtr->_textureId
     );
 
     /* send transform to OpenGL */
@@ -347,7 +347,7 @@ void _tfGraphicsDrawSprite(
         spriteInstrPtr->spritePtr->height
     );
     glUniformMatrix4fv(
-        graphicsPtr->_transformID,
+        graphicsPtr->_transformId,
         1,
         GL_TRUE,
         &(transformMatrix.matrix[0][0])
@@ -416,7 +416,7 @@ void _tfGraphicsDrawSubSprite(
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(
         GL_TEXTURE_2D,
-        spriteInstrPtr->spritePtr->_textureID
+        spriteInstrPtr->spritePtr->_textureId
     );
     /* send transform to OpenGL */
     Matrix4x4 transformMatrix = makeTransformMatrix(
@@ -428,7 +428,7 @@ void _tfGraphicsDrawSubSprite(
         srcRectPtr->height
     );
     glUniformMatrix4fv(
-        graphicsPtr->_transformID,
+        graphicsPtr->_transformId,
         1,
         GL_TRUE,
         &(transformMatrix.matrix[0][0])
@@ -483,7 +483,7 @@ void _tfGraphicsDrawTileSprite(
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(
         GL_TEXTURE_2D,
-        spriteInstrPtr->spritePtr->_textureID
+        spriteInstrPtr->spritePtr->_textureId
     );
     /* send transform to OpenGL */
     Matrix4x4 transformMatrix = makeTransformMatrix(
@@ -495,7 +495,7 @@ void _tfGraphicsDrawTileSprite(
         drawRectPtr->height
     );
     glUniformMatrix4fv(
-        graphicsPtr->_transformID,
+        graphicsPtr->_transformId,
         1,
         GL_TRUE,
         &(transformMatrix.matrix[0][0])
@@ -596,24 +596,24 @@ void _tfGraphicsDrawText(
 void _tfGraphicsFree(_TFGraphics *graphicsPtr){
     if(graphicsPtr){
         /* clean up VAO */
-        glDeleteBuffers(1, &(graphicsPtr->_vaoID));
+        glDeleteBuffers(1, &(graphicsPtr->_vaoId));
 	    glDeleteVertexArrays(
             1,
-            &(graphicsPtr->_vaoID)
+            &(graphicsPtr->_vaoId)
         );
 
         /* clean up buffers */
         glDisableVertexAttribArray(0);
         glDeleteBuffers(
             1,
-            &(graphicsPtr->_vertexBufferID)
+            &(graphicsPtr->_vertexBufferId)
         );
         glDisableVertexAttribArray(1);
         glDeleteBuffers(
             1,
-            &(graphicsPtr->_texCoordBufferID)
+            &(graphicsPtr->_texCoordBufferId)
         );
 
-	    glDeleteProgram(graphicsPtr->_programID);
+	    glDeleteProgram(graphicsPtr->_programId);
     }
 }

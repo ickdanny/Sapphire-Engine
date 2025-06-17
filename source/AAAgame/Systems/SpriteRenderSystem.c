@@ -22,42 +22,42 @@ static void destroy(){
 static void init(){
     if(!initialized){
         normalSpriteAccept = bitsetMake(numComponents);
-        bitsetSet(&normalSpriteAccept, PositionID);
+        bitsetSet(&normalSpriteAccept, PositionId);
         bitsetSet(
             &normalSpriteAccept,
-            VisibleMarkerID
+            VisibleMarkerId
         );
         bitsetSet(
             &normalSpriteAccept,
-            SpriteInstructionID
+            SpriteInstructionId
         );
 
         normalSpriteReject = bitsetMake(numComponents);
-        bitsetSet(&normalSpriteReject, SubImageID);
+        bitsetSet(&normalSpriteReject, SubImageId);
         bitsetSet(
             &normalSpriteReject,
-            TilingInstructionID
+            TilingInstructionId
         );
 
         subSpriteAccept = bitsetMake(numComponents);
-        bitsetSet(&subSpriteAccept, PositionID);
-        bitsetSet(&subSpriteAccept, VisibleMarkerID);
+        bitsetSet(&subSpriteAccept, PositionId);
+        bitsetSet(&subSpriteAccept, VisibleMarkerId);
         bitsetSet(
             &subSpriteAccept,
-            SpriteInstructionID
+            SpriteInstructionId
         );
-        bitsetSet(&subSpriteAccept, SubImageID);
+        bitsetSet(&subSpriteAccept, SubImageId);
 
         tileSpriteAccept = bitsetMake(numComponents);
-        bitsetSet(&tileSpriteAccept, PositionID);
-        bitsetSet(&tileSpriteAccept, VisibleMarkerID);
+        bitsetSet(&tileSpriteAccept, PositionId);
+        bitsetSet(&tileSpriteAccept, VisibleMarkerId);
         bitsetSet(
             &tileSpriteAccept,
-            SpriteInstructionID
+            SpriteInstructionId
         );
         bitsetSet(
             &tileSpriteAccept,
-            TilingInstructionID
+            TilingInstructionId
         );
 
         registerSystemDestructor(destroy);
@@ -74,7 +74,7 @@ void spriteRenderSystem(
     init();
 
     /* draw normal sprites */
-    WindQueryItr normalItr = windWorldRequestQueryItr(
+    VecsQueryItr normalItr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &normalSpriteAccept,
         &normalSpriteReject
@@ -93,11 +93,11 @@ void spriteRenderSystem(
             positionPtr->currentPos,
             spriteInstrPtr
         );
-        windQueryItrAdvance(&normalItr);
+        vecsQueryItrAdvance(&normalItr);
     }
 
     /* draw sub sprites */
-    WindQueryItr subItr = windWorldRequestQueryItr(
+    VecsQueryItr subItr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &subSpriteAccept,
         NULL
@@ -121,11 +121,11 @@ void spriteRenderSystem(
             spriteInstrPtr,
             subImagePtr
         );
-        windQueryItrAdvance(&subItr);
+        vecsQueryItrAdvance(&subItr);
     }
 
     /* draw tiled sprites */
-    WindQueryItr tileItr = windWorldRequestQueryItr(
+    VecsQueryItr tileItr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &tileSpriteAccept,
         NULL
@@ -150,6 +150,6 @@ void spriteRenderSystem(
             spriteInstrPtr,
             tilingInstrPtr->pixelOffset
         );
-        windQueryItrAdvance(&tileItr);
+        vecsQueryItrAdvance(&tileItr);
     }
 }

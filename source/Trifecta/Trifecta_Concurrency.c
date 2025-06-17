@@ -24,7 +24,7 @@ void initThread(){
 }
 
 /* 
- * Creates a new thread and returns its ID if
+ * Creates a new thread and returns its Id if
  * successful
  */
 CreateReturn threadCreate(
@@ -81,7 +81,7 @@ void initThread(){
 }
 
 /* 
- * Creates a new thread and returns its ID if
+ * Creates a new thread and returns its Id if
  * successful
  */
 CreateReturn threadCreate(

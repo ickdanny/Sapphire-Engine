@@ -22,7 +22,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, ScriptsID);
+        bitsetSet(&accept, ScriptsId);
 
         registerSystemDestructor(destroy);
         
@@ -63,15 +63,15 @@ void scriptSystem(Game *gamePtr, Scene *scenePtr){
     setSceneForNativeFuncs(scenePtr);
 
     /* get entities with position and velocity */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
     );
     while(windQueryItrHasEntity(&itr)){
-        WindEntity handle = windWorldMakeHandle(
+        VecsEntity handle = vecsWorldMakeHandle(
             &(scenePtr->ecsWorld),
-            windQueryItrCurrentID(&itr)
+            windQueryItrCurrentId(&itr)
         );
 
         setEntityForNativeFuncs(handle);
@@ -95,15 +95,15 @@ void scriptSystem(Game *gamePtr, Scene *scenePtr){
             && !scriptsPtr->vm3
             && !scriptsPtr->vm4
         ){
-            windWorldHandleQueueRemoveComponent(
+            vecsWorldEntityQueueRemoveComponent(
                 Scripts,
                 &(scenePtr->ecsWorld),
                 handle
             );
         }
 
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 
-    windWorldHandleOrders(&(scenePtr->ecsWorld));
+    vecsWorldHandleOrders(&(scenePtr->ecsWorld));
 }

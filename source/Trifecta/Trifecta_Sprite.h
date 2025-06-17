@@ -32,7 +32,7 @@
 
 /* Represents a 2D image */
 typedef struct TFSprite{
-    GLuint _textureID;
+    GLuint _textureId;
     uint32_t width;
     uint32_t height;
 } TFSprite;

@@ -112,8 +112,8 @@ DECLARE_PROTOTYPE(shard){
     addRotateSpriteForward(componentListPtr);
     addDeathCommand(componentListPtr, death_script);
     addDeathScripts(componentListPtr, ((DeathScripts){
-        .scriptID1 = stringMakeC("remove_ghost"),
-        .scriptID3 = stringMakeC(
+        .scriptId1 = stringMakeC("remove_ghost"),
+        .scriptId3 = stringMakeC(
             "spawn_explode_projectile"
         )
     }));
@@ -141,11 +141,11 @@ DECLARE_PROTOTYPE(caltrop){
     );
     addDeathCommand(componentListPtr, death_script);
     addDeathScripts(componentListPtr, ((DeathScripts){
-        .scriptID1 = stringMakeC("remove_ghost"),
-        .scriptID3 = stringMakeC(
+        .scriptId1 = stringMakeC("remove_ghost"),
+        .scriptId3 = stringMakeC(
             "spawn_explode_projectile"
         ),
-        .scriptID4 = stringMakeC("death_caltrop")
+        .scriptId4 = stringMakeC("death_caltrop")
     }));
 }
 
@@ -177,10 +177,10 @@ DECLARE_PROTOTYPE(caltrop){
         addDeathScripts( \
             componentListPtr, \
             ((DeathScripts){ \
-                .scriptID1 = stringMakeC( \
+                .scriptId1 = stringMakeC( \
                     "remove_ghost" \
                 ), \
-                .scriptID3 = stringMakeC( \
+                .scriptId3 = stringMakeC( \
                     "spawn_explode_projectile" \
                 ) \
             }) \
@@ -251,8 +251,8 @@ DECLARE_PROTOTYPE(bomb){
     addRotateSpriteForward(componentListPtr);
     addDeathCommand(componentListPtr, death_script);
     addDeathScripts(componentListPtr, ((DeathScripts){
-        .scriptID1 = stringMakeC("remove_ghost"),
-        .scriptID3 = stringMakeC(
+        .scriptId1 = stringMakeC("remove_ghost"),
+        .scriptId3 = stringMakeC(
             "spawn_explode_bomb"
         )
     }));
@@ -384,10 +384,10 @@ DECLARE_PROTOTYPE(power_large){
         addDeathScripts( \
             componentListPtr, \
             ((DeathScripts){ \
-                .scriptID1 = stringMakeC( \
+                .scriptId1 = stringMakeC( \
                     "remove_ghost" \
                 ), \
-                .scriptID3 = stringMakeC( \
+                .scriptId3 = stringMakeC( \
                     #DEATHSCRIPT3ID \
                 ) \
             }) \
@@ -969,10 +969,10 @@ DECLARE_PROTOTYPE(crystal_red){
         addDeathScripts( \
             componentListPtr, \
             ((DeathScripts){ \
-                .scriptID1 = stringMakeC( \
+                .scriptId1 = stringMakeC( \
                     "remove_ghost" \
                 ), \
-                .scriptID3 = stringMakeC( \
+                .scriptId3 = stringMakeC( \
                     "clear_bullets" \
                 ) \
             }) \
@@ -1045,11 +1045,11 @@ DECLARE_PROTOTYPE(life_wisp){
     addDeathScripts(
         componentListPtr,
         ((DeathScripts){
-            .scriptID1 = stringMakeC(
+            .scriptId1 = stringMakeC(
                 "remove_ghost"
             ),
-            .scriptID2 = stringMakeC("add_life"),
-            .scriptID3 = stringMakeC(
+            .scriptId2 = stringMakeC("add_life"),
+            .scriptId3 = stringMakeC(
                 "spawn_explode_bomb"
             )
         })
@@ -1111,11 +1111,11 @@ DECLARE_PROTOTYPE(bomb_wisp){
     addDeathScripts(
         componentListPtr,
         ((DeathScripts){
-            .scriptID1 = stringMakeC(
+            .scriptId1 = stringMakeC(
                 "remove_ghost"
             ),
-            .scriptID2 = stringMakeC("add_bomb"),
-            .scriptID3 = stringMakeC(
+            .scriptId2 = stringMakeC("add_bomb"),
+            .scriptId3 = stringMakeC(
                 "spawn_explode_bomb"
             )
         })
@@ -1201,10 +1201,10 @@ DECLARE_PROTOTYPE(trap){
         addDeathScripts( \
             componentListPtr, \
             ((DeathScripts){ \
-                .scriptID1 = stringMakeC( \
+                .scriptId1 = stringMakeC( \
                     "remove_ghost" \
                 ), \
-                .scriptID3 = stringMakeC( \
+                .scriptId3 = stringMakeC( \
                     "spawn_explode_projectile" \
                 ) \
             }) \
@@ -1278,10 +1278,10 @@ DECLARE_PROTOTYPE(trap){
         addDeathScripts( \
             componentListPtr, \
             ((DeathScripts){ \
-                .scriptID1 = stringMakeC( \
+                .scriptId1 = stringMakeC( \
                     "remove_ghost" \
                 ), \
-                .scriptID3 = stringMakeC( \
+                .scriptId3 = stringMakeC( \
                     "spawn_explode_laser" \
                 ) \
             }) \
@@ -1822,7 +1822,7 @@ static void init(){
 void applyPrototype(
     Game *gamePtr,
     Scene *scenePtr,
-    String *prototypeIDPtr,
+    String *prototypeIdPtr,
     ArrayList *componentListPtr,
     int depthOffset
 ){
@@ -1837,19 +1837,19 @@ void applyPrototype(
         "null scene passed;" SRC_LOCATION
     );
     assertNotNull(
-        prototypeIDPtr,
-        "null prototype ID passed;" SRC_LOCATION
+        prototypeIdPtr,
+        "null prototype Id passed;" SRC_LOCATION
     );
     assertNotNull(
-        prototypeIDPtr->_ptr,
+        prototypeIdPtr->_ptr,
         "prototype string holds null;" SRC_LOCATION
     );
     
     if(!hashMapHasKey(char*, PrototypeFunction,
         &(prototypeFunctionMap),
-        prototypeIDPtr->_ptr
+        prototypeIdPtr->_ptr
     )){
-        pgWarning(prototypeIDPtr->_ptr);
+        pgWarning(prototypeIdPtr->_ptr);
         pgError(
             "failed to find prototype; " SRC_LOCATION
         );
@@ -1858,7 +1858,7 @@ void applyPrototype(
         char*,
         PrototypeFunction,
         &(prototypeFunctionMap),
-        prototypeIDPtr->_ptr
+        prototypeIdPtr->_ptr
     );
 
     prototypeFunction(

@@ -8,7 +8,7 @@ void playerDeathSystem(Game *gamePtr, Scene *scenePtr){
     if(scenePtr->messages.playerStateEntry.state
         == player_dead
     ){
-        arrayListPushBack(WindEntity,
+        arrayListPushBack(VecsEntity,
             &(scenePtr->messages.deaths),
             scenePtr->messages.playerStateEntry
                 .playerHandle

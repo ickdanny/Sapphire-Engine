@@ -16,6 +16,6 @@ void setGameForNativeFuncs(Game *gamePtr);
 void setSceneForNativeFuncs(Scene *scenePtr);
 
 /* Sets the entity handle for native funcs */
-void setEntityForNativeFuncs(WindEntity handle);
+void setEntityForNativeFuncs(VecsEntity handle);
 
 #endif

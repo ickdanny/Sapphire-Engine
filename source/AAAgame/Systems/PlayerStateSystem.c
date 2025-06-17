@@ -24,7 +24,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataID);
+        bitsetSet(&accept, PlayerDataId);
 
         registerSystemDestructor(destroy);
         
@@ -66,7 +66,7 @@ static bool isPlayerBomb(
  */
 static void onEntry(
     Scene *scenePtr,
-    WindEntity playerHandle,
+    VecsEntity playerHandle,
     PlayerData *playerDataPtr
 ){
     PlayerState state
@@ -114,7 +114,7 @@ static void onEntry(
  */
 static PlayerState onUpdate(
     Scene *scenePtr,
-    WindEntity playerHandle,
+    VecsEntity playerHandle,
     PlayerData *playerDataPtr
 ){
     switch(playerDataPtr->stateMachine.state){
@@ -225,7 +225,7 @@ static PlayerState onUpdate(
  */
 static void onExit(
     Scene *scenePtr,
-    WindEntity playerHandle,
+    VecsEntity playerHandle,
     PlayerData *playerDataPtr
 ){
     switch(playerDataPtr->stateMachine.state){
@@ -255,7 +255,7 @@ static void onExit(
 /* Updates the state machine of the specified player */
 static void updatePlayerStateMachine(
     Scene *scenePtr,
-    WindEntity playerHandle,
+    VecsEntity playerHandle,
     PlayerData *playerDataPtr
 ){
     PlayerState nextState = onUpdate(
@@ -284,23 +284,23 @@ void playerStateSystem(Game *gamePtr, Scene *scenePtr){
 
     /* clear player state entry */
     scenePtr->messages.playerStateEntry.playerHandle
-        = (WindEntity){0};
+        = (VecsEntity){0};
     scenePtr->messages.playerStateEntry.state
         = player_none;
 
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
     );
     while(windQueryItrHasEntity(&itr)){
-        WindEntity handle = windWorldMakeHandle(
+        VecsEntity handle = vecsWorldMakeHandle(
             &(scenePtr->ecsWorld),
-            windQueryItrCurrentID(&itr)
+            windQueryItrCurrentId(&itr)
         );
 
         PlayerData *playerDataPtr
-            = windWorldHandleGetPtr(PlayerData,
+            = vecsWorldEntityGetPtr(PlayerData,
                 &(scenePtr->ecsWorld),
                 handle
             );
@@ -311,6 +311,6 @@ void playerStateSystem(Game *gamePtr, Scene *scenePtr){
             playerDataPtr
         );
 
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 }

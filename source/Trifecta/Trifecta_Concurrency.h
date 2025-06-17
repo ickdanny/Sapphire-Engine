@@ -62,7 +62,7 @@ typedef struct CreateReturn{
 } CreateReturn;
 
 /* 
- * Creates a new thread and returns its ID if
+ * Creates a new thread and returns its Id if
  * successful
  */
 CreateReturn threadCreate(

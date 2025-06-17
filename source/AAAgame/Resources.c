@@ -125,17 +125,17 @@ static void loadImageIntoResources(
     HashMap *imageMapPtr = imageMapVoidPtr;
 
     TFSprite sprite = parseBitmapFile(fileName);
-    String stringID = isolateFileName(fileName);
+    String stringId = isolateFileName(fileName);
     if(hashMapHasKeyPtr(String, TFSprite,
         imageMapPtr,
-        &stringID
+        &stringId
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same image");
     }
     hashMapPutPtr(String, TFSprite,
         imageMapPtr,
-        &stringID,
+        &stringId,
         &sprite
     );
 }
@@ -148,17 +148,17 @@ static void loadMidiIntoResources(
     HashMap *midiMapPtr = midiMapVoidPtr;
 
     MidiSequence midi = parseMidiFile(fileName);
-    String stringID = isolateFileName(fileName);
+    String stringId = isolateFileName(fileName);
     if(hashMapHasKeyPtr(String, MidiSequence,
         midiMapPtr,
-        &stringID
+        &stringId
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same midi");
     }
     hashMapPutPtr(String, MidiSequence,
         midiMapPtr,
-        &stringID,
+        &stringId,
         &midi
     );
 }
@@ -171,10 +171,10 @@ static void loadDialogueIntoResources(
     HashMap *dialogueMapPtr = dialogueMapVoidPtr;
 
     Dialogue dialogue = parseDialogueFile(fileName);
-    String stringID = isolateFileName(fileName);
+    String stringId = isolateFileName(fileName);
     if(hashMapHasKeyPtr(String, Dialogue,
         dialogueMapPtr,
-        &stringID
+        &stringId
     )){
         pgWarning(fileName);
         pgError(
@@ -183,7 +183,7 @@ static void loadDialogueIntoResources(
     }
     hashMapPutPtr(String, Dialogue,
         dialogueMapPtr,
-        &stringID,
+        &stringId,
         &dialogue
     );
 }
@@ -205,17 +205,17 @@ static void loadScriptIntoResources(
         fileName
     );
 
-    String stringID = isolateFileName(fileName);
+    String stringId = isolateFileName(fileName);
     if(hashMapHasKeyPtr(String, UNObjectFunc*,
         scriptMapPtr,
-        &stringID
+        &stringId
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same script");
     }
     hashMapPutPtr(String, UNObjectFunc*,
         scriptMapPtr,
-        &stringID,
+        &stringId,
         &scriptPtr
     );
 }
@@ -243,20 +243,20 @@ static void loadUserFuncIntoResources(
      * because a double free will occur
      */
 
-    String stringID = isolateFileName(fileName);
+    String stringId = isolateFileName(fileName);
 
     /*
      * add the func to the set using the c string
-     * owned by the stringID object
+     * owned by the stringId object
      */
     unUserFuncSetAdd(
         userFuncSetPtr,
-        stringID._ptr,
+        stringId._ptr,
         funcPtr
     );
     
     /* free our string; it gets heap copied */
-    stringFree(&stringID);
+    stringFree(&stringId);
 }
 
 /*

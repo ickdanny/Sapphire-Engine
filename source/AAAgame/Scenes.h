@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "WindECS.h"
+#include "Vecs.h"
 #include "ZMath.h"
 
 #include "Config.h"
@@ -11,7 +11,7 @@
 #include "Dialogue.h"
 
 /* used to identify the different kinds of scenes */
-typedef enum SceneID{
+typedef enum SceneId{
     scene_main,
     scene_difficulty,
     scene_stage,
@@ -24,12 +24,12 @@ typedef enum SceneID{
     scene_continue,
     scene_credits,
     scene_numScenes,
-} SceneID;
+} SceneId;
 
 /* Used for the collision messages */
 typedef struct Collision{
-    WindEntity sourceHandle;
-    WindEntity targetHandle;
+    VecsEntity sourceHandle;
+    VecsEntity targetHandle;
 } Collision;
 
 /* Stores messages for intersystem communication */
@@ -53,16 +53,16 @@ typedef struct SceneMessages{
     MenuCommand backMenuCommand;
 
     /*
-     * Scene ID associated with the back menu command,
+     * Scene Id associated with the back menu command,
      * may not always be present; set by init system
      */
-    SceneID backSceneID;
+    SceneId backSceneId;
 
     /*
      * Handle to currently selected element, set by
      * init system and used by menu navigation system
      */
-    WindEntity currentElement;
+    VecsEntity currentElement;
 
     /*
      * Info about changing the selected element handled
@@ -70,7 +70,7 @@ typedef struct SceneMessages{
      */
     struct{
         bool newElementSelected;
-        WindEntity prevElement;
+        VecsEntity prevElement;
     } elementChanges;
 
     /*
@@ -101,9 +101,9 @@ typedef struct SceneMessages{
         /* index of the next dialogue instruction */
         int nextDialogueIndex;
 
-        WindEntity leftImageHandle;
-        WindEntity rightImageHandle;
-        WindEntity textHandle;
+        VecsEntity leftImageHandle;
+        VecsEntity rightImageHandle;
+        VecsEntity textHandle;
     } dialogueData;
 
     /* A PRNG set by init system if needed */
@@ -120,18 +120,18 @@ typedef struct SceneMessages{
      * by player state system
      */
     struct{
-        WindEntity playerHandle;
+        VecsEntity playerHandle;
         PlayerState state;
     } playerStateEntry;
 
     /*
-     * List of WindEntity for player hits, handled
+     * List of VecsEntity for player hits, handled
      * by collision handler system
      */
     ArrayList playerHits;
 
     /*
-     * List of dead WindEntity, set by collision
+     * List of dead VecsEntity, set by collision
      * handler system and player death detector system,
      * cleared by message cleanup system
      */
@@ -179,20 +179,20 @@ typedef struct SceneMessages{
      * ui elements
      */
     struct{
-        WindEntity lifeHandles[config_maxLives];
+        VecsEntity lifeHandles[config_maxLives];
         /*
          * index of last visible life element; -1 if
          * no elements currently visible
          */
         int lifeIndex;
-        WindEntity bombHandles[config_maxLives];
+        VecsEntity bombHandles[config_maxLives];
 
         /*
          * index of last visible bomb element; -1 if
          * no elements currently visible
          */
         int bombIndex;
-        WindEntity powerHandle;
+        VecsEntity powerHandle;
     } overlayData;
 
     /* 
@@ -247,20 +247,20 @@ void sceneMessagesFree(
 
 /* A scene encapsulates an ECS world */
 typedef struct Scene{
-    SceneID id;
+    SceneId id;
     bool _refresh;
     bool updateTransparent;
     bool renderTransparent;
 
-    WindWorld ecsWorld;
+    VecsWorld ecsWorld;
     SceneMessages messages;
 } Scene;
 
 /* Constructs and returns a new Scene by value */
 Scene sceneMake(
-    SceneID id,
+    SceneId id,
     size_t entityCapacity,
-    WindComponents *componentsPtr,
+    VecsComponentList *componentsPtr,
     bool refresh,
     bool updateTransparent,
     bool renderTransparent
@@ -282,12 +282,12 @@ void sceneFree(Scene *scenePtr);
  */
 typedef struct Scenes{
     /*
-     * an array of Scene indexed by SceneID initialized
+     * an array of Scene indexed by SceneId initialized
      * during construction
      */
     Array _sceneStorage;
     /*
-     * used as a stack of scenes, storing SceneID
+     * used as a stack of scenes, storing SceneId
      */
     ArrayList _sceneStack;
 } Scenes;
@@ -295,13 +295,13 @@ typedef struct Scenes{
 /*
  * Constructs and returns a new Scenes object by value
  */
-Scenes scenesMake(WindComponents *componentsPtr);
+Scenes scenesMake(VecsComponentList *componentsPtr);
 
 /*
  * Pushes the requested scene onto the top of the scene
  * stack in the given Scenes object
  */
-void scenesPush(Scenes *scenesPtr, SceneID sceneID);
+void scenesPush(Scenes *scenesPtr, SceneId sceneId);
 
 /*
  * Pops the top scene off the scene stack in the given
@@ -316,7 +316,7 @@ void scenesPop(Scenes *scenesPtr);
  */
 void scenesPopTo(
     Scenes *scenesPtr,
-    SceneID sceneToFind
+    SceneId sceneToFind
 );
 
 /*

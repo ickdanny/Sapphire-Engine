@@ -1,12 +1,12 @@
 #include "PlayerBombSystem.h"
 
-static String bombID;
+static String bombId;
 static bool initialized = false;
 
 /* destroys the player bomb system */
 static void destroy(){
     if(initialized){
-        stringFree(&bombID);
+        stringFree(&bombId);
         initialized = false;
     }
 }
@@ -14,7 +14,7 @@ static void destroy(){
 /* inits the player bomb system */
 static void init(){
     if(!initialized){
-        bombID = stringMakeC("player_bomb");
+        bombId = stringMakeC("player_bomb");
 
         registerSystemDestructor(destroy);
         
@@ -39,11 +39,11 @@ void playerBombSystem(Game *gamePtr, Scene *scenePtr){
         return;
     }
 
-    WindEntity playerHandle
+    VecsEntity playerHandle
         = scenePtr->messages.playerStateEntry
             .playerHandle;
 
-    PlayerData *playerDataPtr = windWorldHandleGetPtr(
+    PlayerData *playerDataPtr = vecsWorldEntityGetPtr(
         PlayerData,
         &(scenePtr->ecsWorld),
         playerHandle
@@ -56,7 +56,7 @@ void playerBombSystem(Game *gamePtr, Scene *scenePtr){
     --(playerDataPtr->bombs);
 
     /* if player lacks script component, add one */
-    if(!windWorldHandleContainsComponent(Scripts,
+    if(!vecsWorldEntityContainsComponent(Scripts,
         &(scenePtr->ecsWorld),
         playerHandle
     )){
@@ -67,7 +67,7 @@ void playerBombSystem(Game *gamePtr, Scene *scenePtr){
             &scripts
         );
     }
-    Scripts *scriptsPtr = windWorldHandleGetPtr(
+    Scripts *scriptsPtr = vecsWorldEntityGetPtr(
         Scripts,
         &(scenePtr->ecsWorld),
         playerHandle
@@ -82,7 +82,7 @@ void playerBombSystem(Game *gamePtr, Scene *scenePtr){
         scriptsPtr->vm4,
         resourcesGetScript(
             gamePtr->resourcesPtr,
-            &bombID
+            &bombId
         )
     );
 }

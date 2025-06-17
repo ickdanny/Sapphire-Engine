@@ -13,15 +13,15 @@
 /* Stores messages for interscene communication */
 typedef struct GameMessages{    
     /* 
-     * Queue of SceneID to be pushed onto the stack;
+     * Queue of SceneId to be pushed onto the stack;
      * handled by game in update scene list
      */
     ArrayList sceneEntryList;
     /*
-     * SceneID to be popped to, -1 if no message;
+     * SceneId to be popped to, -1 if no message;
      * handled by game in update scene list
      */
-    SceneID sceneExitToID;
+    SceneId sceneExitToId;
     /*
      * Flag to indicate exiting the game; handled by
      * game in update
@@ -100,7 +100,7 @@ void gameMessagesFree(GameMessages *messagesPtr);
 /* Represents the internal state of the game */
 typedef struct Game{
     /* Holds RTTI for components, owned by the game */
-    WindComponents *componentsPtr;
+    VecsComponentList *componentsPtr;
     /* Scenes of the game, owned by the game */
     Scenes scenes;
     /* messages are owned by the game */

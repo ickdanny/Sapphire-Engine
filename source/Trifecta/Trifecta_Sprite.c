@@ -84,7 +84,7 @@ static BitmapFileHeader parseBitmapHeader(
     size_t itemsRead = 0;
     BitmapFileHeader toRet = {0};
 
-    /* read ID */
+    /* read Id */
     itemsRead = fread(&toRet.id[0], 1, 2, filePtr);
     assertTrue(
         itemsRead == 2,
@@ -330,8 +330,8 @@ TFSprite parseBitmapFile(const char *fileName){
 
     /* load image as OpenGL texture */
     TFSprite toRet = {0};
-    glGenTextures(1, &(toRet._textureID));
-    glBindTexture(GL_TEXTURE_2D, toRet._textureID);
+    glGenTextures(1, &(toRet._textureId));
+    glBindTexture(GL_TEXTURE_2D, toRet._textureId);
     glTexImage2D(
         GL_TEXTURE_2D,
         0, /* level of detail */
@@ -386,6 +386,6 @@ TFSpriteInstruction tfSpriteInstructionMake(
 /* Frees the specified TFSprite */
 void tfSpriteFree(TFSprite *spritePtr){
     if(spritePtr){
-        glDeleteTextures(1, &(spritePtr->_textureID));
+        glDeleteTextures(1, &(spritePtr->_textureId));
     }
 }

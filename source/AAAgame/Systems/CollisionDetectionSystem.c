@@ -13,7 +13,7 @@
 #define quadTreeMaxLevel 4
 
 typedef struct QuadTreeElement{
-    WindEntity handle;
+    VecsEntity handle;
     AABB twoFrameHitbox;
     AABB trueHitbox;
     Position position;
@@ -215,7 +215,7 @@ static bool _quadTreeCollides(
 static void _quadTreePopulateCollisionList(
     QuadTree *quadTreePtr,
     const QuadTreeElement *elementPtr,
-    ArrayList *collisionListPtr /* type WindEntity */
+    ArrayList *collisionListPtr /* type VecsEntity */
 ){
     /* check collisions in the root quad tree */
     for(size_t i = 0;
@@ -231,7 +231,7 @@ static void _quadTreePopulateCollisionList(
             elementPtr,
             toCheckPtr
         )){
-            arrayListPushBack(WindEntity,
+            arrayListPushBack(VecsEntity,
                 collisionListPtr,
                 toCheckPtr->handle
             );
@@ -451,7 +451,7 @@ static bool quadTreeIsEmpty(QuadTree *quadTreePtr){
 }
 
 /*
- * Populates the specified WindEntity list with the
+ * Populates the specified VecsEntity list with the
  * handles of all the entities in the quadtree that
  * collide with the object specified by the given
  * hitbox and position
@@ -490,7 +490,7 @@ static void quadTreePopulateCollisionList(
  */
 static void quadTreeInsert(
     QuadTree *quadTreePtr,
-    WindEntity handle,
+    VecsEntity handle,
     AABB *hitboxPtr,
     Position *positionPtr
 ){
@@ -547,49 +547,37 @@ static void quadTreeFree(QuadTree *quadTreePtr){
  * of a specific type
  */
 #define COLLISION_TYPE_DECLARE(PREFIX, SUFFIX) \
-static Bitset sourceSet##SUFFIX; \
-static Bitset targetSet##SUFFIX; \
-static bool initialized##SUFFIX = false; \
-\
-/* destroys the collision system */ \
-static void destroy##SUFFIX(){ \
-    if(initialized##SUFFIX){ \
-        bitsetFree(&sourceSet##SUFFIX); \
-        bitsetFree(&targetSet##SUFFIX); \
-        initialized##SUFFIX = false; \
-    } \
-} \
+static VecsComponentSet sourceSet##SUFFIX; \
+static VecsComponentSet targetSet##SUFFIX; \
 \
 /* inits the collision system */ \
 static void init##SUFFIX(){ \
     if(!initialized##SUFFIX){ \
         sourceSet##SUFFIX \
             = bitsetMake(numComponents); \
-        bitsetSet(&sourceSet##SUFFIX, PositionID); \
-        bitsetSet(&sourceSet##SUFFIX, HitboxID); \
+        bitsetSet(&sourceSet##SUFFIX, PositionId); \
+        bitsetSet(&sourceSet##SUFFIX, HitboxId); \
         bitsetSet( \
             &sourceSet##SUFFIX, \
-            CollidableMarkerID \
+            CollidableMarkerId \
         ); \
         bitsetSet( \
             &sourceSet##SUFFIX, \
-            SUFFIX##CollisionSourceID \
+            SUFFIX##CollisionSourceId \
         ); \
         \
         targetSet##SUFFIX \
             = bitsetMake(numComponents); \
-        bitsetSet(&targetSet##SUFFIX, PositionID); \
-        bitsetSet(&targetSet##SUFFIX, HitboxID); \
+        bitsetSet(&targetSet##SUFFIX, PositionId); \
+        bitsetSet(&targetSet##SUFFIX, HitboxId); \
         bitsetSet( \
             &targetSet##SUFFIX, \
-            CollidableMarkerID \
+            CollidableMarkerId \
         ); \
         bitsetSet( \
             &targetSet##SUFFIX, \
-            SUFFIX##CollisionTargetID \
+            SUFFIX##CollisionTargetId \
         ); \
-        \
-        registerSystemDestructor(destroy##SUFFIX); \
         \
         initialized##SUFFIX = true; \
     } \
@@ -612,8 +600,8 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
         0, \
         config_collisionBounds \
     ); \
-    WindQueryItr sourceItr \
-        = windWorldRequestQueryItr( \
+    VecsQueryItr sourceItr \
+        = vecsWorldRequestQueryItr( \
             &(scenePtr->ecsWorld), \
             &sourceSet##SUFFIX, \
             NULL \
@@ -627,9 +615,9 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             Hitbox, \
             &sourceItr \
         ); \
-        WindEntity handle = windWorldMakeHandle( \
+        VecsEntity handle = vecsWorldMakeHandle( \
             &(scenePtr->ecsWorld), \
-            windQueryItrCurrentID(&sourceItr) \
+            windQueryItrCurrentId(&sourceItr) \
         ); \
         quadTreeInsert( \
             &quadTree, \
@@ -637,7 +625,7 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             hitboxPtr, \
             positionPtr \
         ); \
-        windQueryItrAdvance(&sourceItr); \
+        vecsQueryItrAdvance(&sourceItr); \
     } \
     \
     /* bail if quad tree is empty */ \
@@ -648,11 +636,11 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
     \
     /* check all targets against the quad tree */ \
     ArrayList collisionList = arrayListMake( \
-        WindEntity, \
+        VecsEntity, \
         10 \
     ); \
-    WindQueryItr targetItr \
-        = windWorldRequestQueryItr( \
+    VecsQueryItr targetItr \
+        = vecsWorldRequestQueryItr( \
             &(scenePtr->ecsWorld), \
             &targetSet##SUFFIX, \
             NULL \
@@ -673,16 +661,16 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             positionPtr \
         ); \
         if(!arrayListIsEmpty(&collisionList)){ \
-            WindEntity target = windWorldMakeHandle( \
+            VecsEntity target = vecsWorldMakeHandle( \
                 &(scenePtr->ecsWorld), \
-                windQueryItrCurrentID(&targetItr) \
+                windQueryItrCurrentId(&targetItr) \
             ); \
             for(size_t i = 0; \
                 i < collisionList.size; \
                 ++i \
             ){ \
-                WindEntity source = arrayListGet( \
-                    WindEntity, \
+                VecsEntity source = arrayListGet( \
+                    VecsEntity, \
                     &collisionList, \
                     i \
                 ); \
@@ -701,10 +689,10 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             } \
         } \
         \
-        arrayListClear(WindEntity, &collisionList); \
-        windQueryItrAdvance(&targetItr); \
+        arrayListClear(VecsEntity, &collisionList); \
+        vecsQueryItrAdvance(&targetItr); \
     } \
-    arrayListFree(WindEntity, &collisionList); \
+    arrayListFree(VecsEntity, &collisionList); \
     quadTreeFree(&quadTree); \
 }
 

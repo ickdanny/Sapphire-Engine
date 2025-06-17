@@ -27,9 +27,9 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, VisibleMarkerID);
-        bitsetSet(&accept, SpriteInstructionID);
-        bitsetSet(&accept, AnimationsID);
+        bitsetSet(&accept, VisibleMarkerId);
+        bitsetSet(&accept, SpriteInstructionId);
+        bitsetSet(&accept, AnimationsId);
 
         registerSystemDestructor(destroy);
         
@@ -133,7 +133,7 @@ bool tryToTurnCenter(Animations *animationsPtr){
  */
 bool handleTurning(
     Scene *scenePtr,
-    WindEntity handle,
+    VecsEntity handle,
     Animations *animationsPtr
 ){
     /* bail if not enough animations to turn*/
@@ -141,7 +141,7 @@ bool handleTurning(
         return false;
     }
     /* bail if entity has no velocity */
-    if(!windWorldHandleContainsComponent(Velocity,
+    if(!vecsWorldEntityContainsComponent(Velocity,
         &(scenePtr->ecsWorld),
         handle
     )){
@@ -203,7 +203,7 @@ bool stepAnimation(Animations *animationsPtr){
 bool handleAnimation(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle,
+    VecsEntity handle,
     SpriteInstruction *spriteInstructionPtr,
     Animations *animationsPtr
 ){
@@ -250,7 +250,7 @@ void animationSystem(Game *gamePtr, Scene *scenePtr){
     init();
 
     /* get entities with position and velocity */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
@@ -270,9 +270,9 @@ void animationSystem(Game *gamePtr, Scene *scenePtr){
                     SpriteInstruction,
                     &itr
                 );
-            WindEntity handle = windWorldMakeHandle(
+            VecsEntity handle = vecsWorldMakeHandle(
                 &(scenePtr->ecsWorld),
-                windQueryItrCurrentID(&itr)
+                windQueryItrCurrentId(&itr)
             );
             bool animationContinues = handleAnimation(
                 gamePtr,
@@ -283,14 +283,14 @@ void animationSystem(Game *gamePtr, Scene *scenePtr){
             );
             /* if animation over, remove it */
             if(!animationContinues){
-                windWorldHandleQueueRemoveComponent(
+                vecsWorldEntityQueueRemoveComponent(
                     Animations,
                     &(scenePtr->ecsWorld),
                     handle
                 );
             }
         }
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
-    windWorldHandleOrders(&(scenePtr->ecsWorld));
+    vecsWorldHandleOrders(&(scenePtr->ecsWorld));
 }

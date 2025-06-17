@@ -22,7 +22,7 @@ Animation animationMake(bool looping);
  */
 void animationAddFrame(
     Animation *animationPtr,
-    const char *spriteID
+    const char *spriteId
 );
 
 /*

@@ -103,7 +103,7 @@ typedef enum TFKeyState{
  * TFKeyValue
  */
 typedef struct TFKeyTable{
-    /* the key table is indexed by key ID */
+    /* the key table is indexed by key Id */
     Array _keyTable;
 } TFKeyTable;
 

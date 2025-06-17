@@ -11,8 +11,8 @@
  */
 GameMessages gameMessagesMake(){
     GameMessages toRet = {0};
-    toRet.sceneEntryList = arrayListMake(SceneID, 5);
-    toRet.sceneExitToID = -1;
+    toRet.sceneEntryList = arrayListMake(SceneId, 5);
+    toRet.sceneExitToId = -1;
     toRet.exitFlag = false;
     toRet.startMusicString = stringMakeAndReserve(20);
     toRet.stopMusicFlag = false;
@@ -31,7 +31,7 @@ GameMessages gameMessagesMake(){
  * GameMessages
  */
 void gameMessagesFree(GameMessages *messagesPtr){
-    arrayListFree(SceneID,
+    arrayListFree(SceneId,
         &(messagesPtr->sceneEntryList)
     );
     stringFree(&(messagesPtr->startMusicString));
@@ -54,7 +54,7 @@ Game gameMake(
     void *userPtr
 ){
     Game toRet = {0};
-    toRet.componentsPtr = componentsMake();
+    toRet.componentsPtr = componentListMake();
     toRet.scenes = scenesMake(toRet.componentsPtr);
     toRet.messages = gameMessagesMake();
     toRet.settingsPtr = settingsPtr;
@@ -78,13 +78,13 @@ static void updateSceneList(Game *gamePtr){
     tfKeyTableLockAll(gamePtr->keyTablePtr);
 
     /* pop scenes off the stack first */
-    if(gamePtr->messages.sceneExitToID != -1){
+    if(gamePtr->messages.sceneExitToId != -1){
         scenesPopTo(
             &(gamePtr->scenes),
-            gamePtr->messages.sceneExitToID
+            gamePtr->messages.sceneExitToId
         );
 
-        gamePtr->messages.sceneExitToID = -1;
+        gamePtr->messages.sceneExitToId = -1;
     }
 
     /*
@@ -101,7 +101,7 @@ static void updateSceneList(Game *gamePtr){
         ){
             scenesPush(
                 scenesPtr,
-                arrayListGet(SceneID,
+                arrayListGet(SceneId,
                     sceneEntryListPtr,
                     i
                 )
@@ -112,7 +112,7 @@ static void updateSceneList(Game *gamePtr){
             );
         }
 
-        arrayListClear(SceneID, sceneEntryListPtr);
+        arrayListClear(SceneId, sceneEntryListPtr);
     }
 }
 
@@ -167,10 +167,10 @@ static void updateSettings(Game *gamePtr){
 
         /* start playback of track 01 if unmuted*/
         if(!(gamePtr->settingsPtr->muted)){
-            String *trackIDPtr = &(gamePtr->messages
+            String *trackIdPtr = &(gamePtr->messages
                 .startMusicString);
-            stringClear(trackIDPtr);
-            stringAppendC(trackIDPtr, "01");
+            stringClear(trackIdPtr);
+            stringAppendC(trackIdPtr, "01");
         }
 
         gamePtr->messages.toggleSoundFlag = false;
@@ -277,7 +277,7 @@ void gameSetExitCallback(
 void gameFree(Game *gamePtr){
     gameMessagesFree(&(gamePtr->messages));
     scenesFree(&(gamePtr->scenes));
-    windComponentsFree(gamePtr->componentsPtr);
+    vecsComponentListFree(gamePtr->componentsPtr);
     pgFree(gamePtr->componentsPtr);
     memset(gamePtr, 0, sizeof(*gamePtr));
 }

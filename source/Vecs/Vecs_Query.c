@@ -175,7 +175,7 @@ static bool _vecsQueryItrSkipEmptyArchetypes(
         &(itrPtr->_archetypeItr)
     )){
         ++(itrPtr->_currentArchetypeIndex);
-        archetypePtr = _windQueryGetArchetypePtr(
+        archetypePtr = _vecsQueryGetArchetypePtr(
             itrPtr->_queryPtr,
             itrPtr->_currentArchetypeIndex
         );
@@ -244,7 +244,7 @@ VecsQueryItr vecsQueryItr(VecsQuery *queryPtr){
      * if we keep getting empty archetypes,
      * try new ones
      */
-    _vecsQuerySkipEmptyArchetypes(&toRet);
+    _vecsQueryItrSkipEmptyArchetypes(&toRet);
     return toRet;
 }
 
@@ -261,7 +261,7 @@ bool vecsQueryItrHasEntity(VecsQueryItr *itrPtr){
      * non-empty archetype and return false only
      * if there are no such archetypes left
      */
-    return _vecsQuerySkipEmptyArchetypes(itrPtr);
+    return _vecsQueryItrSkipEmptyArchetypes(itrPtr);
 }
 
 /*
@@ -274,7 +274,7 @@ void vecsQueryItrAdvance(VecsQueryItr *itrPtr){
     errorIfConcurrentModification(itrPtr);
 
     _vecsArchetypeItrAdvance(&(itrPtr->_archetypeItr));
-    _vecsQuerySkipEmptyArchetypes(itrPtr);
+    _vecsQueryItrSkipEmptyArchetypes(itrPtr);
 }
 
 /*

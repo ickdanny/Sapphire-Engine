@@ -8,14 +8,14 @@
 #endif
 
 static Bitset accept;
-static String shotID;
+static String shotId;
 static bool initialized = false;
 
 /* destroys the player shot system */
 static void destroy(){
     if(initialized){
         bitsetFree(&accept);
-        stringFree(&shotID);
+        stringFree(&shotId);
         initialized = false;
     }
 }
@@ -24,9 +24,9 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataID);
+        bitsetSet(&accept, PlayerDataId);
 
-        shotID = stringMakeC("player_shot");
+        shotId = stringMakeC("player_shot");
 
         registerSystemDestructor(destroy);
         
@@ -42,20 +42,20 @@ static void addPlayerShot(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
     );
     while(windQueryItrHasEntity(&itr)){
-        WindEntity handle = windWorldMakeHandle(
+        VecsEntity handle = vecsWorldMakeHandle(
             &(scenePtr->ecsWorld),
-            windQueryItrCurrentID(&itr)
+            windQueryItrCurrentId(&itr)
         );
 
         /* bail if the player is in the wrong state */
         PlayerData *playerDataPtr
-            = windWorldHandleGetPtr(PlayerData,
+            = vecsWorldEntityGetPtr(PlayerData,
                 &(scenePtr->ecsWorld),
                 handle
             );
@@ -83,12 +83,12 @@ static void addPlayerShot(
         }
 
         /* if player has scripts, add in slot 4 */
-        if(windWorldHandleContainsComponent(Scripts,
+        if(vecsWorldEntityContainsComponent(Scripts,
             &(scenePtr->ecsWorld),
             handle
         )){
             Scripts *scriptsPtr
-                = windWorldHandleGetPtr(Scripts,
+                = vecsWorldEntityGetPtr(Scripts,
                     &(scenePtr->ecsWorld),
                     handle
                 );
@@ -99,7 +99,7 @@ static void addPlayerShot(
                     scriptsPtr->vm3,
                     resourcesGetScript(
                         gamePtr->resourcesPtr,
-                        &shotID
+                        &shotId
                     )
                 );
             }
@@ -112,7 +112,7 @@ static void addPlayerShot(
                 scripts.vm3,
                 resourcesGetScript(
                     gamePtr->resourcesPtr,
-                    &shotID
+                    &shotId
                 )
             );
             windWorldHandleQueueAddComponent(Scripts,
@@ -122,10 +122,10 @@ static void addPlayerShot(
             );
         }
 loopInc:
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 
-    windWorldHandleOrders(&(scenePtr->ecsWorld));
+    vecsWorldHandleOrders(&(scenePtr->ecsWorld));
 }
 
 /*

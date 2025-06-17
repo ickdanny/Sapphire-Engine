@@ -20,7 +20,7 @@ void pauseSystem(Game *gamePtr, Scene *scenePtr){
                 i
             ) == game_pause
         ){
-            arrayListPushBack(SceneID,
+            arrayListPushBack(SceneId,
                 &(gamePtr->messages.sceneEntryList),
                 scene_pause
             );

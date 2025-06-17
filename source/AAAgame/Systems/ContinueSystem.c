@@ -20,7 +20,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataID);
+        bitsetSet(&accept, PlayerDataId);
 
         registerSystemDestructor(destroy);
         
@@ -29,17 +29,17 @@ static void init(){
 }
 
 /* retrieves the player handle */
-static WindEntity getPlayerHandle(Scene *scenePtr){
-    WindQueryItr itr = windWorldRequestQueryItr(
+static VecsEntity getPlayerHandle(Scene *scenePtr){
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
     );
     /* get first player */
     if(windQueryItrHasEntity(&itr)){
-        return windWorldMakeHandle(
+        return vecsWorldMakeHandle(
             &(scenePtr->ecsWorld),
-            windQueryItrCurrentID(&itr)
+            windQueryItrCurrentId(&itr)
         );
     }
     /* error if cannot find player */
@@ -48,7 +48,7 @@ static WindEntity getPlayerHandle(Scene *scenePtr){
             "failed to find player; "
             SRC_LOCATION
         );
-        return (WindEntity){0};
+        return (VecsEntity){0};
     }
 }
 
@@ -60,7 +60,7 @@ static void enterContinueMenu(
     Scene *scenePtr
 ){
     /* signal scene push */
-    arrayListPushBack(SceneID,
+    arrayListPushBack(SceneId,
         &(gamePtr->messages.sceneEntryList),
         scene_continue
     );
@@ -71,9 +71,9 @@ static void enterContinueMenu(
      * send player data to global for init system to
      * create continue menu
      */
-    WindEntity playerHandle
+    VecsEntity playerHandle
         = getPlayerHandle(scenePtr);
-    PlayerData *playerDataPtr = windWorldHandleGetPtr(
+    PlayerData *playerDataPtr = vecsWorldEntityGetPtr(
         PlayerData,
         &(scenePtr->ecsWorld),
         playerHandle
@@ -87,9 +87,9 @@ static void enterContinueMenu(
  * player chooses to continue and return to the game
  */
 static void returnFromContinueMenu(Scene *scenePtr){
-    WindEntity playerHandle
+    VecsEntity playerHandle
         = getPlayerHandle(scenePtr);
-    PlayerData *playerDataPtr = windWorldHandleGetPtr(
+    PlayerData *playerDataPtr = vecsWorldEntityGetPtr(
         PlayerData,
         &(scenePtr->ecsWorld),
         playerHandle
@@ -133,10 +133,10 @@ void continueSystem(Game *gamePtr, Scene *scenePtr){
             == player_dead
         ){
             /* check to see if player out of lives */
-            WindEntity playerHandle
+            VecsEntity playerHandle
                 = getPlayerHandle(scenePtr);
             PlayerData *playerDataPtr
-                = windWorldHandleGetPtr(
+                = vecsWorldEntityGetPtr(
                     PlayerData,
                     &(scenePtr->ecsWorld),
                     playerHandle

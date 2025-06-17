@@ -70,6 +70,8 @@ _VecsArchetype _vecsArchetypeMake(
             );
         #endif
     }
+
+    return toRet;
 }
 
 /*
@@ -510,7 +512,7 @@ void _vecsArchetypeMoveEntity(
 
         void *srcComponentPtr = _arrayListGetPtr(
             srcComponentStorageListPtr,
-            index,
+            srcIndex,
             componentMetadata._componentSize
             #ifdef _DEBUG
             , componentMetadata._typeName
@@ -532,6 +534,9 @@ void _vecsArchetypeMoveEntity(
                 destComponentStorageListPtr,
                 srcComponentPtr,
                 componentMetadata._componentSize
+                #ifdef _DEBUG
+                , componentMetadata._typeName
+                #endif
             );
         }
 
@@ -622,7 +627,7 @@ bool _vecsArchetypeRemoveEntity(
         lastIndex,
         entityComponentMetadata._componentSize
         #ifdef _DEBUG
-        , entityComponentMetadata->_typeName
+        , entityComponentMetadata._typeName
         #endif
     );
     VecsEntity lastEntity = *lastEntityPtr;
@@ -653,7 +658,7 @@ bool _vecsArchetypeRemoveEntity(
     
         /* skip if component is a marker */
         if(componentMetadata._componentSize == 0){
-            return;
+            continue;
         }
 
         ArrayList *componentStorageListPtr
@@ -735,7 +740,7 @@ bool _vecsArchetypeRemoveEntity(
         SRC_LOCATION
     );
     entityMetadataPtr->_archetypePtr = archetypePtr;
-    
+
     /*
      * reserve the last slot in the component storage
      */
@@ -1009,7 +1014,7 @@ void *__vecsArchetypeItrGetPtr(
         itrPtr->_currentIndex,
         componentMetadata._componentSize
         #ifdef _DEBUG
-        , componentMetadata->_typeName
+        , componentMetadata._typeName
         #endif
     );
 }

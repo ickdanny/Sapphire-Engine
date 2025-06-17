@@ -70,7 +70,7 @@ static void addForeground(
  * of a line of buttons each offset by the specified
  * vector
  */
-static WindEntity addButtonInLine(
+static VecsEntity addButtonInLine(
     Game *gamePtr,
     Scene *scenePtr,
     const char *unselSpriteName,
@@ -124,7 +124,7 @@ static WindEntity addButtonInLine(
         config_foregroundDepth + relativeDepth,
         ((Vector2D){0})
     );
-    WindEntity toRet = {0};
+    VecsEntity toRet = {0};
     addEntityAndFreeList(
         &componentList,
         scenePtr,
@@ -147,7 +147,7 @@ typedef enum ElementLinkDirection{
 
 /*
  * Attaches the elements provided in the given
- * arraylist of WindEntity in the specified direction
+ * arraylist of VecsEntity in the specified direction
  * using the NeighborElements component (error if any
  * of the provided entities lacks such a component)
  */
@@ -160,32 +160,32 @@ static void linkElements(
     if(elementHandleListPtr->size < 2){
         return;
     }
-    WindEntity *predPtr = arrayListFrontPtr(
-        WindEntity,
+    VecsEntity *predPtr = arrayListFrontPtr(
+        VecsEntity,
         elementHandleListPtr
     );
-    WindEntity *succPtr = predPtr + 1;
+    VecsEntity *succPtr = predPtr + 1;
 
     MenuCommands *predCommandsPtr
-        = windWorldHandleGetPtr(
+        = vecsWorldEntityGetPtr(
             MenuCommands,
             &(scenePtr->ecsWorld),
             *predPtr
         );
     MenuCommands *succCommandsPtr
-        = windWorldHandleGetPtr(
+        = vecsWorldEntityGetPtr(
             MenuCommands,
             &(scenePtr->ecsWorld),
             *succPtr
         );
     NeighborElements *predElementsPtr
-        = windWorldHandleGetPtr(
+        = vecsWorldEntityGetPtr(
             NeighborElements,
             &(scenePtr->ecsWorld),
             *predPtr
         );
     NeighborElements *succElementsPtr
-        = windWorldHandleGetPtr(
+        = vecsWorldEntityGetPtr(
             NeighborElements,
             &(scenePtr->ecsWorld),
             *succPtr
@@ -236,12 +236,12 @@ static void linkElements(
         predElementsPtr = succElementsPtr;
         ++predPtr;
         ++succPtr;
-        succCommandsPtr = windWorldHandleGetPtr(
+        succCommandsPtr = vecsWorldEntityGetPtr(
             MenuCommands,
             &(scenePtr->ecsWorld),
             *succPtr
         );
-        succElementsPtr = windWorldHandleGetPtr(
+        succElementsPtr = vecsWorldEntityGetPtr(
             NeighborElements,
             &(scenePtr->ecsWorld),
             *succPtr
@@ -255,7 +255,7 @@ static void linkElements(
  */
 static void setInitSelectedElement(
     Scene *scenePtr,
-    WindEntity handle
+    VecsEntity handle
 ){
     scenePtr->messages.currentElement = handle;
 }
@@ -282,11 +282,11 @@ static void initMainMenu(
     Vector2D lineOffset = {-12.0f, -22.0f};
     Vector2D selOffset = {5.0f, 0.0f};
 
-    ArrayList buttonHandles = arrayListMake(WindEntity,
+    ArrayList buttonHandles = arrayListMake(VecsEntity,
         10
     );
     /* the start button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -307,7 +307,7 @@ static void initMainMenu(
         )
     );
     /* the practice button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -328,7 +328,7 @@ static void initMainMenu(
         )
     );
     /* the music button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -349,7 +349,7 @@ static void initMainMenu(
         )
     );
     /* the options button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -370,7 +370,7 @@ static void initMainMenu(
         )
     );
     /* the quit button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -390,18 +390,18 @@ static void initMainMenu(
     linkElements(scenePtr, &buttonHandles, topDown);
     setInitSelectedElement(
         scenePtr,
-        arrayListFront(WindEntity, &buttonHandles)
+        arrayListFront(VecsEntity, &buttonHandles)
     );
 
-    arrayListFree(WindEntity, &buttonHandles);
+    arrayListFree(VecsEntity, &buttonHandles);
 
     scenePtr->messages.backMenuCommand
         = menu_navFarDown;
 
-    String *trackIDPtr = &(gamePtr->messages
+    String *trackIdPtr = &(gamePtr->messages
         .startMusicString);
-    stringClear(trackIDPtr);
-    stringAppendC(trackIDPtr, "01");
+    stringClear(trackIdPtr);
+    stringAppendC(trackIdPtr, "01");
 }
 
 /* initializes the entities for the difficulty menu */
@@ -422,7 +422,7 @@ static void initDiffMenu(
      * next scene is either game or stage depending on
      * if the player pressed start or practice
      */
-    SceneID nextScene = gamePtr->messages.gameState
+    SceneId nextScene = gamePtr->messages.gameState
         .gameMode == game_story
             ? scene_game
             : scene_stage;
@@ -435,11 +435,11 @@ static void initDiffMenu(
     Vector2D lineOffset = {0.0f, -50.0f};
     Vector2D selOffset = {0.0f, 1.0f};
 
-    ArrayList buttonHandles = arrayListMake(WindEntity,
+    ArrayList buttonHandles = arrayListMake(VecsEntity,
         10
     );
     /* the normal button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -460,7 +460,7 @@ static void initDiffMenu(
         )
     );
     /* the hard button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -481,7 +481,7 @@ static void initDiffMenu(
         )
     );
     /* the lunatic button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -504,14 +504,14 @@ static void initDiffMenu(
     linkElements(scenePtr, &buttonHandles, topDown);
     setInitSelectedElement(
         scenePtr,
-        arrayListFront(WindEntity, &buttonHandles)
+        arrayListFront(VecsEntity, &buttonHandles)
     );
 
-    arrayListFree(WindEntity, &buttonHandles);
+    arrayListFree(VecsEntity, &buttonHandles);
 
     scenePtr->messages.backMenuCommand
         = menu_backTo;
-    scenePtr->messages.backSceneID = scene_main;
+    scenePtr->messages.backSceneId = scene_main;
 }
 
 /* initializes the entities for the stage menu */
@@ -536,11 +536,11 @@ static void initStageMenu(
     Vector2D lineOffset = {0.0f, -40.0f};
     Vector2D selOffset = {0.0f, 1.0f};
 
-    ArrayList buttonHandles = arrayListMake(WindEntity,
+    ArrayList buttonHandles = arrayListMake(VecsEntity,
         10
     );
     /* the stage 1 button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -561,7 +561,7 @@ static void initStageMenu(
         )
     );
     /* the stage 2 button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -582,7 +582,7 @@ static void initStageMenu(
         )
     );
     /* the stage 3 button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -603,7 +603,7 @@ static void initStageMenu(
         )
     );
     /* the stage 4 button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -626,14 +626,14 @@ static void initStageMenu(
     linkElements(scenePtr, &buttonHandles, topDown);
     setInitSelectedElement(
         scenePtr,
-        arrayListFront(WindEntity, &buttonHandles)
+        arrayListFront(VecsEntity, &buttonHandles)
     );
 
-    arrayListFree(WindEntity, &buttonHandles);
+    arrayListFree(VecsEntity, &buttonHandles);
 
     scenePtr->messages.backMenuCommand
         = menu_backTo;
-    scenePtr->messages.backSceneID = scene_difficulty;
+    scenePtr->messages.backSceneId = scene_difficulty;
 }
 
 /* initializes the entities for the music menu */
@@ -658,7 +658,7 @@ static void initMusicMenu(
     Vector2D lineOffset = {0.0f, -17.0f};
     Vector2D selOffset = {3.0f, 0.0f};
 
-    ArrayList buttonHandles = arrayListMake(WindEntity,
+    ArrayList buttonHandles = arrayListMake(VecsEntity,
         11
     );
 
@@ -666,7 +666,7 @@ static void initMusicMenu(
     bool initiallySelected = true;
     #define addTrackButton(NUMBER) \
         do{ \
-            arrayListPushBack(WindEntity, \
+            arrayListPushBack(VecsEntity, \
                 &buttonHandles, \
                 addButtonInLine( \
                     gamePtr, \
@@ -704,7 +704,7 @@ static void initMusicMenu(
     #undef addTrackButton
 
     /* the exit button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -726,10 +726,10 @@ static void initMusicMenu(
     linkElements(scenePtr, &buttonHandles, topDown);
     setInitSelectedElement(
         scenePtr,
-        arrayListFront(WindEntity, &buttonHandles)
+        arrayListFront(VecsEntity, &buttonHandles)
     );
 
-    arrayListFree(WindEntity, &buttonHandles);
+    arrayListFree(VecsEntity, &buttonHandles);
 
     scenePtr->messages.backMenuCommand
         = menu_navFarDown;
@@ -757,11 +757,11 @@ static void initOptionsMenu(
     Vector2D lineOffset = {0.0f, -40.0f};
     Vector2D selOffset = {0.0f, 1.0f};
 
-    ArrayList buttonHandles = arrayListMake(WindEntity,
+    ArrayList buttonHandles = arrayListMake(VecsEntity,
         10
     );
     /* the fullscreen button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -779,7 +779,7 @@ static void initOptionsMenu(
         )
     );
     /* the mute button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -797,7 +797,7 @@ static void initOptionsMenu(
         )
     );
     /* the exit button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -819,10 +819,10 @@ static void initOptionsMenu(
     linkElements(scenePtr, &buttonHandles, topDown);
     setInitSelectedElement(
         scenePtr,
-        arrayListFront(WindEntity, &buttonHandles)
+        arrayListFront(VecsEntity, &buttonHandles)
     );
 
-    arrayListFree(WindEntity, &buttonHandles);
+    arrayListFree(VecsEntity, &buttonHandles);
 
     scenePtr->messages.backMenuCommand
         = menu_navFarDown;
@@ -847,7 +847,7 @@ static void initLoadingScreen(
  * adds the player to the specified scene (should be
  * the game scene) and returns the handle of the player
  */
-static WindEntity addPlayer(
+static VecsEntity addPlayer(
     Game *gamePtr,
     Scene *scenePtr,
     PlayerData playerData
@@ -885,8 +885,8 @@ static WindEntity addPlayer(
     );
     addDeathCommand(&componentList, death_player);
     addDeathScripts(&componentList, ((DeathScripts){
-        .scriptID1 = stringMakeC("remove_ghost"),
-        .scriptID3 = stringMakeC("spawn_player_death")
+        .scriptId1 = stringMakeC("remove_ghost"),
+        .scriptId3 = stringMakeC("spawn_player_death")
     }));
     /* add player animations */
     Animations animations = animationListMake();
@@ -922,7 +922,7 @@ static WindEntity addPlayer(
     animations._maxTick = 5;
     addAnimations(&componentList, &animations);
 
-    WindEntity toRet = {0};
+    VecsEntity toRet = {0};
     addEntityAndFreeList(
         &componentList,
         scenePtr,
@@ -1069,19 +1069,19 @@ static void addStageScript(
 ){
     declareList(componentList, 1);
     Scripts scripts = {0};
-    String scriptID = {0};
+    String scriptId = {0};
     switch(stage){
         case 1:
-            scriptID = stringMakeC("stage1");
+            scriptId = stringMakeC("stage1");
             break;
         case 2:
-            scriptID = stringMakeC("stage2");
+            scriptId = stringMakeC("stage2");
             break;
         case 3:
-            scriptID = stringMakeC("stage3");
+            scriptId = stringMakeC("stage3");
             break;
         case 4:
-            scriptID = stringMakeC("stage4");
+            scriptId = stringMakeC("stage4");
             break;
         default:
             pgError(
@@ -1095,7 +1095,7 @@ static void addStageScript(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,
-            &scriptID
+            &scriptId
         )
     );
     addScripts(&componentList, scripts);
@@ -1104,7 +1104,7 @@ static void addStageScript(
         scenePtr,
         NULL
     );
-    stringFree(&scriptID);
+    stringFree(&scriptId);
 }
 
 /*
@@ -1116,21 +1116,21 @@ static void startStageTrack(
     Scene *scenePtr,
     int stage
 ){
-    String *trackIDPtr
+    String *trackIdPtr
         = &(gamePtr->messages.startMusicString);
-    stringClear(trackIDPtr);
+    stringClear(trackIdPtr);
     switch(stage){
         case 1:
-            stringAppendC(trackIDPtr, "02");
+            stringAppendC(trackIdPtr, "02");
             break;
         case 2:
-            stringAppendC(trackIDPtr, "04");
+            stringAppendC(trackIdPtr, "04");
             break;
         case 3:
-            stringAppendC(trackIDPtr, "06");
+            stringAppendC(trackIdPtr, "06");
             break;
         case 4:
-            stringAppendC(trackIDPtr, "08");
+            stringAppendC(trackIdPtr, "08");
             break;
         default:
             pgError(
@@ -1145,7 +1145,7 @@ static void startStageTrack(
 static void initGame(Game *gamePtr, Scene *scenePtr){
     const GameState gameState
         = gamePtr->messages.gameState;
-    WindWorld *worldPtr = &(scenePtr->ecsWorld);
+    VecsWorld *worldPtr = &(scenePtr->ecsWorld);
     
     /* create prng */
     scenePtr->messages.prng
@@ -1240,7 +1240,7 @@ static void initGame(Game *gamePtr, Scene *scenePtr){
             pixelScrollPerSec
         })
     );
-    WindEntity toRet = {0};
+    VecsEntity toRet = {0};
     addEntityAndFreeList(
         &componentList,
         scenePtr,
@@ -1365,11 +1365,11 @@ static void initPauseMenu(
     Vector2D lineOffset = {0.0f, -30.0f};
     Vector2D selOffset = {0.0f, 1.0f};
 
-    ArrayList buttonHandles = arrayListMake(WindEntity,
+    ArrayList buttonHandles = arrayListMake(VecsEntity,
         10
     );
     /* the resume button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -1378,7 +1378,7 @@ static void initPauseMenu(
             "button_resumeSel",
             menu_backTo,
             (MenuCommandData){
-                .sceneData.sceneID = scene_game
+                .sceneData.sceneId = scene_game
             },
             0,
             initPos,
@@ -1389,7 +1389,7 @@ static void initPauseMenu(
         )
     );
     /* the restart button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -1407,7 +1407,7 @@ static void initPauseMenu(
         )
     );
     /* the retire button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -1427,10 +1427,10 @@ static void initPauseMenu(
     linkElements(scenePtr, &buttonHandles, topDown);
     setInitSelectedElement(
         scenePtr,
-        arrayListFront(WindEntity, &buttonHandles)
+        arrayListFront(VecsEntity, &buttonHandles)
     );
 
-    arrayListFree(WindEntity, &buttonHandles);
+    arrayListFree(VecsEntity, &buttonHandles);
 
     scenePtr->messages.backMenuCommand
         = menu_navFarDown;
@@ -1455,11 +1455,11 @@ static void initContinueMenu(
     Vector2D lineOffset = {0.0f, -30.0f};
     Vector2D selOffset = {0.0f, 1.0f};
 
-    ArrayList buttonHandles = arrayListMake(WindEntity,
+    ArrayList buttonHandles = arrayListMake(VecsEntity,
         10
     );
     /* the accept button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -1468,7 +1468,7 @@ static void initContinueMenu(
             "button_acceptSel",
             menu_backTo,
             (MenuCommandData){
-                .sceneData.sceneID = scene_game
+                .sceneData.sceneId = scene_game
             },
             0,
             initPos,
@@ -1479,7 +1479,7 @@ static void initContinueMenu(
         )
     );
     /* the decline button */
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &buttonHandles,
         addButtonInLine(
             gamePtr,
@@ -1500,10 +1500,10 @@ static void initContinueMenu(
     linkElements(scenePtr, &buttonHandles, topDown);
     setInitSelectedElement(
         scenePtr,
-        arrayListFront(WindEntity, &buttonHandles)
+        arrayListFront(VecsEntity, &buttonHandles)
     );
 
-    arrayListFree(WindEntity, &buttonHandles);
+    arrayListFree(VecsEntity, &buttonHandles);
 
     /* get player data from continue system */
     assertTrue(
@@ -1559,13 +1559,13 @@ static void initCredits(
     /* add the spawner for the credits */
     declareList(componentList, 1);
     Scripts scripts = {0};
-    String scriptID = stringMakeC("credits");
+    String scriptId = stringMakeC("credits");
     scripts.vm1 = vmPoolRequest();
     unVirtualMachineLoad(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,
-            &scriptID
+            &scriptId
         )
     );
     addScripts(&componentList, scripts);
@@ -1574,7 +1574,7 @@ static void initCredits(
         scenePtr,
         NULL
     );
-    stringFree(&scriptID);
+    stringFree(&scriptId);
 }
 
 /* initializes each scene */

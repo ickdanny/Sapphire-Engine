@@ -20,7 +20,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataID);
+        bitsetSet(&accept, PlayerDataId);
 
         registerSystemDestructor(destroy);
         
@@ -36,19 +36,19 @@ void playerBombAddSystem(
     init();
     
     if(scenePtr->messages.bombsToAdd > 0){
-        WindQueryItr itr = windWorldRequestQueryItr(
+        VecsQueryItr itr = vecsWorldRequestQueryItr(
             &(scenePtr->ecsWorld),
             &accept,
             NULL
         );
         while(windQueryItrHasEntity(&itr)){
-            WindEntity handle = windWorldMakeHandle(
+            VecsEntity handle = vecsWorldMakeHandle(
                 &(scenePtr->ecsWorld),
-                windQueryItrCurrentID(&itr)
+                windQueryItrCurrentId(&itr)
             );
 
             PlayerData *playerDataPtr
-                = windWorldHandleGetPtr(PlayerData,
+                = vecsWorldEntityGetPtr(PlayerData,
                     &(scenePtr->ecsWorld),
                     handle
                 );
@@ -58,7 +58,7 @@ void playerBombAddSystem(
             if(playerDataPtr->bombs > config_maxBombs){
                 playerDataPtr->bombs = config_maxBombs;
             }
-            windQueryItrAdvance(&itr);
+            vecsQueryItrAdvance(&itr);
         }
         scenePtr->messages.bombsToAdd = 0;
     }

@@ -9,26 +9,26 @@
 static void setImage(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle,
-    String *spriteIDPtr
+    VecsEntity handle,
+    String *spriteIdPtr
 ){
     SpriteInstruction spriteInstr
         = tfSpriteInstructionMakeSimple(
             resourcesGetSprite(
                 gamePtr->resourcesPtr,
-                spriteIDPtr
+                spriteIdPtr
             ),
             config_foregroundDepth,
             ((Vector2D){0})
         );
     if(!(spriteInstr.spritePtr)){
-        pgWarning(spriteIDPtr->_ptr);
+        pgWarning(spriteIdPtr->_ptr);
         pgError(
             "Failed to get sprite for dialogue; "
             SRC_LOCATION
         );
     }
-    windWorldHandleSetComponent(SpriteInstruction,
+    vecsWorldEntitySetComponent(SpriteInstruction,
         &(scenePtr->ecsWorld),
         handle,
         &spriteInstr
@@ -41,7 +41,7 @@ static void setImage(
  */
 static void setText(
     Scene *scenePtr,
-    WindEntity handle,
+    VecsEntity handle,
     String *textPtr
 ){
     TextInstruction textInstr = {0};
@@ -56,7 +56,7 @@ static void setText(
     }
     textInstr.rightBound = textRightBound;
 
-    windWorldHandleSetComponent(TextInstruction,
+    vecsWorldEntitySetComponent(TextInstruction,
         &(scenePtr->ecsWorld),
         handle,
         &textInstr
@@ -137,7 +137,7 @@ static bool handleNextCommand(
         case dialogue_stop:
             return false;
         case dialogue_end:
-            gamePtr->messages.sceneExitToID
+            gamePtr->messages.sceneExitToId
                 = scene_game;
             gamePtr->messages.endDialogueFlag = true;
             return false;

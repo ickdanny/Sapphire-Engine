@@ -11,7 +11,7 @@
 void applyPrototype(
     Game *gamePtr,
     Scene *scenePtr,
-    String *prototypeIDPtr,
+    String *prototypeIdPtr,
     ArrayList *componentListPtr,
     int depthOffset
 );

@@ -126,7 +126,7 @@ static MidiFileHeader readFileHeader(FILE *filePtr){
     );
 
     /* check file header validity */
-	if(fileHeader.id != mm_requiredHeaderID) {
+	if(fileHeader.id != mm_requiredHeaderId) {
 		pgError(
             "Error MIDI file invalid header identifier"
         );
@@ -179,7 +179,7 @@ static MidiTrackHeader readTrackHeader(FILE *filePtr){
     );
 	
 	/* check track header validity */
-	if(trackHeader.id != mm_requiredTrackHeaderID) {
+	if(trackHeader.id != mm_requiredTrackHeaderId) {
 		pgError(
             "Error MIDI file invalid track identifier"
         );

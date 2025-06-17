@@ -34,12 +34,12 @@
 typedef struct _TFGraphics{
     int _graphicsWidth;
     int _graphicsHeight;
-    GLuint _vaoID;
-    GLuint _vertexBufferID;
-    GLuint _texCoordBufferID;
-    GLuint _programID;
-    GLuint _transformID;
-    GLuint _samplerID;
+    GLuint _vaoId;
+    GLuint _vertexBufferId;
+    GLuint _texCoordBufferId;
+    GLuint _programId;
+    GLuint _transformId;
+    GLuint _samplerId;
 } _TFGraphics;
 
 /* 

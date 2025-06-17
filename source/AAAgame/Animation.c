@@ -17,12 +17,12 @@ Animation animationMake(bool looping){
  */
 void animationAddFrame(
     Animation *animationPtr,
-    const char *spriteID
+    const char *spriteId
 ){
-    String stringID = stringMakeC(spriteID);
+    String stringId = stringMakeC(spriteId);
     arrayListPushBack(String,
         &(animationPtr->frameNames),
-        stringID
+        stringId
     );
 }
 

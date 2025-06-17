@@ -20,7 +20,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataID);
+        bitsetSet(&accept, PlayerDataId);
 
         registerSystemDestructor(destroy);
         
@@ -36,19 +36,19 @@ void playerLifeAddSystem(
     init();
 
     if(scenePtr->messages.livesToAdd > 0){
-        WindQueryItr itr = windWorldRequestQueryItr(
+        VecsQueryItr itr = vecsWorldRequestQueryItr(
             &(scenePtr->ecsWorld),
             &accept,
             NULL
         );
         while(windQueryItrHasEntity(&itr)){
-            WindEntity handle = windWorldMakeHandle(
+            VecsEntity handle = vecsWorldMakeHandle(
                 &(scenePtr->ecsWorld),
-                windQueryItrCurrentID(&itr)
+                windQueryItrCurrentId(&itr)
             );
 
             PlayerData *playerDataPtr
-                = windWorldHandleGetPtr(PlayerData,
+                = vecsWorldEntityGetPtr(PlayerData,
                     &(scenePtr->ecsWorld),
                     handle
                 );
@@ -58,7 +58,7 @@ void playerLifeAddSystem(
             if(playerDataPtr->lives > config_maxLives){
                 playerDataPtr->lives = config_maxLives;
             }
-            windQueryItrAdvance(&itr);
+            vecsQueryItrAdvance(&itr);
         }
         scenePtr->messages.livesToAdd = 0;
     }

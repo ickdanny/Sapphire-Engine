@@ -30,15 +30,15 @@ static int powerLoss(int initPower){
 static void handleDeathScript(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle,
+    VecsEntity handle,
     bool removeEntityAfter
 ){
-    if(windWorldHandleContainsComponent(DeathScripts,
+    if(vecsWorldEntityContainsComponent(DeathScripts,
         &(scenePtr->ecsWorld),
         handle
     )){
         DeathScripts *deathScriptsPtr
-            = windWorldHandleGetPtr(DeathScripts,
+            = vecsWorldEntityGetPtr(DeathScripts,
                 &(scenePtr->ecsWorld),
                 handle
             );
@@ -52,18 +52,18 @@ static void handleDeathScript(
         Scripts scripts = {0};
         #define addScriptIfStringAllocated(SLOT) \
             do{ \
-                if(deathScriptsPtr->scriptID##SLOT \
+                if(deathScriptsPtr->scriptId##SLOT \
                         ._ptr \
                     && !stringIsEmpty( \
                         &(deathScriptsPtr \
-                            ->scriptID##SLOT) \
+                            ->scriptId##SLOT) \
                     ) \
                 ){ \
                     UNObjectFunc *scriptPtr \
                         = resourcesGetScript( \
                             gamePtr->resourcesPtr, \
                             &(deathScriptsPtr \
-                                ->scriptID##SLOT) \
+                                ->scriptId##SLOT) \
                         ); \
                     scripts.vm##SLOT \
                         = vmPoolRequest(); \
@@ -89,12 +89,12 @@ static void handleDeathScript(
          * if the entity had a position, add the
          * position to the ghost also
          */
-        if(windWorldHandleContainsComponent(Position,
+        if(vecsWorldEntityContainsComponent(Position,
             &(scenePtr->ecsWorld),
             handle
         )){
             Position *positionPtr
-                = windWorldHandleGetPtr(
+                = vecsWorldEntityGetPtr(
                     Position,
                     &(scenePtr->ecsWorld),
                     handle
@@ -109,7 +109,7 @@ static void handleDeathScript(
          * if the entity had a velocity, add the angle
          * to the ghost but not the magnitude
          */
-        if(windWorldHandleContainsComponent(Velocity,
+        if(vecsWorldEntityContainsComponent(Velocity,
             &(scenePtr->ecsWorld),
             handle
         )){
@@ -147,7 +147,7 @@ static void handleDeathScript(
 static void handlePlayerDeath(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity playerHandle
+    VecsEntity playerHandle
 ){
     /* remove script component and pickup collision */
     windWorldHandleRemoveComponent(Scripts,
@@ -169,7 +169,7 @@ static void handlePlayerDeath(
     );
 
     /* subtract power */
-    PlayerData *playerDataPtr = windWorldHandleGetPtr(
+    PlayerData *playerDataPtr = vecsWorldEntityGetPtr(
         PlayerData,
         &(scenePtr->ecsWorld),
         playerHandle
@@ -182,7 +182,7 @@ static void handlePlayerDeath(
 static void handleDeathCommand(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle,
+    VecsEntity handle,
     DeathCommand command
 ){
     switch(command){
@@ -232,7 +232,7 @@ void deathHandlerSystem(
     ArrayList *deathsPtr
         = &(scenePtr->messages.deaths);
     for(size_t i = 0; i < deathsPtr->size; ++i){
-        WindEntity handle = arrayListGet(WindEntity,
+        VecsEntity handle = arrayListGet(VecsEntity,
             deathsPtr,
             i
         );
@@ -247,7 +247,7 @@ void deathHandlerSystem(
             continue;
         }
         /* if entity had death command, use it */
-        if(windWorldHandleContainsComponent(
+        if(vecsWorldEntityContainsComponent(
             DeathCommand,
             &(scenePtr->ecsWorld),
             handle

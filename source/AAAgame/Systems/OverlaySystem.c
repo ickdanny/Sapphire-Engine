@@ -6,22 +6,22 @@
 #endif
 
 static Bitset accept;
-static String removeUIScriptID;
-static String lifeSpawnSpriteID;
-static String bombSpawnSpriteID;
-static String powerID;
-static String powerMaxID;
+static String removeUIScriptId;
+static String lifeSpawnSpriteId;
+static String bombSpawnSpriteId;
+static String powerId;
+static String powerMaxId;
 static bool initialized = false;
 
 /* destroys the overlay system */
 static void destroy(){
     if(initialized){
         bitsetFree(&accept);
-        stringFree(&removeUIScriptID);
-        stringFree(&lifeSpawnSpriteID);
-        stringFree(&bombSpawnSpriteID);
-        stringFree(&powerID);
-        stringFree(&powerMaxID);
+        stringFree(&removeUIScriptId);
+        stringFree(&lifeSpawnSpriteId);
+        stringFree(&bombSpawnSpriteId);
+        stringFree(&powerId);
+        stringFree(&powerMaxId);
         initialized = false;
     }
 }
@@ -30,19 +30,19 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataID);
+        bitsetSet(&accept, PlayerDataId);
 
-        removeUIScriptID = stringMakeC(
+        removeUIScriptId = stringMakeC(
             "remove_explode_ui"
         );
-        lifeSpawnSpriteID = stringMakeC(
+        lifeSpawnSpriteId = stringMakeC(
             "overlay_spawn_life1"
         );
-        bombSpawnSpriteID = stringMakeC(
+        bombSpawnSpriteId = stringMakeC(
             "overlay_spawn_bomb1"
         );
-        powerID = stringMakeC("overlay_power");
-        powerMaxID = stringMakeC("overlay_power_max");
+        powerId = stringMakeC("overlay_power");
+        powerMaxId = stringMakeC("overlay_power_max");
 
         registerSystemDestructor(destroy);
         
@@ -51,17 +51,17 @@ static void init(){
 }
 
 /* retrieves the player handle */
-static WindEntity getPlayerHandle(Scene *scenePtr){
-    WindQueryItr itr = windWorldRequestQueryItr(
+static VecsEntity getPlayerHandle(Scene *scenePtr){
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
     );
     /* get first player */
     if(windQueryItrHasEntity(&itr)){
-        return windWorldMakeHandle(
+        return vecsWorldMakeHandle(
             &(scenePtr->ecsWorld),
-            windQueryItrCurrentID(&itr)
+            windQueryItrCurrentId(&itr)
         );
     }
     /* error if cannot find player */
@@ -70,7 +70,7 @@ static WindEntity getPlayerHandle(Scene *scenePtr){
             "failed to find player; "
             SRC_LOCATION
         );
-        return (WindEntity){0};
+        return (VecsEntity){0};
     }
 }
 
@@ -81,7 +81,7 @@ static WindEntity getPlayerHandle(Scene *scenePtr){
 static void removeLife(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle
+    VecsEntity handle
 ){
     /* make the entity invisible */
     windWorldHandleRemoveComponent(VisibleMarker,
@@ -90,7 +90,7 @@ static void removeLife(
     );
 
     /* spawn an explode at entity location */
-    Position *positionPtr = windWorldHandleGetPtr(
+    Position *positionPtr = vecsWorldEntityGetPtr(
         Position,
         &(scenePtr->ecsWorld),
         handle
@@ -135,7 +135,7 @@ static void removeLife(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,
-            &removeUIScriptID
+            &removeUIScriptId
         )
     );
     addScripts(&componentList, scripts);
@@ -153,7 +153,7 @@ static void removeLife(
 static void removeBomb(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle
+    VecsEntity handle
 ){
     /* make the entity invisible */
     windWorldHandleRemoveComponent(VisibleMarker,
@@ -162,7 +162,7 @@ static void removeBomb(
     );
 
     /* spawn an explode at entity location */
-    Position *positionPtr = windWorldHandleGetPtr(
+    Position *positionPtr = vecsWorldEntityGetPtr(
         Position,
         &(scenePtr->ecsWorld),
         handle
@@ -207,7 +207,7 @@ static void removeBomb(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,
-            &removeUIScriptID
+            &removeUIScriptId
         )
     );
     addScripts(&componentList, scripts);
@@ -225,7 +225,7 @@ static void removeBomb(
 static void addLife(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle
+    VecsEntity handle
 ){
     /* make the entity visible */
     windWorldHandleAddComponent(VisibleMarker,
@@ -235,13 +235,13 @@ static void addLife(
     );
     /* change the current sprite to spawn 1 */
     SpriteInstruction *spriteInstrPtr
-        = windWorldHandleGetPtr(SpriteInstruction,
+        = vecsWorldEntityGetPtr(SpriteInstruction,
             &(scenePtr->ecsWorld),
             handle
         );
     spriteInstrPtr->spritePtr = resourcesGetSprite(
         gamePtr->resourcesPtr,
-        &lifeSpawnSpriteID
+        &lifeSpawnSpriteId
     );
     /* remove the old animation component if needed */
     windWorldHandleRemoveComponent(Animations,
@@ -285,7 +285,7 @@ static void addLife(
 static void addBomb(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity handle
+    VecsEntity handle
 ){
     /* make the entity visible */
     windWorldHandleAddComponent(VisibleMarker,
@@ -295,13 +295,13 @@ static void addBomb(
     );
     /* change the current sprite to spawn 1 */
     SpriteInstruction *spriteInstrPtr
-        = windWorldHandleGetPtr(SpriteInstruction,
+        = vecsWorldEntityGetPtr(SpriteInstruction,
             &(scenePtr->ecsWorld),
             handle
         );
     spriteInstrPtr->spritePtr = resourcesGetSprite(
         gamePtr->resourcesPtr,
-        &bombSpawnSpriteID
+        &bombSpawnSpriteId
     );
     /* remove the old animation component if needed */
     windWorldHandleRemoveComponent(Animations,
@@ -446,11 +446,11 @@ static void updatePower(
     Scene *scenePtr,
     PlayerData *playerDataPtr
 ){
-    WindEntity handle
+    VecsEntity handle
         = scenePtr->messages.overlayData.powerHandle;
     
     SpriteInstruction *spriteInstrPtr
-        = windWorldHandleGetPtr(SpriteInstruction,
+        = vecsWorldEntityGetPtr(SpriteInstruction,
             &(scenePtr->ecsWorld),
             handle
         );
@@ -464,7 +464,7 @@ static void updatePower(
     }
     /* otherwise, make sure power ui visible */
     else{
-        windWorldHandleSetComponent(VisibleMarker,
+        vecsWorldEntitySetComponent(VisibleMarker,
             &(scenePtr->ecsWorld),
             handle,
             NULL
@@ -474,18 +474,18 @@ static void updatePower(
     if(power != config_maxPower){
         spriteInstrPtr->spritePtr = resourcesGetSprite(
             gamePtr->resourcesPtr,
-            &powerID
+            &powerId
         );
     }
     /* otherwise, set to max */
     else{
         spriteInstrPtr->spritePtr = resourcesGetSprite(
             gamePtr->resourcesPtr,
-            &powerMaxID
+            &powerMaxId
         );
     }
     /* update sub image */
-    SubImage *subImagePtr = windWorldHandleGetPtr(
+    SubImage *subImagePtr = vecsWorldEntityGetPtr(
         SubImage,
         &(scenePtr->ecsWorld),
         handle
@@ -502,10 +502,10 @@ void overlaySystem(Game *gamePtr, Scene *scenePtr){
         return;
     }
     
-    WindEntity playerHandle
+    VecsEntity playerHandle
         = getPlayerHandle(scenePtr);
     PlayerData *playerDataPtr
-        = windWorldHandleGetPtr(PlayerData,
+        = vecsWorldEntityGetPtr(PlayerData,
             &(scenePtr->ecsWorld),
             playerHandle
         );

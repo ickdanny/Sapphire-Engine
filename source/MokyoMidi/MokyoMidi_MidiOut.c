@@ -329,7 +329,7 @@ static bool getPortAddressString(
 
 /*
  * Retrieves the address of the port specified by the
- * given client and port IDs; returns true if
+ * given client and port Ids; returns true if
  * successful, false otherwise
  */
 static bool getPortAddressNumeric(

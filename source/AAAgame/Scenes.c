@@ -17,8 +17,8 @@ SceneMessages sceneMessagesMake(){
         GameCommand,
         10
     );
-    toRet.playerHits = arrayListMake(WindEntity, 10);
-    toRet.deaths = arrayListMake(WindEntity, 100);
+    toRet.playerHits = arrayListMake(VecsEntity, 10);
+    toRet.deaths = arrayListMake(VecsEntity, 100);
     toRet.timer1 = -1;
     toRet.playerCollisionList = arrayListMake(
         Collision,
@@ -48,12 +48,12 @@ void sceneMessagesClear(
         &(messagesPtr->menuNavigationCommands)
     );
     messagesPtr->backMenuCommand = menu_none;
-    messagesPtr->backSceneID = scene_numScenes;
-    messagesPtr->currentElement = (WindEntity){0};
+    messagesPtr->backSceneId = scene_numScenes;
+    messagesPtr->currentElement = (VecsEntity){0};
     messagesPtr->elementChanges.newElementSelected
         = false;
     messagesPtr->elementChanges.prevElement
-        = (WindEntity){0};
+        = (VecsEntity){0};
     messagesPtr->gameBuilderCommand = gb_none;
     messagesPtr->timer1 = -1;
     messagesPtr->readDialogueFlag = false;
@@ -67,12 +67,12 @@ void sceneMessagesClear(
         &(messagesPtr->gameCommands)
     );
     messagesPtr->playerStateEntry.playerHandle
-        = (WindEntity){0};
+        = (VecsEntity){0};
     messagesPtr->playerStateEntry.state = player_none;
-    arrayListClear(WindEntity,
+    arrayListClear(VecsEntity,
         &(messagesPtr->playerHits)
     );
-    arrayListClear(WindEntity,
+    arrayListClear(VecsEntity,
         &(messagesPtr->deaths)
     );
     messagesPtr->bossDeathFlag = false;
@@ -115,10 +115,10 @@ void sceneMessagesFree(
     arrayListFree(GameCommand,
         &(messagesPtr->gameCommands)
     );
-    arrayListFree(WindEntity,
+    arrayListFree(VecsEntity,
         &(messagesPtr->playerHits)
     );
-    arrayListFree(WindEntity,
+    arrayListFree(VecsEntity,
         &(messagesPtr->deaths)
     );
     arrayListFree(Collision,
@@ -142,9 +142,9 @@ void sceneMessagesFree(
 
 /* Constructs and returns a new Scene by value */
 Scene sceneMake(
-    SceneID id,
+    SceneId id,
     size_t entityCapacity,
-    WindComponents *componentsPtr,
+    VecsComponentList *componentsPtr,
     bool refresh,
     bool updateTransparent,
     bool renderTransparent
@@ -155,7 +155,7 @@ Scene sceneMake(
         updateTransparent,
         renderTransparent
     };
-    toRet.ecsWorld = windWorldMake(
+    toRet.ecsWorld = vecsWorldMake(
         entityCapacity,
         componentsPtr
     );
@@ -170,7 +170,7 @@ Scene sceneMake(
 void sceneRefresh(Scene *scenePtr){
     if(scenePtr->_refresh){
         /* clear ecs world */
-        windWorldClear(&(scenePtr->ecsWorld));
+        vecsWorldClear(&(scenePtr->ecsWorld));
 
         /* clear messages */
         sceneMessagesClear(&(scenePtr->messages));
@@ -179,7 +179,7 @@ void sceneRefresh(Scene *scenePtr){
 
 /* Frees the memory associated with the given Scene */
 void sceneFree(Scene *scenePtr){
-    windWorldFree(&(scenePtr->ecsWorld));
+    vecsWorldFree(&(scenePtr->ecsWorld));
     sceneMessagesFree(&(scenePtr->messages));
     memset(scenePtr, 0, sizeof(*scenePtr));
 }
@@ -190,9 +190,9 @@ void sceneFree(Scene *scenePtr){
  */
 void scenesDefineScene(
     Scenes *scenesPtr,
-    SceneID id,
+    SceneId id,
     size_t entityCapacity,
-    WindComponents *componentsPtr,
+    VecsComponentList *componentsPtr,
     bool refresh,
     bool updateTransparent,
     bool renderTransparent
@@ -214,26 +214,26 @@ void scenesDefineScene(
 /*
  * Constructs and returns a new Scenes object by value
  */
-Scenes scenesMake(WindComponents *componentsPtr){
+Scenes scenesMake(VecsComponentList *componentsPtr){
     Scenes toRet = {0};
     toRet._sceneStorage = arrayMake(Scene,
         scene_numScenes
     );
-    toRet._sceneStack = arrayListMake(SceneID,
+    toRet._sceneStack = arrayListMake(SceneId,
         scene_numScenes
     );
 
     #define defineScene( \
-        ID, \
+        Id, \
         ENTITYCAPACITY, \
         REFRESH, \
         TRANSPARENCY \
     ) \
         arraySet(Scene, \
             &(toRet._sceneStorage), \
-            ID, \
+            Id, \
             sceneMake( \
-                ID, \
+                Id, \
                 ENTITYCAPACITY, \
                 componentsPtr, \
                 REFRESH, \
@@ -292,14 +292,14 @@ Scenes scenesMake(WindComponents *componentsPtr){
  * Pushes the requested scene onto the top of the scene
  * stack in the given Scenes object
  */
-void scenesPush(Scenes *scenesPtr, SceneID sceneID){
-    arrayListPushBack(SceneID,
+void scenesPush(Scenes *scenesPtr, SceneId sceneId){
+    arrayListPushBack(SceneId,
         &(scenesPtr->_sceneStack),
-        sceneID
+        sceneId
     );
     Scene *scenePtr = arrayGetPtr(Scene,
         &(scenesPtr->_sceneStorage),
-        sceneID
+        sceneId
     );
     if(scenePtr->_refresh){
         sceneRefresh(scenePtr);
@@ -311,7 +311,7 @@ void scenesPush(Scenes *scenesPtr, SceneID sceneID){
  * Scenes object
  */
 void scenesPop(Scenes *scenesPtr){
-    arrayListPopBack(SceneID,
+    arrayListPopBack(SceneId,
         &(scenesPtr->_sceneStack)
     );
 }
@@ -323,14 +323,14 @@ void scenesPop(Scenes *scenesPtr){
  */
 void scenesPopTo(
     Scenes *scenesPtr,
-    SceneID sceneToFind
+    SceneId sceneToFind
 ){
-    SceneID topSceneID = arrayListBack(SceneID,
+    SceneId topSceneId = arrayListBack(SceneId,
         &(scenesPtr->_sceneStack)
     );
-    while(topSceneID != sceneToFind){
+    while(topSceneId != sceneToFind){
         scenesPop(scenesPtr);
-        topSceneID = arrayListBack(SceneID,
+        topSceneId = arrayListBack(SceneId,
             &(scenesPtr->_sceneStack)
         );
     }
@@ -357,13 +357,13 @@ Scene *scenesGetScene(Scenes *scenesPtr, int i){
             SRC_LOCATION
         );
     }
-    SceneID sceneID = arrayListGet(SceneID,
+    SceneId sceneId = arrayListGet(SceneId,
         &(scenesPtr->_sceneStack),
         i
     );
     return arrayGetPtr(Scene,
         &(scenesPtr->_sceneStorage),
-        sceneID
+        sceneId
     );
 }
 
@@ -377,6 +377,6 @@ void scenesFree(Scenes *scenesPtr){
         sceneFree
     );
     arrayFree(Scene, &(scenesPtr->_sceneStorage));
-    arrayListFree(SceneID, &(scenesPtr->_sceneStack));
+    arrayListFree(SceneId, &(scenesPtr->_sceneStack));
     memset(scenesPtr, 0, sizeof(*scenesPtr));
 }

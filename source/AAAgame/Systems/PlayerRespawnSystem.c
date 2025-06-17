@@ -8,11 +8,11 @@ void playerRespawnSystem(
     if(scenePtr->messages.playerStateEntry.state
         == player_respawning
     ){
-        WindEntity playerHandle
+        VecsEntity playerHandle
             = scenePtr->messages.playerStateEntry
                 .playerHandle;
         PlayerData *playerDataPtr
-            = windWorldHandleGetPtr(PlayerData,
+            = vecsWorldEntityGetPtr(PlayerData,
                 &(scenePtr->ecsWorld),
                 playerHandle
             );
@@ -33,7 +33,7 @@ void playerRespawnSystem(
             config_playerSpawn,
             config_playerSpawn
         };
-        windWorldHandleSetComponent(Position,
+        vecsWorldEntitySetComponent(Position,
             &(scenePtr->ecsWorld),
             playerHandle,
             &position

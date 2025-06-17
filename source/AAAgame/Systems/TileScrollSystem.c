@@ -20,9 +20,9 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, SpriteInstructionID);
-        bitsetSet(&accept, TilingInstructionID);
-        bitsetSet(&accept, TileScrollID);
+        bitsetSet(&accept, SpriteInstructionId);
+        bitsetSet(&accept, TilingInstructionId);
+        bitsetSet(&accept, TileScrollId);
 
         registerSystemDestructor(destroy);
         
@@ -35,7 +35,7 @@ void tileScrollSystem(Game *gamePtr, Scene *scenePtr){
     init();
 
     /* get entities that need tile scrolling */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
@@ -96,6 +96,6 @@ void tileScrollSystem(Game *gamePtr, Scene *scenePtr){
                 -= spriteHeight;
         }
 
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 }

@@ -23,7 +23,7 @@
 
 #endif
 
-/* Loads the shaders and returns the programID */
+/* Loads the shaders and returns the programId */
 GLuint _loadShaders();
 
 #endif

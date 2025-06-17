@@ -5,7 +5,7 @@ void messageCleanupSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    arrayListClear(WindEntity,
+    arrayListClear(VecsEntity,
         &(scenePtr->messages.deaths)
     );
     scenePtr->messages.pauseFlag = false;

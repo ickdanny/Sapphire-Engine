@@ -6,9 +6,9 @@
  */
 void handleDeathCommand(
     Scene *scenePtr,
-    WindEntity handle
+    VecsEntity handle
 ){
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &(scenePtr->messages.deaths),
         handle
     );
@@ -20,11 +20,11 @@ void handleDeathCommand(
  */
 void handleDamageCommand(
     Scene *scenePtr,
-    WindEntity handle,
-    WindEntity collidedHandle
+    VecsEntity handle,
+    VecsEntity collidedHandle
 ){
     /* bail if entity has no health */
-    if(!windWorldHandleContainsComponent(Health,
+    if(!vecsWorldEntityContainsComponent(Health,
         &(scenePtr->ecsWorld),
         handle
     )){
@@ -32,14 +32,14 @@ void handleDamageCommand(
     }
 
     /* bail if collided entity has no damage */
-    if(!windWorldHandleContainsComponent(Damage,
+    if(!vecsWorldEntityContainsComponent(Damage,
         &(scenePtr->ecsWorld),
         collidedHandle
     )){
         return;
     }
 
-    Health *healthPtr = windWorldHandleGetPtr(Health,
+    Health *healthPtr = vecsWorldEntityGetPtr(Health,
         &(scenePtr->ecsWorld),
         handle
     );
@@ -59,9 +59,9 @@ void handleDamageCommand(
 /* Handles a player collision */
 void handlePlayerCommand(
     Scene *scenePtr,
-    WindEntity playerHandle
+    VecsEntity playerHandle
 ){
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &(scenePtr->messages.playerHits),
         playerHandle
     );
@@ -73,14 +73,14 @@ void handlePlayerCommand(
  */
 void handlePickupCommand(
     Scene *scenePtr,
-    WindEntity pickupHandle,
-    WindEntity collidedHandle
+    VecsEntity pickupHandle,
+    VecsEntity collidedHandle
 ){
     /*
      * bail if the collided handle has no player data
      * component
      */
-    if(!windWorldHandleContainsComponent(PlayerData,
+    if(!vecsWorldEntityContainsComponent(PlayerData,
         &(scenePtr->ecsWorld),
         collidedHandle
     )){
@@ -88,7 +88,7 @@ void handlePickupCommand(
     }
 
     /* error if pickup lacks power gain component */
-    if(!windWorldHandleContainsComponent(PowerGain,
+    if(!vecsWorldEntityContainsComponent(PowerGain,
         &(scenePtr->ecsWorld),
         pickupHandle
     )){
@@ -98,7 +98,7 @@ void handlePickupCommand(
         );
     }
 
-    PlayerData *playerDataPtr = windWorldHandleGetPtr(
+    PlayerData *playerDataPtr = vecsWorldEntityGetPtr(
         PlayerData,
         &(scenePtr->ecsWorld),
         collidedHandle
@@ -126,7 +126,7 @@ killPickup:
 /* Removes the collision type from the hit entity */ \
 void handleRemoveTypeCommand##SUFFIX( \
     Scene *scenePtr, \
-    WindEntity handle \
+    VecsEntity handle \
 ){ \
     /* \
      * unknown whether source or target, assume we \
@@ -150,9 +150,9 @@ void handleRemoveTypeCommand##SUFFIX( \
  */ \
 void handleCollisionCommand##SUFFIX( \
     Scene *scenePtr, \
-    WindEntity handle, \
+    VecsEntity handle, \
     CollisionCommand command, \
-    WindEntity collidedHandle \
+    VecsEntity collidedHandle \
 ){ \
     switch(command){ \
         case collision_none: \
@@ -206,7 +206,7 @@ void handleCollisions##SUFFIX(Scene *scenePtr){ \
             collisionChannelPtr, \
             i \
         ); \
-        if(windWorldHandleContainsComponent( \
+        if(vecsWorldEntityContainsComponent( \
             SUFFIX##CollisionSource, \
             &(scenePtr->ecsWorld), \
             collision.sourceHandle \
@@ -224,7 +224,7 @@ void handleCollisions##SUFFIX(Scene *scenePtr){ \
                 collision.targetHandle \
             ); \
         } \
-        if(windWorldHandleContainsComponent( \
+        if(vecsWorldEntityContainsComponent( \
             SUFFIX##CollisionTarget, \
             &(scenePtr->ecsWorld), \
             collision.targetHandle \
@@ -258,7 +258,7 @@ void collisionHandlerSystem(
     Scene *scenePtr
 ){
     /* clear player hits messages */
-    arrayListClear(WindEntity,
+    arrayListClear(VecsEntity,
         &(scenePtr->messages.playerHits)
     );
 

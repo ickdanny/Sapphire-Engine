@@ -11,7 +11,7 @@ static bool initialized = false;
 /* used for native funcs that work on the entity */
 static Game *_gamePtr;
 static Scene *_scenePtr;
-static WindEntity _handle;
+static VecsEntity _handle;
 
 /* the actual native funcs */
 
@@ -50,14 +50,14 @@ static WindEntity _handle;
  */
 #define fillComponentPtr(TYPENAME, PTRNAME, ERRMSG) \
     do{ \
-        if(!windWorldHandleContainsComponent( \
+        if(!vecsWorldEntityContainsComponent( \
             TYPENAME, \
             &(_scenePtr->ecsWorld), \
             _handle \
         )){ \
             pgError(ERRMSG); \
         } \
-        PTRNAME = windWorldHandleGetPtr( \
+        PTRNAME = vecsWorldEntityGetPtr( \
             TYPENAME, \
             &(_scenePtr->ecsWorld), \
             _handle \
@@ -72,13 +72,13 @@ static WindEntity _handle;
  */
 #define setComponent(TYPENAME, COMPONENTPTR) \
     do{ \
-        if(windWorldHandleContainsComponent( \
+        if(vecsWorldEntityContainsComponent( \
             TYPENAME, \
             &(_scenePtr->ecsWorld), \
             _handle \
         )){ \
             TYPENAME *componentPtr \
-                = windWorldHandleGetPtr( \
+                = vecsWorldEntityGetPtr( \
                     TYPENAME, \
                     &(_scenePtr->ecsWorld), \
                     _handle \
@@ -100,7 +100,7 @@ static WindEntity _handle;
  * the entity
  */
 #define removeComponent(TYPENAME) \
-    windWorldHandleQueueRemoveComponent(TYPENAME, \
+    vecsWorldEntityQueueRemoveComponent(TYPENAME, \
         &(_scenePtr->ecsWorld), \
         _handle \
     )
@@ -326,7 +326,7 @@ static UNValue getPlayerPos(int argc, UNValue *argv){
     assertArity(0, "getPlayerPos expects no args");
 
     /* get players with position */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(_scenePtr->ecsWorld),
         &playerPosSet,
         NULL
@@ -666,7 +666,7 @@ static UNValue getPlayerPower(int argc, UNValue *argv){
     assertArity(0, "getPlayerPower expects no args");
 
     /* get players */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(_scenePtr->ecsWorld),
         &playerSet,
         NULL
@@ -932,7 +932,7 @@ static UNValue removeSpin(int argc, UNValue *argv){
 /* Flags the entity as dead */
 static UNValue die(int argc, UNValue *argv){
     assertArity(0, "die expects 0 args");
-    arrayListPushBack(WindEntity,
+    arrayListPushBack(VecsEntity,
         &(_scenePtr->messages.deaths),
         _handle
     );
@@ -999,12 +999,12 @@ static UNValue hasScript(int argc, UNValue *argv){
 
 /*
  * Adds a script to the specified VM slot
- * (String scriptID, int slot), returns
+ * (String scriptId, int slot), returns
  * true if successful, false otherwise; Spawns go
  * in slots 3 and 4
  */
 static UNValue addScript(int argc, UNValue *argv){
-    assertArity(2, "usage: addScript(scriptID, slot)");
+    assertArity(2, "usage: addScript(scriptId, slot)");
 
     /* get the script */
     String *stringPtr
@@ -1186,7 +1186,7 @@ static UNValue removeSpawns(int argc, UNValue *argv){
 
 /*
  * Adds the specified death script to the entity 
- * in the specified slot (String scriptID, int slot);
+ * in the specified slot (String scriptId, int slot);
  * returns true if successful, false otherwise - note
  * that just like with normal scripts, slots 3 and 4
  * are typically used for spawns
@@ -1194,10 +1194,10 @@ static UNValue removeSpawns(int argc, UNValue *argv){
 static UNValue addDeathScript(int argc, UNValue *argv){
     assertArity(
         2,
-        "usage: addDeathScript(scriptID, slot)"
+        "usage: addDeathScript(scriptId, slot)"
     );
 
-    /* get the script ID */
+    /* get the script Id */
     String *stringPtr
         = &(unObjectAsString(argv[0])->string);
 
@@ -1211,7 +1211,7 @@ static UNValue addDeathScript(int argc, UNValue *argv){
     }
     
     /* get the death script component if present */
-    if(windWorldHandleContainsComponent(DeathScripts,
+    if(vecsWorldEntityContainsComponent(DeathScripts,
         &(_scenePtr->ecsWorld),
         _handle
     )){
@@ -1229,10 +1229,10 @@ static UNValue addDeathScript(int argc, UNValue *argv){
          */
         #define loadDeathScript(SLOT) \
             do{ \
-                if(!deathScriptsPtr->scriptID##SLOT \
+                if(!deathScriptsPtr->scriptId##SLOT \
                     ._ptr \
                 ){ \
-                    deathScriptsPtr->scriptID##SLOT \
+                    deathScriptsPtr->scriptId##SLOT \
                         = stringCopy(stringPtr); \
                     return unBoolValue(true); \
                 } \
@@ -1273,19 +1273,19 @@ static UNValue addDeathScript(int argc, UNValue *argv){
         DeathScripts deathScripts = {0};
         switch(slot){
             case 1:
-                deathScripts.scriptID1
+                deathScripts.scriptId1
                     = stringCopy(stringPtr);
                 break;
             case 2:
-                deathScripts.scriptID2
+                deathScripts.scriptId2
                     = stringCopy(stringPtr);
                 break;
             case 3:
-                deathScripts.scriptID3
+                deathScripts.scriptId3
                     = stringCopy(stringPtr);
                 break;
             case 4:
-                deathScripts.scriptID4
+                deathScripts.scriptId4
                     = stringCopy(stringPtr);
                 break;
             default:
@@ -1331,7 +1331,7 @@ static UNValue removeDeathScript(
      * if death script component not present, return
      * false
      */
-    if(!windWorldHandleContainsComponent(DeathScripts,
+    if(!vecsWorldEntityContainsComponent(DeathScripts,
         &(_scenePtr->ecsWorld),
         _handle
     )){
@@ -1351,12 +1351,12 @@ static UNValue removeDeathScript(
      */
     #define removeDeathScript(SLOT) \
         do{ \
-            if(deathScriptsPtr->scriptID##SLOT \
+            if(deathScriptsPtr->scriptId##SLOT \
                 ._ptr \
             ){ \
                 stringFree( \
                     &(deathScriptsPtr \
-                        ->scriptID##SLOT) \
+                        ->scriptId##SLOT) \
                 ); \
                 return unBoolValue(true); \
             } \
@@ -2010,7 +2010,7 @@ static UNValue endStage(int argc, UNValue *argv){
     GameState *gameStatePtr
         = &(_gamePtr->messages.gameState);
 
-    SceneID backTo = -1;
+    SceneId backTo = -1;
     switch(gameStatePtr->gameMode){
         case game_story:
             backTo = scene_main;
@@ -2026,7 +2026,7 @@ static UNValue endStage(int argc, UNValue *argv){
             break;
     }
 
-    _gamePtr->messages.sceneExitToID = backTo;
+    _gamePtr->messages.sceneExitToId = backTo;
 
     /* in story mode, advance stage or go to credits */
     if(gameStatePtr->gameMode == game_story){
@@ -2035,18 +2035,18 @@ static UNValue endStage(int argc, UNValue *argv){
             ++(gameStatePtr->stage);
 
             /* push new game and loading screen */
-            arrayListPushBack(SceneID,
+            arrayListPushBack(SceneId,
                 &(_gamePtr->messages.sceneEntryList),
                 scene_game
             );
-            arrayListPushBack(SceneID,
+            arrayListPushBack(SceneId,
                 &(_gamePtr->messages.sceneEntryList),
                 scene_loading
             );
 
             /* save player data */
-            WindQueryItr itr
-                = windWorldRequestQueryItr(
+            VecsQueryItr itr
+                = vecsWorldRequestQueryItr(
                     &(_scenePtr->ecsWorld),
                     &playerSet,
                     NULL
@@ -2074,16 +2074,16 @@ static UNValue endStage(int argc, UNValue *argv){
         }
         /* otherwise, if final stage, go to credits */
         else{
-            arrayListPushBack(SceneID,
+            arrayListPushBack(SceneId,
                 &(_gamePtr->messages.sceneEntryList),
                 scene_credits
             );
             
             /* start playback of track 10 */
-            String *trackIDPtr = &(_gamePtr->messages
+            String *trackIdPtr = &(_gamePtr->messages
                 .startMusicString);
-            stringClear(trackIDPtr);
-            stringAppendC(trackIDPtr, "10");
+            stringClear(trackIdPtr);
+            stringAppendC(trackIdPtr, "10");
         }
     }
     /*
@@ -2091,10 +2091,10 @@ static UNValue endStage(int argc, UNValue *argv){
      * are going back to the menu
      */
     else if(gameStatePtr->gameMode == game_practice){
-        String *trackIDPtr = &(_gamePtr->messages
+        String *trackIdPtr = &(_gamePtr->messages
             .startMusicString);
-        stringClear(trackIDPtr);
-        stringAppendC(trackIDPtr, "01");
+        stringClear(trackIdPtr);
+        stringAppendC(trackIdPtr, "01");
     }
     else{
         pgError(
@@ -2107,14 +2107,14 @@ static UNValue endStage(int argc, UNValue *argv){
 }
 
 /*
- * Displays the dialogue with the specified string ID
+ * Displays the dialogue with the specified string Id
  */
 static UNValue startDialogue(int argc, UNValue *argv){
     assertArity(1, "startDialogue expects string arg");
     String *stringPtr
         = &(unObjectAsString(*argv)->string);
     
-    arrayListPushBack(SceneID,
+    arrayListPushBack(SceneId,
         &(_gamePtr->messages.sceneEntryList),
         scene_dialogue
     );
@@ -2159,47 +2159,47 @@ static UNValue isFlagged1(int argc, UNValue *argv){
 /*
  * Queues a new entity to be spawned:
  * spawn(
- *      String prototypeID,
+ *      String prototypeId,
  *      Point pos,
  *      Vector vel,
  *      int depthOffset,
- *      OPTIONAL string scriptID1, 2, 3, 4
+ *      OPTIONAL string scriptId1, 2, 3, 4
  * )
  */
 static UNValue spawn(int argc, UNValue *argv){
     static const char *usageMsg
-        = "spawn(String prototypeID, Point position, "
+        = "spawn(String prototypeId, Point position, "
             "Vector velocity, int depthOffset, "
-            "OPTIONAL String scriptID1, 2, 3, 4)";
+            "OPTIONAL String scriptId1, 2, 3, 4)";
     if(argc < 4 || argc > 8){
         pgError(usageMsg);
     }
 
-    String *prototypeIDPtr
+    String *prototypeIdPtr
         = &(unObjectAsString(argv[0])->string);
     Point2D pos = unAsPoint(argv[1]);
     Polar vel = unAsVector(argv[2]);
     int depthOffset = unAsInt(argv[3]);
 
-    String *scriptID1Ptr = NULL;
-    String *scriptID2Ptr = NULL;
-    String *scriptID3Ptr = NULL;
-    String *scriptID4Ptr = NULL;
+    String *scriptId1Ptr = NULL;
+    String *scriptId2Ptr = NULL;
+    String *scriptId3Ptr = NULL;
+    String *scriptId4Ptr = NULL;
     switch(argc){
         case 8:
-            scriptID4Ptr
+            scriptId4Ptr
                 = &(unObjectAsString(argv[7])->string);
             /* fallthrough */
         case 7:
-            scriptID3Ptr
+            scriptId3Ptr
                 = &(unObjectAsString(argv[6])->string);
             /* fallthrough */
         case 6:
-            scriptID2Ptr
+            scriptId2Ptr
                 = &(unObjectAsString(argv[5])->string);
             /* fallthrough */
         case 5:
-            scriptID1Ptr
+            scriptId1Ptr
                 = &(unObjectAsString(argv[4])->string);
             /* fallthrough */
         default:
@@ -2216,7 +2216,7 @@ static UNValue spawn(int argc, UNValue *argv){
     applyPrototype(
         _gamePtr,
         _scenePtr,
-        prototypeIDPtr,
+        prototypeIdPtr,
         &componentList,
         depthOffset
     );
@@ -2228,11 +2228,11 @@ static UNValue spawn(int argc, UNValue *argv){
     if(argc > 4){
         Scripts scripts = {0};
 
-        #define loadScriptIfStringIDValid(SLOT) \
+        #define loadScriptIfStringIdValid(SLOT) \
             do{ \
-                if((scriptID##SLOT##Ptr) \
+                if((scriptId##SLOT##Ptr) \
                     && !stringIsEmpty( \
-                        scriptID##SLOT##Ptr \
+                        scriptId##SLOT##Ptr \
                     ) \
                 ){ \
                     scripts.vm##SLOT \
@@ -2240,7 +2240,7 @@ static UNValue spawn(int argc, UNValue *argv){
                     UNObjectFunc *scriptPtr \
                         = resourcesGetScript( \
                             _gamePtr->resourcesPtr, \
-                            scriptID##SLOT##Ptr \
+                            scriptId##SLOT##Ptr \
                         ); \
                     unVirtualMachineLoad( \
                         scripts.vm##SLOT, \
@@ -2249,12 +2249,12 @@ static UNValue spawn(int argc, UNValue *argv){
                 } \
             } while(false)
 
-        loadScriptIfStringIDValid(1);
-        loadScriptIfStringIDValid(2);
-        loadScriptIfStringIDValid(3);
-        loadScriptIfStringIDValid(4);
+        loadScriptIfStringIdValid(1);
+        loadScriptIfStringIdValid(2);
+        loadScriptIfStringIdValid(3);
+        loadScriptIfStringIdValid(4);
 
-        #undef loadScriptIfStringIDValid
+        #undef loadScriptIfStringIdValid
 
         /*
          * only add scripts if at least one VM is
@@ -2313,11 +2313,11 @@ static void init(){
         *nativeFuncSetPtr = unNativeFuncSetMake();
 
         playerPosSet = bitsetMake(numComponents);
-        bitsetSet(&playerPosSet, PlayerDataID);
-        bitsetSet(&playerPosSet, PositionID);
+        bitsetSet(&playerPosSet, PlayerDataId);
+        bitsetSet(&playerPosSet, PositionId);
 
         playerSet = bitsetMake(numComponents);
-        bitsetSet(&playerSet, PlayerDataID);
+        bitsetSet(&playerSet, PlayerDataId);
 
         #define addNativeFunc(FUNCNAME) \
             unNativeFuncSetAdd( \
@@ -2486,6 +2486,6 @@ void setSceneForNativeFuncs(Scene *scenePtr){
 }
 
 /* Sets the entity handle for native funcs */
-void setEntityForNativeFuncs(WindEntity handle){
+void setEntityForNativeFuncs(VecsEntity handle){
     _handle = handle;
 }

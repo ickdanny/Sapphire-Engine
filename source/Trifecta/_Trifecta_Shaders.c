@@ -31,38 +31,38 @@ static const char *fragmentShaderSource =
     "} \n"
 ;
 
-/* Loads the shaders and returns the programID */
+/* Loads the shaders and returns the programId */
 GLuint _loadShaders(){
     /* debugging variables */
     GLint status = GL_FALSE;
     int logLength = 0;
 
     /* create empty shaders */
-	GLuint vertexShaderID = glCreateShader(
+	GLuint vertexShaderId = glCreateShader(
         GL_VERTEX_SHADER
     );
-	GLuint fragmentShaderID = glCreateShader(
+	GLuint fragmentShaderId = glCreateShader(
         GL_FRAGMENT_SHADER
     );
 
     /* compile vertex shader */
     glShaderSource(
-        vertexShaderID,
+        vertexShaderId,
         1, /* count */
         &vertexShaderSource,
         NULL /* length */
     );
-	glCompileShader(vertexShaderID);
+	glCompileShader(vertexShaderId);
 
     /* make sure compilation worked */
     glGetShaderiv(
-        vertexShaderID,
+        vertexShaderId,
         GL_COMPILE_STATUS,
         &status
     );
     if(!status){
 	    glGetShaderiv(
-            vertexShaderID,
+            vertexShaderId,
             GL_INFO_LOG_LENGTH,
             &logLength
         );
@@ -71,7 +71,7 @@ GLuint _loadShaders(){
                 logLength + 1
             );
 	    	glGetShaderInfoLog(
-                vertexShaderID,
+                vertexShaderId,
                 logLength,
                 NULL,
                 errorMsg._ptr
@@ -83,22 +83,22 @@ GLuint _loadShaders(){
 
     /* compile fragment shader */
     glShaderSource(
-        fragmentShaderID,
+        fragmentShaderId,
         1, /* count */
         &fragmentShaderSource,
         NULL /* length */
     );
-	glCompileShader(fragmentShaderID);
+	glCompileShader(fragmentShaderId);
 
     /* make sure compilation worked */
     glGetShaderiv(
-        fragmentShaderID,
+        fragmentShaderId,
         GL_COMPILE_STATUS,
         &status
     );
     if(!status){
 	    glGetShaderiv(
-            fragmentShaderID,
+            fragmentShaderId,
             GL_INFO_LOG_LENGTH,
             &logLength
         );
@@ -107,7 +107,7 @@ GLuint _loadShaders(){
                 logLength + 1
             );
 	    	glGetShaderInfoLog(
-                fragmentShaderID,
+                fragmentShaderId,
                 logLength,
                 NULL,
                 errorMsg._ptr
@@ -118,20 +118,20 @@ GLuint _loadShaders(){
     }
 
     /* link program */
-	GLuint programID = glCreateProgram();
-	glAttachShader(programID, vertexShaderID);
-	glAttachShader(programID, fragmentShaderID);
-	glLinkProgram(programID);
+	GLuint programId = glCreateProgram();
+	glAttachShader(programId, vertexShaderId);
+	glAttachShader(programId, fragmentShaderId);
+	glLinkProgram(programId);
 
     /* make sure linking worked */
     glGetProgramiv(
-        programID,
+        programId,
         GL_LINK_STATUS,
         &status
     );
     if(!status){
 	    glGetProgramiv(
-            programID,
+            programId,
             GL_INFO_LOG_LENGTH,
             &logLength
         );
@@ -140,7 +140,7 @@ GLuint _loadShaders(){
                 logLength + 1
             );
 	    	glGetProgramInfoLog(
-                programID,
+                programId,
                 logLength,
                 NULL,
                 errorMsg._ptr
@@ -150,10 +150,10 @@ GLuint _loadShaders(){
     }
 
     /* clean up */
-    glDetachShader(programID, vertexShaderID);
-	glDetachShader(programID, fragmentShaderID);
-	glDeleteShader(vertexShaderID);
-	glDeleteShader(fragmentShaderID);
+    glDetachShader(programId, vertexShaderId);
+	glDetachShader(programId, fragmentShaderId);
+	glDeleteShader(vertexShaderId);
+	glDeleteShader(fragmentShaderId);
 
-    return programID;
+    return programId;
 }

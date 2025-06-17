@@ -16,11 +16,11 @@ void creditsSystem(Game *gamePtr, Scene *scenePtr){
     if(*timer1Ptr > -1){
         /* if timer is done, return to menu */
         if(*timer1Ptr == 0){
-            String *trackIDPtr = &(gamePtr->messages
+            String *trackIdPtr = &(gamePtr->messages
                 .startMusicString);
-            stringClear(trackIDPtr);
-            stringAppendC(trackIDPtr, "01");
-            gamePtr->messages.sceneExitToID
+            stringClear(trackIdPtr);
+            stringAppendC(trackIdPtr, "01");
+            gamePtr->messages.sceneExitToId
                 = scene_main;
         }
         --(*timer1Ptr);

@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /* all midi files should begin with "MThd" */
-#define mm_requiredHeaderID ((uint32_t)0x4d546864)
+#define mm_requiredHeaderId ((uint32_t)0x4d546864)
 
 /* all midi files have a header size of 6 */
 #define mm_minimumHeaderSize ((uint32_t)6)
@@ -15,7 +15,7 @@
 #define mm_formatMultiTrackAsync ((uint16_t)0x0002)
 	
 /* all midi tracks should begin with "MTrk" */
-#define mm_requiredTrackHeaderID ((uint32_t)0x4d54726b)
+#define mm_requiredTrackHeaderId ((uint32_t)0x4d54726b)
 	
 /* status codes */
 #define mm_statusMask ((uint8_t)0xF0)

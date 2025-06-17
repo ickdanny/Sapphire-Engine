@@ -51,9 +51,9 @@ static size_t vecsComponentSetPairHash(
     VecsComponentSetPair *castPtr
         = (VecsComponentSetPair*)componentSetPairPtr;
     size_t hash = 0;
-    hash += vecsComponentSetHash(castPtr->accept);
+    hash += vecsComponentSetHash(&(castPtr->accept));
     hash *= 7;
-    hash += vecsComponentSetHash(castPtr->reject);
+    hash += vecsComponentSetHash(&(castPtr->reject));
     return hash;
 }
 
@@ -393,29 +393,29 @@ bool _vecsWorldEntityContainsComponent(
             &(worldPtr->_entityList),
             entity
         );
-    return componentSetContainsId(
+    return vecsComponentSetContainsId(
         entityMetadataPtr->_componentSet,
         componentId
     );
 }
 
 /*
- * Returns true if the given entity contains a
- * component of the specified id, false otherwise
- * (including if entity is dead)
+ * Returns true if the entity described by the given
+ * id contains a component of the specified id, false
+ * otherwise (including if entity is dead)
  */
-bool _vecsWorldEntityContainsComponent(
+bool _vecsWorldIdContainsComponent(
     VecsWorld *worldPtr,
     VecsComponentId componentId,
-    VecsEntity entity
+    VecsEntity entityId
 ){
-    if(vecsWorldIsIdDead(worldPtr, entity)){
+    if(vecsWorldIsIdDead(worldPtr, entityId)){
         return false;
     }
     _VecsEntityMetadata *entityMetadataPtr
         = _vecsEntityListGetMetadata(
             &(worldPtr->_entityList),
-            entity
+            vecsWorldGetEntityById(worldPtr, entityId)
         );
     return vecsComponentSetContainsId(
         entityMetadataPtr->_componentSet,
@@ -460,7 +460,7 @@ static _VecsArchetype *vecsWorldInsertArchetype(
         i < worldPtr->_queryList.size;
         ++i
     ){
-        vecsQueryTryAcceptArchetype(
+        _vecsQueryTryAcceptArchetype(
             arrayListGetPtr(VecsQuery,
                 &(worldPtr->_queryList),
                 i
@@ -609,7 +609,7 @@ void *_vecsWorldEntityGetPtr(
     if(vecsWorldIsEntityDead(worldPtr, entity)){
         return NULL;
     }
-    /* error if component ID is invalid */
+    /* error if component Id is invalid */
     _VecsEntityMetadata *entityMetadataPtr
         = _vecsEntityListGetMetadata(
             &(worldPtr->_entityList),
@@ -663,7 +663,7 @@ void *_vecsWorldIdGetPtr(
     if(vecsWorldIsIdDead(worldPtr, entityId)){
         return NULL;
     }
-    /* error if component ID is invalid */
+    /* error if component Id is invalid */
     _VecsEntityMetadata *entityMetadataPtr
         = _vecsEntityListIdGetMetadata(
             &(worldPtr->_entityList),
@@ -1065,12 +1065,7 @@ bool _vecsWorldIdRemoveComponent(
             entityId
         );
     /* do not run destructor; archetype move will */
-    
-    /* update component set */
-    bitsetUnset(
-        &(entityMetadataPtr->_componentSet),
-        componentId
-    );
+
     /* get new archetype */
     VecsComponentSet newComponentSet
         = vecsComponentSetRemoveId(
@@ -1084,12 +1079,13 @@ bool _vecsWorldIdRemoveComponent(
         );
     /*
      * move components from old archetype to new,
-     * essentially truncating the entity
+     * essentially truncating the entity; also updates
+     * the component set
      */
     _vecsArchetypeMoveEntity(
         oldArchetypePtr,
-        entityId,
-        newArchetypePtr
+        newArchetypePtr,
+        entityMetadataPtr->_canonicalEntity
     );
     return true;
 }
@@ -1159,7 +1155,7 @@ VecsEntity vecsWorldAddEntity(
             i
         ).componentId;
         assertFalse(
-            VecsComponentSetContainsId(
+            vecsComponentSetContainsId(
                 componentSet,
                 componentId
             ),

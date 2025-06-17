@@ -1,11 +1,11 @@
 #ifndef ENTITYBUILDER_H
 #define ENTITYBUILDER_H
 
-#include "WindECS.h"
+#include "Vecs.h"
 
 /*
  * the following functions are utility functions for
- * building up component lists; note that WindECS will
+ * building up component lists; note that Vecs will
  * error for duplicate components
  */
 
@@ -27,7 +27,7 @@
 #define addComponent(LISTPTR, TYPENAME, COMPONENT) \
     do{ \
         WindComponentDataPair dataPair = {0}; \
-        dataPair.componentID = TYPENAME##ID; \
+        dataPair.componentId = TYPENAME##Id; \
         TYPENAME *componentCopyPtr \
             = pgAlloc(1, sizeof(TYPENAME)); \
         *componentCopyPtr = (COMPONENT); \
@@ -39,9 +39,9 @@
     } while(false)
 
 /* Adds a marker to the specified component list */
-#define addMarker(LISTPTR, MARKERID) \
+#define addMarker(LISTPTR, MARKERId) \
     do{ \
-        WindComponentDataPair dataPair = {MARKERID}; \
+        WindComponentDataPair dataPair = {MARKERId}; \
         arrayListPushBack(WindComponentDataPair, \
             (LISTPTR), \
             dataPair \
@@ -71,7 +71,7 @@
  * list
  */
 #define addVisible(LISTPTR) \
-    addMarker(LISTPTR, VisibleMarkerID)
+    addMarker(LISTPTR, VisibleMarkerId)
 
 /*
  * Adds a sprite instruction to the specified component
@@ -172,7 +172,7 @@
  * component list
  */
 #define addRotateSpriteForward(LISTPTR) \
-    addMarker(LISTPTR, RotateSpriteForwardMarkerID)
+    addMarker(LISTPTR, RotateSpriteForwardMarkerId)
 
 /*
  * Adds the specified sprite spin to the given
@@ -240,7 +240,7 @@
  * list
  */
 #define addCollidable(LISTPTR) \
-    addMarker(LISTPTR, CollidableMarkerID)
+    addMarker(LISTPTR, CollidableMarkerId)
 
 /*
  * Adds the specified hitbox to the given component
@@ -386,7 +386,7 @@
  * Adds a clearable marker to the given component list
  */
 #define addClearable(LISTPTR) \
-    addMarker(LISTPTR, ClearableMarkerID)
+    addMarker(LISTPTR, ClearableMarkerId)
 
 /*
  * Adds the specified Scripts object to the given
@@ -415,7 +415,7 @@
 
 /*
  * Adds an entity to the specified scene and frees
- * the component list, storing the returned WindEntity
+ * the component list, storing the returned VecsEntity
  * in the specified pointer (unless NULL is provided)
  */
 #define addEntityAndFreeList( \
@@ -424,7 +424,7 @@
     ENTITYOUTPTR \
 ) \
     do{ \
-        WindEntity *tempPtr = (ENTITYOUTPTR); \
+        VecsEntity *tempPtr = (ENTITYOUTPTR); \
         if(tempPtr){ \
             *tempPtr = windWorldAddEntity( \
                 &((SCENEPTR)->ecsWorld), \

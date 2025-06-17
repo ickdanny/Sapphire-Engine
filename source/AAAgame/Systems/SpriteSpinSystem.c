@@ -20,8 +20,8 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, SpriteInstructionID);
-        bitsetSet(&accept, SpriteSpinID);
+        bitsetSet(&accept, SpriteInstructionId);
+        bitsetSet(&accept, SpriteSpinId);
 
         registerSystemDestructor(destroy);
         
@@ -34,7 +34,7 @@ void spriteSpinSystem(Game *gamePtr, Scene *scenePtr){
     init();
 
     /* get entities with position and velocity */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
@@ -50,6 +50,6 @@ void spriteSpinSystem(Game *gamePtr, Scene *scenePtr){
             &itr
         );
         spriteInstructionPtr->rotation += spriteSpin;
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 }

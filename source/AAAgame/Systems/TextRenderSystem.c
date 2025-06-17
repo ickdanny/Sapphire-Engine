@@ -25,9 +25,9 @@ static void destroy(){
 static void init(Game *gamePtr){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PositionID);
-        bitsetSet(&accept, VisibleMarkerID);
-        bitsetSet(&accept, TextInstructionID);
+        bitsetSet(&accept, PositionId);
+        bitsetSet(&accept, VisibleMarkerId);
+        bitsetSet(&accept, TextInstructionId);
 
         glyphMap = tfGlyphMapMake(
             horizontalDist,
@@ -38,11 +38,11 @@ static void init(Game *gamePtr){
             = stringMakeAndReserve(20);
         TFSpriteInstruction spriteInstr = {0};
         
-        #define insertGlyph(WCHAR, SPRITEID) \
+        #define insertGlyph(WCHAR, SPRITEId) \
             stringClear(&spriteNameString); \
             stringAppendC( \
                 &spriteNameString, \
-                #SPRITEID \
+                #SPRITEId \
             ); \
             spriteInstr \
                 = tfSpriteInstructionMakeSimple( \
@@ -155,7 +155,7 @@ void textRenderSystem(Game *gamePtr, Scene *scenePtr){
     init(gamePtr);
     
     /* get entities with position and text instr */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
@@ -176,6 +176,6 @@ void textRenderSystem(Game *gamePtr, Scene *scenePtr){
             textInstrPtr->rightBound,
             &glyphMap
         );
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 }

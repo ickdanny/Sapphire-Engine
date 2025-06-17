@@ -20,11 +20,11 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, SpriteInstructionID);
-        bitsetSet(&accept, VelocityID);
+        bitsetSet(&accept, SpriteInstructionId);
+        bitsetSet(&accept, VelocityId);
         bitsetSet(
             &accept,
-            RotateSpriteForwardMarkerID
+            RotateSpriteForwardMarkerId
         );
 
         registerSystemDestructor(destroy);
@@ -44,7 +44,7 @@ void rotateSpriteForwardSystem(
     init();
 
     /* get entities with position and velocity */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
@@ -61,6 +61,6 @@ void rotateSpriteForwardSystem(
         );
         spriteInstructionPtr->rotation
             = -velocityPtr->angle - 90.0f;
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 }

@@ -26,10 +26,10 @@ void deathScriptsDestructor(void *voidPtr){
 
     #define freeStringIfAllocated(SLOT) \
         do{ \
-            if(deathScriptsPtr->scriptID##SLOT._ptr){ \
+            if(deathScriptsPtr->scriptId##SLOT._ptr){ \
                 stringFree( \
                     &(deathScriptsPtr \
-                        ->scriptID##SLOT) \
+                        ->scriptId##SLOT) \
                 ); \
             } \
         } while(false)
@@ -43,44 +43,44 @@ void deathScriptsDestructor(void *voidPtr){
 }
 
 /*
- * Allocates and returns a new WindComponents object
+ * Allocates and returns a new VecsComponentList object
  * containing the RTTI details of every component
  * used in the game engine
  */
-WindComponents *componentsMake(){
-    WindComponents *toRet = pgAlloc(1, sizeof(*toRet));
-    *toRet = windComponentsMake(numComponents);
+VecsComponentList *componentListMake(){
+    VecsComponentList *toRet = pgAlloc(1, sizeof(*toRet));
+    *toRet = vecsComponentListMake();
 
     #define insertComponent(TYPENAME, DESTRUCTOR) \
-        windComponentsInsert( \
+        vecsComponentListInsert( \
             toRet, \
-            windComponentMetadataMake( \
+            vecsComponentMetadataMake( \
                 TYPENAME, \
                 DESTRUCTOR \
             ), \
-            TYPENAME##ID \
+            TYPENAME##Id \
         )
     
     #ifdef _DEBUG
     #define insertMarker(NAME) \
-        windComponentsInsert( \
+        vecsComponentListInsert( \
             toRet, \
-            _windComponentMetadataMake( \
+            _vecsComponentMetadataMake( \
                 0, /* size 0 for markers */ \
                 NULL, /* no destructor for markers */ \
                 #NAME /* type name */ \
             ), \
-            NAME##ID \
+            NAME##Id \
         )
     #else
     #define insertMarker(NAME) \
-        windComponentsInsert( \
+        vecsComponentListInsert( \
             toRet, \
-            _windComponentMetadataMake( \
+            _vecsComponentMetadataMake( \
                 0, /* size 0 for markers */ \
                 NULL /* no destructor for markers */ \
             ), \
-            NAME##ID \
+            NAME##Id \
         )
     #endif
 

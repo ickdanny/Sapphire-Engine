@@ -20,7 +20,7 @@ static void destroy(){
 static void init(){
     if(!initialized){
         accept = bitsetMake(numComponents);
-        bitsetSet(&accept, ClearableMarkerID);
+        bitsetSet(&accept, ClearableMarkerId);
 
         registerSystemDestructor(destroy);
         
@@ -40,21 +40,21 @@ void clearSystem(Game *gamePtr, Scene *scenePtr){
     init();
 
     /* get entities with clear marker */
-    WindQueryItr itr = windWorldRequestQueryItr(
+    VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
         &accept,
         NULL
     );
     /* kill all entities with clear marker */
     while(windQueryItrHasEntity(&itr)){
-        WindEntity handle = windWorldMakeHandle(
+        VecsEntity handle = vecsWorldMakeHandle(
             &(scenePtr->ecsWorld),
-            windQueryItrCurrentID(&itr)
+            windQueryItrCurrentId(&itr)
         );
-        arrayListPushBack(WindEntity,
+        arrayListPushBack(VecsEntity,
             &(scenePtr->messages.deaths),
             handle
         );
-        windQueryItrAdvance(&itr);
+        vecsQueryItrAdvance(&itr);
     }
 }

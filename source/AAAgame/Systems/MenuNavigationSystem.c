@@ -5,8 +5,8 @@
 /* Sets the current element in the specified scene */
 void setElement(
     Scene *scenePtr,
-    WindEntity prevElement,
-    WindEntity newElement
+    VecsEntity prevElement,
+    VecsEntity newElement
 ){
     /* bail if prev and new are same */
     if(windEntityEquals(prevElement, newElement)){
@@ -23,14 +23,14 @@ void setElement(
 void handleNavigateCommand(
     Scene *scenePtr,
     MenuCommand menuCommand,
-    WindEntity currentElement
+    VecsEntity currentElement
 ){
     NeighborElements *neighborElementsPtr
-        = windWorldHandleGetPtr(NeighborElements,
+        = vecsWorldEntityGetPtr(NeighborElements,
             &(scenePtr->ecsWorld),
             currentElement
         );
-    WindEntity nextElement = {0};
+    VecsEntity nextElement = {0};
     /*
      * assume the neighbor element is valid, since
      * otherwise the element would not have a nav
@@ -74,14 +74,14 @@ void handleNavigateCommand(
 void handleNavigateFarCommand(
     Scene *scenePtr,
     MenuCommand menuCommand,
-    WindEntity currentElement
+    VecsEntity currentElement
 ){
     NeighborElements *neighborElementsPtr
-        = windWorldHandleGetPtr(NeighborElements,
+        = vecsWorldEntityGetPtr(NeighborElements,
             &(scenePtr->ecsWorld),
             currentElement
         );
-    WindEntity nextElement = currentElement;
+    VecsEntity nextElement = currentElement;
     /*
      * assume the neighbor element is valid, since
      * otherwise the element would not have a nav
@@ -137,7 +137,7 @@ void handleNavigateFarCommand(
                 break;
         }
         neighborElementsPtr
-            = windWorldHandleGetPtr(NeighborElements,
+            = vecsWorldEntityGetPtr(NeighborElements,
                 &(scenePtr->ecsWorld),
                 nextElement
             );
@@ -162,17 +162,17 @@ void handleEnterCommand(
     Scene *scenePtr,
     MenuCommandData commandData
 ){
-    SceneID sceneID = commandData.sceneData.sceneID;
+    SceneId sceneId = commandData.sceneData.sceneId;
     GameBuilderCommand gameBuilderCommand
         = commandData.sceneData.gameBuilderCommand;
-    arrayListPushBack(SceneID,
+    arrayListPushBack(SceneId,
         &(gamePtr->messages.sceneEntryList),
-        sceneID
+        sceneId
     );
 
     /* if going to game, push a load */
-    if(sceneID == scene_game){
-        arrayListPushBack(SceneID,
+    if(sceneId == scene_game){
+        arrayListPushBack(SceneId,
             &(gamePtr->messages.sceneEntryList),
             scene_loading
         );
@@ -187,7 +187,7 @@ void handleEnterCommand(
 void popOutOfGame(Game *gamePtr){
     GameState *gameStatePtr
         = &(gamePtr->messages.gameState);
-    SceneID backTo = 0;
+    SceneId backTo = 0;
     switch(gameStatePtr->gameMode){
         case game_story:
             backTo = scene_main;
@@ -202,7 +202,7 @@ void popOutOfGame(Game *gamePtr){
             );
             break;
     }
-    gamePtr->messages.sceneExitToID = backTo;
+    gamePtr->messages.sceneExitToId = backTo;
 }
 
 /*
@@ -221,11 +221,11 @@ void handleRestartGameCommand(
     scenePtr->messages.gameBuilderCommand = gb_reset;
 
     /* pop new game and loading screen */
-    arrayListPushBack(SceneID,
+    arrayListPushBack(SceneId,
         &(gamePtr->messages.sceneEntryList),
         scene_game
     );
-    arrayListPushBack(SceneID,
+    arrayListPushBack(SceneId,
         &(gamePtr->messages.sceneEntryList),
         scene_loading
     );
@@ -235,10 +235,10 @@ void handleRestartGameCommand(
 void handleGameOverCommand(Game *gamePtr){
     gamePtr->messages.stopMusicFlag = true;
     
-    String *trackIDPtr = &(gamePtr->messages
+    String *trackIdPtr = &(gamePtr->messages
         .startMusicString);
-    stringClear(trackIDPtr);
-    stringAppendC(trackIDPtr, "01");
+    stringClear(trackIdPtr);
+    stringAppendC(trackIdPtr, "01");
 
     popOutOfGame(gamePtr);
 }
@@ -252,7 +252,7 @@ bool parseMenuCommand(
     Scene *scenePtr,
     MenuCommand menuCommand,
     MenuCommandData commandData,
-    WindEntity currentElement
+    VecsEntity currentElement
 ){
     switch(menuCommand){
         case menu_navUp:
@@ -288,30 +288,30 @@ bool parseMenuCommand(
             return true; /* entering is critical */
 
         case menu_backSetMenuTrack:{ 
-                String *trackIDPtr
+                String *trackIdPtr
                     = &(gamePtr->messages
                         .startMusicString);
-                stringClear(trackIDPtr);
-                stringAppendC(trackIDPtr, "01");
+                stringClear(trackIdPtr);
+                stringAppendC(trackIdPtr, "01");
             }
             /* fall through */
         case menu_backTo:
-            gamePtr->messages.sceneExitToID
-                = commandData.sceneData.sceneID;
+            gamePtr->messages.sceneExitToId
+                = commandData.sceneData.sceneId;
             return true; /* exiting is critical */
         case menu_backWriteSettings:
             gamePtr->messages.writeSettingsFlag = true;
-            gamePtr->messages.sceneExitToID
-                = commandData.sceneData.sceneID;
+            gamePtr->messages.sceneExitToId
+                = commandData.sceneData.sceneId;
             return true; /* exiting is critical */
 
         case menu_startTrack:{
-                String *trackIDPtr
+                String *trackIdPtr
                     = &(gamePtr->messages
                         .startMusicString);
-                stringClear(trackIDPtr);
+                stringClear(trackIdPtr);
                 stringAppendC(
-                    trackIDPtr,
+                    trackIdPtr,
                     commandData.trackName
                 );
                 return false;
@@ -359,12 +359,12 @@ bool parseNavigationCommand(
     Game *gamePtr,
     Scene *scenePtr,
     MenuNavigationCommand navigationCommand,
-    WindEntity currentElement
+    VecsEntity currentElement
 ){
     MenuCommand menuCommand = menu_none;
     MenuCommandData commandData = {0};
     MenuCommands *elementCommandsPtr
-        = windWorldHandleGetPtr(MenuCommands,
+        = vecsWorldEntityGetPtr(MenuCommands,
             &(scenePtr->ecsWorld),
             currentElement
         );
@@ -372,8 +372,8 @@ bool parseNavigationCommand(
         case menuNav_back:
             menuCommand
                 = scenePtr->messages.backMenuCommand;
-            commandData.sceneData.sceneID
-                = scenePtr->messages.backSceneID;
+            commandData.sceneData.sceneId
+                = scenePtr->messages.backSceneId;
             break;
         case menuNav_select:
             menuCommand
@@ -433,7 +433,7 @@ void menuNavigationSystem(
     scenePtr->messages.elementChanges
         .newElementSelected = false;
     scenePtr->messages.elementChanges.prevElement
-        = (WindEntity){0};
+        = (VecsEntity){0};
     
     ArrayList *menuNavigationCommandsPtr
         = &(scenePtr->messages.menuNavigationCommands);
@@ -443,7 +443,7 @@ void menuNavigationSystem(
         return;
     }
 
-    WindEntity currentElement
+    VecsEntity currentElement
         = scenePtr->messages.currentElement;
     bool critical = false;
     for(size_t i = 0;

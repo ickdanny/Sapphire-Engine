@@ -7,14 +7,14 @@
 void changeSpriteAndPosition(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity button,
+    VecsEntity button,
     const char *spriteName,
     Point2D position
 ){
-    WindWorld *worldPtr = &(scenePtr->ecsWorld);
+    VecsWorld *worldPtr = &(scenePtr->ecsWorld);
 
     SpriteInstruction *spriteInstructionPtr
-        = windWorldHandleGetPtr(SpriteInstruction,
+        = vecsWorldEntityGetPtr(SpriteInstruction,
             worldPtr,
             button
         );
@@ -27,7 +27,7 @@ void changeSpriteAndPosition(
     stringFree(&spriteString);
     
     Position *positionPtr
-        = windWorldHandleGetPtr(Position,
+        = vecsWorldEntityGetPtr(Position,
             worldPtr,
             button
         );
@@ -41,10 +41,10 @@ void changeSpriteAndPosition(
 void selectButton(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity button
+    VecsEntity button
 ){
     ButtonData *buttonDataPtr
-        = windWorldHandleGetPtr(ButtonData,
+        = vecsWorldEntityGetPtr(ButtonData,
             &(scenePtr->ecsWorld),
             button
         );
@@ -64,10 +64,10 @@ void selectButton(
 void unselectButton(
     Game *gamePtr,
     Scene *scenePtr,
-    WindEntity button
+    VecsEntity button
 ){
     ButtonData *buttonDataPtr
-        = windWorldHandleGetPtr(ButtonData,
+        = vecsWorldEntityGetPtr(ButtonData,
             &(scenePtr->ecsWorld),
             button
         );
@@ -85,18 +85,18 @@ void unselectButton(
  * components necessary to qualify as a button,
  * false otherwise
  */
-bool isButton(Scene *scenePtr, WindEntity handle){
-    WindWorld *worldPtr = &(scenePtr->ecsWorld);
+bool isButton(Scene *scenePtr, VecsEntity handle){
+    VecsWorld *worldPtr = &(scenePtr->ecsWorld);
 
-    return windWorldHandleContainsComponent(
+    return vecsWorldEntityContainsComponent(
         ButtonData,
         worldPtr,
         handle
-    ) && windWorldHandleContainsComponent(
+    ) && vecsWorldEntityContainsComponent(
         SpriteInstruction,
         worldPtr,
         handle
-    ) && windWorldHandleContainsComponent(
+    ) && vecsWorldEntityContainsComponent(
         Position,
         worldPtr,
         handle
@@ -111,9 +111,9 @@ void buttonSpriteSystem(
     if(scenePtr->messages.elementChanges
         .newElementSelected
     ){
-        WindEntity unselectedElement = scenePtr
+        VecsEntity unselectedElement = scenePtr
             ->messages.elementChanges.prevElement;
-        WindEntity selectedElement = scenePtr
+        VecsEntity selectedElement = scenePtr
             ->messages.currentElement;
         if(isButton(scenePtr, unselectedElement)){
             unselectButton(
