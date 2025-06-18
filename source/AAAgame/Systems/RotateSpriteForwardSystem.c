@@ -5,33 +5,12 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the rotate sprite forward system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the rotate sprite forward system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, SpriteInstructionId);
-        bitsetSet(&accept, VelocityId);
-        bitsetSet(
-            &accept,
-            RotateSpriteForwardMarkerId
-        );
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(SpriteInstructionId)
+    | vecsComponentSetFromId(VelocityId)
+    | vecsComponentSetFromId(
+        RotateSpriteForwardMarkerId
+    );
 
 /*
  * rotates the entity's sprite to point in the
@@ -41,21 +20,19 @@ void rotateSpriteForwardSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    init();
-
     /* get entities with position and velocity */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
+    while(vecsQueryItrHasEntity(&itr)){
         SpriteInstruction *spriteInstructionPtr
-            = windQueryItrGetPtr(
+            = vecsQueryItrGetPtr(
                 SpriteInstruction,
                 &itr
             );
-        Velocity *velocityPtr = windQueryItrGetPtr(
+        Velocity *velocityPtr = vecsQueryItrGetPtr(
             Velocity,
             &itr
         );

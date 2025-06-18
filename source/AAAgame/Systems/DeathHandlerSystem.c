@@ -114,7 +114,7 @@ static void handleDeathScript(
             handle
         )){
             Velocity velocity
-                = windWorldHandleGet(
+                = vecsWorldEntityGet(
                     Velocity,
                     &(scenePtr->ecsWorld),
                     handle
@@ -150,11 +150,11 @@ static void handlePlayerDeath(
     VecsEntity playerHandle
 ){
     /* remove script component and pickup collision */
-    windWorldHandleRemoveComponent(Scripts,
+    vecsWorldEntityRemoveComponent(Scripts,
         &(scenePtr->ecsWorld),
         playerHandle
     );
-    windWorldHandleRemoveComponent(
+    vecsWorldEntityRemoveComponent(
         PickupCollisionTarget,
         &(scenePtr->ecsWorld),
         playerHandle
@@ -252,7 +252,7 @@ void deathHandlerSystem(
             &(scenePtr->ecsWorld),
             handle
         )){
-            DeathCommand command = windWorldHandleGet(
+            DeathCommand command = vecsWorldEntityGet(
                 DeathCommand,
                 &(scenePtr->ecsWorld),
                 handle

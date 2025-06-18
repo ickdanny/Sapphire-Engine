@@ -9,7 +9,7 @@ void setElement(
     VecsEntity newElement
 ){
     /* bail if prev and new are same */
-    if(windEntityEquals(prevElement, newElement)){
+    if(prevElement == newElement){
         return;
     }
     scenePtr->messages.currentElement = newElement;
@@ -90,9 +90,9 @@ void handleNavigateFarCommand(
     do{
         switch(menuCommand){
             case menu_navFarUp:
-                /* bail if invalid entity (gen0) */
-                if(neighborElementsPtr->up._generation
-                    == 0
+                /* bail if invalid entity */
+                if(vecsEntityIsDead(neighborElementsPtr
+                    ->up)
                 ){
                     goto endLoop;
                 }
@@ -100,9 +100,9 @@ void handleNavigateFarCommand(
                     = neighborElementsPtr->up;
                 break;
             case menu_navFarDown:
-                /* bail if invalid entity (gen0) */
-                if(neighborElementsPtr->down
-                    ._generation == 0
+                /* bail if invalid entity */
+                if(vecsEntityIsDead(neighborElementsPtr
+                    ->down)
                 ){
                     goto endLoop;
                 }
@@ -110,9 +110,9 @@ void handleNavigateFarCommand(
                     = neighborElementsPtr->down;
                 break;
             case menu_navFarLeft:
-                /* bail if invalid entity (gen0) */
-                if(neighborElementsPtr->left
-                    ._generation == 0
+                /* bail if invalid entity */
+                if(vecsEntityIsDead(neighborElementsPtr
+                    ->left)
                 ){
                     goto endLoop;
                 }
@@ -120,9 +120,9 @@ void handleNavigateFarCommand(
                     = neighborElementsPtr->left;
                 break;
             case menu_navFarRight:
-                /* bail if invalid entity (gen0) */
-                if(neighborElementsPtr->right
-                    ._generation == 0
+                /* bail if invalid entity */
+                if(vecsEntityIsDead(neighborElementsPtr
+                    ->right)
                 ){
                     goto endLoop;
                 }
@@ -142,10 +142,7 @@ void handleNavigateFarCommand(
                 nextElement
             );
     /* avoid infinite loops */
-    } while(!windEntityEquals(
-        currentElement,
-        nextElement)
-    );
+    } while(currentElement != nextElement);
 endLoop:
     setElement(
         scenePtr,

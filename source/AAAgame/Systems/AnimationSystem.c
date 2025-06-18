@@ -12,30 +12,11 @@
  */
 #define velocityEpsilon 0.01f
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the animation system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the animation system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, VisibleMarkerId);
-        bitsetSet(&accept, SpriteInstructionId);
-        bitsetSet(&accept, AnimationsId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(VisibleMarkerId)
+    | vecsComponentSetFromId(SpriteInstructionId)
+    | vecsComponentSetFromId(AnimationsId);
 
 /*
  * Attempts to switch to the animation left of current;
@@ -148,7 +129,7 @@ bool handleTurning(
         return false;
     }
 
-    Velocity velocity = windWorldHandleGet(Velocity,
+    Velocity velocity = vecsWorldEntityGet(Velocity,
         &(scenePtr->ecsWorld),
         handle
     );
@@ -247,16 +228,14 @@ bool handleAnimation(
  * movement direction
  */
 void animationSystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     /* get entities with position and velocity */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        Animations *animationsPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&itr)){
+        Animations *animationsPtr = vecsQueryItrGetPtr(
             Animations,
             &itr
         );
@@ -266,18 +245,18 @@ void animationSystem(Game *gamePtr, Scene *scenePtr){
         ){
             animationsPtr->_tick = 0;
             SpriteInstruction *spriteInstructionPtr
-                = windQueryItrGetPtr(
+                = vecsQueryItrGetPtr(
                     SpriteInstruction,
                     &itr
                 );
-            VecsEntity handle = vecsWorldMakeHandle(
-                &(scenePtr->ecsWorld),
-                windQueryItrCurrentId(&itr)
+            VecsEntity entity = vecsQueryItrGet(
+                VecsEntity,
+                &itr
             );
             bool animationContinues = handleAnimation(
                 gamePtr,
                 scenePtr,
-                handle,
+                entity,
                 spriteInstructionPtr,
                 animationsPtr
             );
@@ -286,7 +265,7 @@ void animationSystem(Game *gamePtr, Scene *scenePtr){
                 vecsWorldEntityQueueRemoveComponent(
                     Animations,
                     &(scenePtr->ecsWorld),
-                    handle
+                    entity
                 );
             }
         }

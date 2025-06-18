@@ -7,28 +7,9 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the script system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the script system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, ScriptsId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(ScriptsId);
 
 /* runs a specified VM */
 #define runVM(VMPTRNAME) \
@@ -57,26 +38,23 @@ static void init(){
 
 /* runs scripts on entities */
 void scriptSystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     setGameForNativeFuncs(gamePtr);
     setSceneForNativeFuncs(scenePtr);
 
     /* get entities with position and velocity */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        VecsEntity handle = vecsWorldMakeHandle(
-            &(scenePtr->ecsWorld),
-            windQueryItrCurrentId(&itr)
+    while(vecsQueryItrHasEntity(&itr)){
+        VecsEntity entity = vecsQueryItrGet(VecsEntity,
+            &itr
         );
 
-        setEntityForNativeFuncs(handle);
+        setEntityForNativeFuncs(entity);
 
-        Scripts *scriptsPtr = windQueryItrGetPtr(
+        Scripts *scriptsPtr = vecsQueryItrGetPtr(
             Scripts,
             &itr
         );
@@ -98,7 +76,7 @@ void scriptSystem(Game *gamePtr, Scene *scenePtr){
             vecsWorldEntityQueueRemoveComponent(
                 Scripts,
                 &(scenePtr->ecsWorld),
-                handle
+                entity
             );
         }
 

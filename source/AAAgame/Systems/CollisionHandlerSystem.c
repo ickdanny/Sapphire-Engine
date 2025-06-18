@@ -44,7 +44,7 @@ void handleDamageCommand(
         handle
     );
     if(*healthPtr > 0){
-        Damage damage = windWorldHandleGet(Damage,
+        Damage damage = vecsWorldEntityGet(Damage,
             &(scenePtr->ecsWorld),
             collidedHandle
         );
@@ -104,7 +104,7 @@ void handlePickupCommand(
         collidedHandle
     );
     if(playerDataPtr->power < config_maxPower){
-        PowerGain powerGain = windWorldHandleGet(
+        PowerGain powerGain = vecsWorldEntityGet(
             PowerGain,
             &(scenePtr->ecsWorld),
             pickupHandle
@@ -132,12 +132,12 @@ void handleRemoveTypeCommand##SUFFIX( \
      * unknown whether source or target, assume we \
      * can remove both \
      */ \
-    windWorldHandleRemoveComponent( \
+    vecsWorldEntityRemoveComponent( \
         SUFFIX##CollisionSource, \
         &(scenePtr->ecsWorld), \
         handle \
     ); \
-    windWorldHandleRemoveComponent( \
+    vecsWorldEntityRemoveComponent( \
         SUFFIX##CollisionTarget, \
         &(scenePtr->ecsWorld), \
         handle \
@@ -212,7 +212,7 @@ void handleCollisions##SUFFIX(Scene *scenePtr){ \
             collision.sourceHandle \
         )){ \
             SUFFIX##CollisionSource sourceCommand \
-                = windWorldHandleGet( \
+                = vecsWorldEntityGet( \
                     SUFFIX##CollisionSource, \
                     &(scenePtr->ecsWorld), \
                     collision.sourceHandle \
@@ -230,7 +230,7 @@ void handleCollisions##SUFFIX(Scene *scenePtr){ \
             collision.targetHandle \
         )){ \
             SUFFIX##CollisionTarget targetCommand \
-                = windWorldHandleGet( \
+                = vecsWorldEntityGet( \
                     SUFFIX##CollisionTarget, \
                     &(scenePtr->ecsWorld), \
                     collision.targetHandle \

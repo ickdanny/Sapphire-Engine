@@ -41,8 +41,8 @@ void playerLifeAddSystem(
             &accept,
             NULL
         );
-        while(windQueryItrHasEntity(&itr)){
-            VecsEntity handle = vecsWorldMakeHandle(
+        while(vecsQueryItrHasEntity(&itr)){
+            VecsEntity handle = vecsWorldGetEntityById(
                 &(scenePtr->ecsWorld),
                 windQueryItrCurrentId(&itr)
             );

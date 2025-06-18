@@ -234,12 +234,12 @@ void playerMovementSystem(
         &accept,
         NULL
     );
-    while(windQueryItrHasEntity(&itr)){
-        PlayerData *playerDataPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&itr)){
+        PlayerData *playerDataPtr = vecsQueryItrGetPtr(
             PlayerData,
             &itr
         );
-        Velocity *velocityPtr = windQueryItrGetPtr(
+        Velocity *velocityPtr = vecsQueryItrGetPtr(
             Velocity,
             &itr
         );

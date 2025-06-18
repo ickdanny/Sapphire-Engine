@@ -5,53 +5,31 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the tile scroll system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the tile scroll system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, SpriteInstructionId);
-        bitsetSet(&accept, TilingInstructionId);
-        bitsetSet(&accept, TileScrollId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(SpriteInstructionId)
+    | vecsComponentSetFromId(TilingInstructionId)
+    | vecsComponentSetFromId(TileScrollId);
 
 /* scrolls tiled sprites */
 void tileScrollSystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     /* get entities that need tile scrolling */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
+    while(vecsQueryItrHasEntity(&itr)){
         SpriteInstruction *spriteInstrPtr
-            = windQueryItrGetPtr(
+            = vecsQueryItrGetPtr(
                 SpriteInstruction,
                 &itr
             );
         TilingInstruction *tilingInstrPtr
-            = windQueryItrGetPtr(
+            = vecsQueryItrGetPtr(
                 TilingInstruction,
                 &itr
             );
-        TileScroll tileScroll = windQueryItrGet(
+        TileScroll tileScroll = vecsQueryItrGet(
             TileScroll,
             &itr
         );

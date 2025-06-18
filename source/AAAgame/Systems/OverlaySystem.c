@@ -5,7 +5,10 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(PlayerDataId);
+
 static String removeUIScriptId;
 static String lifeSpawnSpriteId;
 static String bombSpawnSpriteId;
@@ -16,7 +19,6 @@ static bool initialized = false;
 /* destroys the overlay system */
 static void destroy(){
     if(initialized){
-        bitsetFree(&accept);
         stringFree(&removeUIScriptId);
         stringFree(&lifeSpawnSpriteId);
         stringFree(&bombSpawnSpriteId);
@@ -29,9 +31,6 @@ static void destroy(){
 /* inits the overlay system */
 static void init(){
     if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataId);
-
         removeUIScriptId = stringMakeC(
             "remove_explode_ui"
         );
@@ -54,14 +53,13 @@ static void init(){
 static VecsEntity getPlayerHandle(Scene *scenePtr){
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
     /* get first player */
-    if(windQueryItrHasEntity(&itr)){
-        return vecsWorldMakeHandle(
-            &(scenePtr->ecsWorld),
-            windQueryItrCurrentId(&itr)
+    if(vecsQueryItrHasEntity(&itr)){
+        return vecsQueryItrGet(VecsEntity,
+            &itr
         );
     }
     /* error if cannot find player */
@@ -84,7 +82,7 @@ static void removeLife(
     VecsEntity handle
 ){
     /* make the entity invisible */
-    windWorldHandleRemoveComponent(VisibleMarker,
+    vecsWorldEntityRemoveComponent(VisibleMarker,
         &(scenePtr->ecsWorld),
         handle
     );
@@ -156,7 +154,7 @@ static void removeBomb(
     VecsEntity handle
 ){
     /* make the entity invisible */
-    windWorldHandleRemoveComponent(VisibleMarker,
+    vecsWorldEntityRemoveComponent(VisibleMarker,
         &(scenePtr->ecsWorld),
         handle
     );
@@ -228,7 +226,7 @@ static void addLife(
     VecsEntity handle
 ){
     /* make the entity visible */
-    windWorldHandleAddComponent(VisibleMarker,
+    vecsWorldEntityAddComponent(VisibleMarker,
         &(scenePtr->ecsWorld),
         handle,
         NULL
@@ -244,7 +242,7 @@ static void addLife(
         &lifeSpawnSpriteId
     );
     /* remove the old animation component if needed */
-    windWorldHandleRemoveComponent(Animations,
+    vecsWorldEntityRemoveComponent(Animations,
         &(scenePtr->ecsWorld),
         handle
     );
@@ -271,7 +269,7 @@ static void addLife(
     animations.currentIndex = 0;
     animations.idleIndex = 0;
     animations._maxTick = 3;
-    windWorldHandleAddComponent(Animations,
+    vecsWorldEntityAddComponent(Animations,
         &(scenePtr->ecsWorld),
         handle,
         &animations
@@ -288,7 +286,7 @@ static void addBomb(
     VecsEntity handle
 ){
     /* make the entity visible */
-    windWorldHandleAddComponent(VisibleMarker,
+    vecsWorldEntityAddComponent(VisibleMarker,
         &(scenePtr->ecsWorld),
         handle,
         NULL
@@ -304,7 +302,7 @@ static void addBomb(
         &bombSpawnSpriteId
     );
     /* remove the old animation component if needed */
-    windWorldHandleRemoveComponent(Animations,
+    vecsWorldEntityRemoveComponent(Animations,
         &(scenePtr->ecsWorld),
         handle
     );
@@ -331,7 +329,7 @@ static void addBomb(
     animations.currentIndex = 0;
     animations.idleIndex = 0;
     animations._maxTick = 3;
-    windWorldHandleAddComponent(Animations,
+    vecsWorldEntityAddComponent(Animations,
         &(scenePtr->ecsWorld),
         handle,
         &animations
@@ -457,7 +455,7 @@ static void updatePower(
     int power = playerDataPtr->power;
     /* if power 0, make power ui invisible */
     if(power == 0){
-        windWorldHandleRemoveComponent(VisibleMarker,
+        vecsWorldEntityRemoveComponent(VisibleMarker,
             &(scenePtr->ecsWorld),
             handle
         );

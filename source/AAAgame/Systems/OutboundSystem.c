@@ -5,49 +5,28 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the outbound system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the outbound system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PositionId);
-        bitsetSet(&accept, OutboundId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(PositionId)
+    | vecsComponentSetFromId(OutboundId);
 
 /*
  * Removes entities which are outside of a certain
  * boundary from the edge of the game
  */
 void outboundSystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     /* get entities with position and velocity */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&itr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &itr
         );
-        Outbound bound = windQueryItrGet(
+        Outbound bound = vecsQueryItrGet(
             Outbound,
             &itr
         );
@@ -56,9 +35,13 @@ void outboundSystem(Game *gamePtr, Scene *scenePtr){
             positionPtr->currentPos,
             bound)
         ){
-            windWorldIdQueueRemoveEntity(
+            VecsEntity entity = vecsQueryItrGet(
+                VecsEntity,
+                &itr
+            );
+            vecsWorldEntityQueueRemoveEntity(
                 &(scenePtr->ecsWorld),
-                windQueryItrCurrentId(&itr)
+                entity
             );
         }
         

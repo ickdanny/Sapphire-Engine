@@ -5,28 +5,9 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the clear system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the clear system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, ClearableMarkerId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(ClearableMarkerId);
 
 /* clears bullets when clear flag is set */
 void clearSystem(Game *gamePtr, Scene *scenePtr){
@@ -37,23 +18,20 @@ void clearSystem(Game *gamePtr, Scene *scenePtr){
     
     scenePtr->messages.clearFlag = false;
 
-    init();
-
     /* get entities with clear marker */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
     /* kill all entities with clear marker */
-    while(windQueryItrHasEntity(&itr)){
-        VecsEntity handle = vecsWorldMakeHandle(
-            &(scenePtr->ecsWorld),
-            windQueryItrCurrentId(&itr)
+    while(vecsQueryItrHasEntity(&itr)){
+        VecsEntity entity = vecsQueryItrGet(VecsEntity,
+            &itr
         );
         arrayListPushBack(VecsEntity,
             &(scenePtr->messages.deaths),
-            handle
+            entity
         );
         vecsQueryItrAdvance(&itr);
     }

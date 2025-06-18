@@ -5,29 +5,9 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the inbound system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the inbound system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PositionId);
-        bitsetSet(&accept, InboundId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(PositionId)
+    | vecsComponentSetFromId(InboundId);
 
 /*
  * Transforms a point to be within the specified
@@ -59,20 +39,18 @@ static void inboundPoint(
 
 /* Prevents entities from leaving a certain boumdary */
 void inboundSystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     /* get entities with position and velocity */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&itr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &itr
         );
-        Inbound bound = windQueryItrGet(
+        Inbound bound = vecsQueryItrGet(
             Inbound,
             &itr
         );

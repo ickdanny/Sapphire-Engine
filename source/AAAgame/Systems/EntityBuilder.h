@@ -15,7 +15,7 @@
  */
 #define declareList(LISTNAME, INITCAPACITY) \
     ArrayList LISTNAME = arrayListMake( \
-        WindComponentDataPair, \
+        VecsComponentDataPair, \
         (INITCAPACITY) \
     )
 
@@ -26,13 +26,13 @@
  */
 #define addComponent(LISTPTR, TYPENAME, COMPONENT) \
     do{ \
-        WindComponentDataPair dataPair = {0}; \
+        VecsComponentDataPair dataPair = {0}; \
         dataPair.componentId = TYPENAME##Id; \
         TYPENAME *componentCopyPtr \
             = pgAlloc(1, sizeof(TYPENAME)); \
         *componentCopyPtr = (COMPONENT); \
         dataPair.componentPtr = componentCopyPtr; \
-        arrayListPushBack(WindComponentDataPair, \
+        arrayListPushBack(VecsComponentDataPair, \
             (LISTPTR), \
             dataPair \
         ); \
@@ -41,8 +41,8 @@
 /* Adds a marker to the specified component list */
 #define addMarker(LISTPTR, MARKERId) \
     do{ \
-        WindComponentDataPair dataPair = {MARKERId}; \
-        arrayListPushBack(WindComponentDataPair, \
+        VecsComponentDataPair dataPair = {MARKERId}; \
+        arrayListPushBack(VecsComponentDataPair, \
             (LISTPTR), \
             dataPair \
         ); \
@@ -426,22 +426,22 @@
     do{ \
         VecsEntity *tempPtr = (ENTITYOUTPTR); \
         if(tempPtr){ \
-            *tempPtr = windWorldAddEntity( \
+            *tempPtr = vecsWorldAddEntity( \
                 &((SCENEPTR)->ecsWorld), \
                 (LISTPTR) \
             ); \
         } \
         else{ \
-            windWorldAddEntity( \
+            vecsWorldAddEntity( \
                 &((SCENEPTR)->ecsWorld), \
                 (LISTPTR) \
             ); \
         } \
-        arrayListApply(WindComponentDataPair, \
+        arrayListApply(VecsComponentDataPair, \
             (LISTPTR), \
             _freeComponentData \
         ); \
-        arrayListFree(WindComponentDataPair, \
+        arrayListFree(VecsComponentDataPair, \
             (LISTPTR) \
         ); \
     } while(false)
@@ -459,11 +459,11 @@
             &((SCENEPTR)->ecsWorld), \
             (LISTPTR) \
         ); \
-        arrayListApply(WindComponentDataPair, \
+        arrayListApply(VecsComponentDataPair, \
             (LISTPTR), \
             _freeComponentData \
         ); \
-        arrayListFree(WindComponentDataPair, \
+        arrayListFree(VecsComponentDataPair, \
             (LISTPTR) \
         ); \
     } while(false)

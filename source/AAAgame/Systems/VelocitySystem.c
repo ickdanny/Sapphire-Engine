@@ -5,46 +5,24 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the velocity system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the velocity system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PositionId);
-        bitsetSet(&accept, VelocityId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(PositionId)
+    | vecsComponentSetFromId(VelocityId);
 
 /* updates position according to velocity */
 void velocitySystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     /* get entities with position and velocity */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&itr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &itr
         );
-        Velocity *velocityPtr = windQueryItrGetPtr(
+        Velocity *velocityPtr = vecsQueryItrGetPtr(
             Velocity,
             &itr
         );

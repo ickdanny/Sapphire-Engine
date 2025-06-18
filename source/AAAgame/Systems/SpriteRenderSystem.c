@@ -1,91 +1,44 @@
 #include "SpriteRenderSystem.h"
 
-static Bitset normalSpriteAccept;
-static Bitset normalSpriteReject;
-static Bitset subSpriteAccept;
-static Bitset tileSpriteAccept;
-static bool initialized = false;
+static VecsComponentSet normalSpriteAccept
+    = vecsComponentSetFromId(PositionId)
+    | vecsComponentSetFromId(VisibleMarkerId)
+    | vecsComponentSetFromId(SpriteInstructionId);
 
-/* destroys the sprite render system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&normalSpriteAccept);
-        bitsetFree(&normalSpriteReject);
-        bitsetFree(&subSpriteAccept);
-        bitsetFree(&tileSpriteAccept);
+static VecsComponentSet normalSpriteReject
+    = vecsComponentSetFromId(SubImageId)
+    | vecsComponentSetFromId(TilingInstructionId);
 
-        initialized = false;
-    }
-}
+static VecsComponentSet subSpriteAccept
+    = vecsComponentSetFromId(PositionId)
+    | vecsComponentSetFromId(VisibleMarkerId)
+    | vecsComponentSetFromId(SpriteInstructionId)
+    | vecsComponentSetFromId(SubImageId);
 
-/* inits the sprite render system */
-static void init(){
-    if(!initialized){
-        normalSpriteAccept = bitsetMake(numComponents);
-        bitsetSet(&normalSpriteAccept, PositionId);
-        bitsetSet(
-            &normalSpriteAccept,
-            VisibleMarkerId
-        );
-        bitsetSet(
-            &normalSpriteAccept,
-            SpriteInstructionId
-        );
-
-        normalSpriteReject = bitsetMake(numComponents);
-        bitsetSet(&normalSpriteReject, SubImageId);
-        bitsetSet(
-            &normalSpriteReject,
-            TilingInstructionId
-        );
-
-        subSpriteAccept = bitsetMake(numComponents);
-        bitsetSet(&subSpriteAccept, PositionId);
-        bitsetSet(&subSpriteAccept, VisibleMarkerId);
-        bitsetSet(
-            &subSpriteAccept,
-            SpriteInstructionId
-        );
-        bitsetSet(&subSpriteAccept, SubImageId);
-
-        tileSpriteAccept = bitsetMake(numComponents);
-        bitsetSet(&tileSpriteAccept, PositionId);
-        bitsetSet(&tileSpriteAccept, VisibleMarkerId);
-        bitsetSet(
-            &tileSpriteAccept,
-            SpriteInstructionId
-        );
-        bitsetSet(
-            &tileSpriteAccept,
-            TilingInstructionId
-        );
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet tileSpriteAccept
+    = vecsComponentSetFromId(PositionId)
+    | vecsComponentSetFromId(VisibleMarkerId)
+    | vecsComponentSetFromId(SpriteInstructionId)
+    | vecsComponentSetFromId(TilingInstructionId);
 
 /* Renders sprites to screen */
 void spriteRenderSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    init();
-
     /* draw normal sprites */
     VecsQueryItr normalItr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &normalSpriteAccept,
-        &normalSpriteReject
+        normalSpriteAccept,
+        normalSpriteReject
     );
-    while(windQueryItrHasEntity(&normalItr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&normalItr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &normalItr
         );
         SpriteInstruction *spriteInstrPtr
-            = windQueryItrGetPtr(SpriteInstruction,
+            = vecsQueryItrGetPtr(SpriteInstruction,
                 &normalItr
             );
         tfWindowDrawSprite(
@@ -99,19 +52,19 @@ void spriteRenderSystem(
     /* draw sub sprites */
     VecsQueryItr subItr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &subSpriteAccept,
-        NULL
+        subSpriteAccept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&subItr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&subItr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &subItr
         );
         SpriteInstruction *spriteInstrPtr
-            = windQueryItrGetPtr(SpriteInstruction,
+            = vecsQueryItrGetPtr(SpriteInstruction,
                 &subItr
             );
-        SubImage *subImagePtr = windQueryItrGetPtr(
+        SubImage *subImagePtr = vecsQueryItrGetPtr(
             SubImage,
             &subItr
         );
@@ -127,20 +80,20 @@ void spriteRenderSystem(
     /* draw tiled sprites */
     VecsQueryItr tileItr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &tileSpriteAccept,
-        NULL
+        tileSpriteAccept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&tileItr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&tileItr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &tileItr
         );
         SpriteInstruction *spriteInstrPtr
-            = windQueryItrGetPtr(SpriteInstruction,
+            = vecsQueryItrGetPtr(SpriteInstruction,
                 &tileItr
             );
         TilingInstruction *tilingInstrPtr
-            = windQueryItrGetPtr(
+            = vecsQueryItrGetPtr(
                 TilingInstruction,
                 &tileItr
             );

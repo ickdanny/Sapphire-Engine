@@ -7,14 +7,16 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(PlayerDataId);
+
 static String shotId;
 static bool initialized = false;
 
 /* destroys the player shot system */
 static void destroy(){
     if(initialized){
-        bitsetFree(&accept);
         stringFree(&shotId);
         initialized = false;
     }
@@ -23,9 +25,6 @@ static void destroy(){
 /* inits the player shot system */
 static void init(){
     if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataId);
-
         shotId = stringMakeC("player_shot");
 
         registerSystemDestructor(destroy);
@@ -44,20 +43,20 @@ static void addPlayerShot(
 ){
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        VecsEntity handle = vecsWorldMakeHandle(
-            &(scenePtr->ecsWorld),
-            windQueryItrCurrentId(&itr)
+    while(vecsQueryItrHasEntity(&itr)){
+        VecsEntity entity = vecsQueryItrGet(
+            VecsEntity,
+            &itr
         );
 
         /* bail if the player is in the wrong state */
         PlayerData *playerDataPtr
             = vecsWorldEntityGetPtr(PlayerData,
                 &(scenePtr->ecsWorld),
-                handle
+                entity
             );
         switch(playerDataPtr->stateMachine.state){
             case player_normal:
@@ -85,12 +84,12 @@ static void addPlayerShot(
         /* if player has scripts, add in slot 4 */
         if(vecsWorldEntityContainsComponent(Scripts,
             &(scenePtr->ecsWorld),
-            handle
+            entity
         )){
             Scripts *scriptsPtr
                 = vecsWorldEntityGetPtr(Scripts,
                     &(scenePtr->ecsWorld),
-                    handle
+                    entity
                 );
             /* if slot 3 is empty */
             if(!scriptsPtr->vm3){
@@ -115,9 +114,9 @@ static void addPlayerShot(
                     &shotId
                 )
             );
-            windWorldHandleQueueAddComponent(Scripts,
+            vecsWorldEntityQueueAddComponent(Scripts,
                 &(scenePtr->ecsWorld),
-                handle,
+                entity,
                 &scripts
             );
         }

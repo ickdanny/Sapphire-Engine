@@ -9,28 +9,9 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the player state system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the player state system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(PlayerDataId);
 
 /*
  * Returns true if has used a bomb this tick, false
@@ -280,8 +261,6 @@ static void updatePlayerStateMachine(
 
 /* handles updating the player state machine */
 void playerStateSystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     /* clear player state entry */
     scenePtr->messages.playerStateEntry.playerHandle
         = (VecsEntity){0};
@@ -290,24 +269,23 @@ void playerStateSystem(Game *gamePtr, Scene *scenePtr){
 
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        VecsEntity handle = vecsWorldMakeHandle(
-            &(scenePtr->ecsWorld),
-            windQueryItrCurrentId(&itr)
+    while(vecsQueryItrHasEntity(&itr)){
+        VecsEntity entity = vecsQueryItrGet(VecsEntity,
+            &itr
         );
 
         PlayerData *playerDataPtr
             = vecsWorldEntityGetPtr(PlayerData,
                 &(scenePtr->ecsWorld),
-                handle
+                entity
             );
 
         updatePlayerStateMachine(
             scenePtr,
-            handle,
+            entity,
             playerDataPtr
         );
 

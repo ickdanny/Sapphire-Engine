@@ -332,8 +332,8 @@ static UNValue getPlayerPos(int argc, UNValue *argv){
         NULL
     );
     /* if player exists, grab first one */
-    if(windQueryItrHasEntity(&itr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    if(vecsQueryItrHasEntity(&itr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &itr
         );
@@ -672,8 +672,8 @@ static UNValue getPlayerPower(int argc, UNValue *argv){
         NULL
     );
     /* if player exists, grab first one */
-    if(windQueryItrHasEntity(&itr)){
-        PlayerData *playerDataPtr = windQueryItrGetPtr(
+    if(vecsQueryItrHasEntity(&itr)){
+        PlayerData *playerDataPtr = vecsQueryItrGetPtr(
             PlayerData,
             &itr
         );
@@ -1296,7 +1296,7 @@ static UNValue addDeathScript(int argc, UNValue *argv){
                 );
                 break;
         }
-        windWorldHandleQueueAddComponent(DeathScripts,
+        vecsWorldEntityQueueAddComponent(DeathScripts,
             &(_scenePtr->ecsWorld),
             _handle,
             &deathScripts
@@ -2052,9 +2052,9 @@ static UNValue endStage(int argc, UNValue *argv){
                     NULL
                 );
             /* if player exists, grab first one */
-            if(windQueryItrHasEntity(&itr)){
+            if(vecsQueryItrHasEntity(&itr)){
                 PlayerData *playerDataPtr
-                    = windQueryItrGetPtr(
+                    = vecsQueryItrGetPtr(
                         PlayerData,
                         &itr
                     );

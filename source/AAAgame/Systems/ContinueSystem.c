@@ -36,8 +36,8 @@ static VecsEntity getPlayerHandle(Scene *scenePtr){
         NULL
     );
     /* get first player */
-    if(windQueryItrHasEntity(&itr)){
-        return vecsWorldMakeHandle(
+    if(vecsQueryItrHasEntity(&itr)){
+        return vecsWorldGetEntityById(
             &(scenePtr->ecsWorld),
             windQueryItrCurrentId(&itr)
         );

@@ -606,16 +606,16 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             &sourceSet##SUFFIX, \
             NULL \
         ); \
-    while(windQueryItrHasEntity(&sourceItr)){ \
-        Position *positionPtr = windQueryItrGetPtr( \
+    while(vecsQueryItrHasEntity(&sourceItr)){ \
+        Position *positionPtr = vecsQueryItrGetPtr( \
             Position, \
             &sourceItr \
         ); \
-        Hitbox *hitboxPtr = windQueryItrGetPtr( \
+        Hitbox *hitboxPtr = vecsQueryItrGetPtr( \
             Hitbox, \
             &sourceItr \
         ); \
-        VecsEntity handle = vecsWorldMakeHandle( \
+        VecsEntity handle = vecsWorldGetEntityById( \
             &(scenePtr->ecsWorld), \
             windQueryItrCurrentId(&sourceItr) \
         ); \
@@ -645,12 +645,12 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             &targetSet##SUFFIX, \
             NULL \
         ); \
-    while(windQueryItrHasEntity(&targetItr)){ \
-        Position *positionPtr = windQueryItrGetPtr( \
+    while(vecsQueryItrHasEntity(&targetItr)){ \
+        Position *positionPtr = vecsQueryItrGetPtr( \
             Position, \
             &targetItr \
         ); \
-        Hitbox *hitboxPtr = windQueryItrGetPtr( \
+        Hitbox *hitboxPtr = vecsQueryItrGetPtr( \
             Hitbox, \
             &targetItr \
         ); \
@@ -661,7 +661,7 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             positionPtr \
         ); \
         if(!arrayListIsEmpty(&collisionList)){ \
-            VecsEntity target = vecsWorldMakeHandle( \
+            VecsEntity target = vecsWorldGetEntityById( \
                 &(scenePtr->ecsWorld), \
                 windQueryItrCurrentId(&targetItr) \
             ); \

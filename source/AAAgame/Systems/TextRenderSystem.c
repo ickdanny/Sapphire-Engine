@@ -8,14 +8,17 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
+static VecsComponentSet accept
+    = vecsComponentSetFromId(PositionId)
+    | vecsComponentSetFromId(VisibleMarkerId)
+    | vecsComponentSetFromId(TextInstructionId);
+
 static TFGlyphMap glyphMap;
 static bool initialized = false;
 
 /* destroys the text render system */
 static void destroy(){
     if(initialized){
-        bitsetFree(&accept);
         TFGlyphMapFree(&glyphMap);
         initialized = false;
     }
@@ -24,11 +27,6 @@ static void destroy(){
 /* inits the text render system */
 static void init(Game *gamePtr){
     if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PositionId);
-        bitsetSet(&accept, VisibleMarkerId);
-        bitsetSet(&accept, TextInstructionId);
-
         glyphMap = tfGlyphMapMake(
             horizontalDist,
             verticalDist
@@ -157,16 +155,16 @@ void textRenderSystem(Game *gamePtr, Scene *scenePtr){
     /* get entities with position and text instr */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
-    while(windQueryItrHasEntity(&itr)){
-        Position *positionPtr = windQueryItrGetPtr(
+    while(vecsQueryItrHasEntity(&itr)){
+        Position *positionPtr = vecsQueryItrGetPtr(
             Position,
             &itr
         );
         TextInstruction *textInstrPtr
-            = windQueryItrGetPtr(TextInstruction,
+            = vecsQueryItrGetPtr(TextInstruction,
                 &itr
             );
         tfWindowDrawText(

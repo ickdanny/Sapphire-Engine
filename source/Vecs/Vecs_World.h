@@ -566,7 +566,7 @@ bool _vecsWorldEntityQueueRemoveComponent(
 ) \
     (_vecsWorldEntityQueueRemoveComponent( \
         worldPtr, \
-        vecsComponentGetId(TYPENAtypeNameME), \
+        vecsComponentGetId(typeName), \
         entity \
     ))
 

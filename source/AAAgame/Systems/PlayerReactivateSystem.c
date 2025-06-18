@@ -11,7 +11,7 @@ void playerReactivateSystem(
         /* re-add pickup collisions */
         PickupCollisionTarget pickupCollisionTarget
             = collision_none;
-        windWorldHandleAddComponent(
+        vecsWorldEntityAddComponent(
             PickupCollisionTarget,
             &(scenePtr->ecsWorld),
             scenePtr->messages.playerStateEntry

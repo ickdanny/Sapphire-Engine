@@ -61,7 +61,7 @@ void playerBombSystem(Game *gamePtr, Scene *scenePtr){
         playerHandle
     )){
         Scripts scripts = {0};
-        windWorldHandleAddComponent(Scripts,
+        vecsWorldEntityAddComponent(Scripts,
             &(scenePtr->ecsWorld),
             playerHandle,
             &scripts

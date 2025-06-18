@@ -18,7 +18,7 @@ void playerRespawnSystem(
             );
 
         /* make the player collidable */
-        windWorldHandleAddComponent(CollidableMarker,
+        vecsWorldEntityAddComponent(CollidableMarker,
             &(scenePtr->ecsWorld),
             playerHandle,
             NULL
