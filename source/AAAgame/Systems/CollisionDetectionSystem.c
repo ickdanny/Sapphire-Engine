@@ -547,46 +547,23 @@ static void quadTreeFree(QuadTree *quadTreePtr){
  * of a specific type
  */
 #define COLLISION_TYPE_DECLARE(PREFIX, SUFFIX) \
-static VecsComponentSet sourceSet##SUFFIX; \
-static VecsComponentSet targetSet##SUFFIX; \
-\
-/* inits the collision system */ \
-static void init##SUFFIX(){ \
-    if(!initialized##SUFFIX){ \
-        sourceSet##SUFFIX \
-            = bitsetMake(numComponents); \
-        bitsetSet(&sourceSet##SUFFIX, PositionId); \
-        bitsetSet(&sourceSet##SUFFIX, HitboxId); \
-        bitsetSet( \
-            &sourceSet##SUFFIX, \
-            CollidableMarkerId \
-        ); \
-        bitsetSet( \
-            &sourceSet##SUFFIX, \
-            SUFFIX##CollisionSourceId \
-        ); \
-        \
-        targetSet##SUFFIX \
-            = bitsetMake(numComponents); \
-        bitsetSet(&targetSet##SUFFIX, PositionId); \
-        bitsetSet(&targetSet##SUFFIX, HitboxId); \
-        bitsetSet( \
-            &targetSet##SUFFIX, \
-            CollidableMarkerId \
-        ); \
-        bitsetSet( \
-            &targetSet##SUFFIX, \
-            SUFFIX##CollisionTargetId \
-        ); \
-        \
-        initialized##SUFFIX = true; \
-    } \
-} \
+static VecsComponentSet sourceSet##SUFFIX \
+    = vecsComponentSetFromId(PositionId) \
+    | vecsComponentSetFromId(HitboxId) \
+    | vecsComponentSetFromId(CollidableMarkerId) \
+    | vecsComponentSetFromId( \
+        SUFFIX##CollisionSourceId \
+    ); \
+static VecsComponentSet targetSet##SUFFIX \
+    = vecsComponentSetFromId(PositionId) \
+    | vecsComponentSetFromId(HitboxId) \
+    | vecsComponentSetFromId(CollidableMarkerId) \
+    | vecsComponentSetFromId( \
+        SUFFIX##CollisionTargetId \
+    ); \
 \
 /* checks for collisions of a specific type */ \
 void detectCollisions##SUFFIX(Scene *scenePtr){ \
-    init##SUFFIX(); \
-    \
     /* clear the collision channel */ \
     ArrayList *collisionChannelPtr \
         = &(scenePtr->messages \
@@ -603,8 +580,8 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
     VecsQueryItr sourceItr \
         = vecsWorldRequestQueryItr( \
             &(scenePtr->ecsWorld), \
-            &sourceSet##SUFFIX, \
-            NULL \
+            sourceSet##SUFFIX, \
+            vecsEmptyComponentSet \
         ); \
     while(vecsQueryItrHasEntity(&sourceItr)){ \
         Position *positionPtr = vecsQueryItrGetPtr( \
@@ -615,13 +592,13 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             Hitbox, \
             &sourceItr \
         ); \
-        VecsEntity handle = vecsWorldGetEntityById( \
-            &(scenePtr->ecsWorld), \
-            windQueryItrCurrentId(&sourceItr) \
+        VecsEntity entity = vecsQueryItrGet( \
+            VecsEntity, \
+            &sourceItr \
         ); \
         quadTreeInsert( \
             &quadTree, \
-            handle, \
+            entity, \
             hitboxPtr, \
             positionPtr \
         ); \
@@ -642,8 +619,8 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
     VecsQueryItr targetItr \
         = vecsWorldRequestQueryItr( \
             &(scenePtr->ecsWorld), \
-            &targetSet##SUFFIX, \
-            NULL \
+            targetSet##SUFFIX, \
+            vecsEmptyComponentSet \
         ); \
     while(vecsQueryItrHasEntity(&targetItr)){ \
         Position *positionPtr = vecsQueryItrGetPtr( \
@@ -661,9 +638,9 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
             positionPtr \
         ); \
         if(!arrayListIsEmpty(&collisionList)){ \
-            VecsEntity target = vecsWorldGetEntityById( \
-                &(scenePtr->ecsWorld), \
-                windQueryItrCurrentId(&targetItr) \
+            VecsEntity target = vecsQueryItrGet( \
+                VecsEntity, \
+                &targetItr \
             ); \
             for(size_t i = 0; \
                 i < collisionList.size; \
@@ -674,10 +651,7 @@ void detectCollisions##SUFFIX(Scene *scenePtr){ \
                     &collisionList, \
                     i \
                 ); \
-                if(!windEntityEquals( \
-                    target, \
-                    source \
-                )){ \
+                if(target != source){ \
                     arrayListPushBack(Collision, \
                         collisionChannelPtr, \
                         ((Collision){ \

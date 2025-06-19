@@ -6,7 +6,7 @@
  * Constructs and returns a new empty component list
  * by value
  */
-VecsComponentList vecsComponentsMake(){
+VecsComponentList vecsComponentListMake(){
     VecsComponentList toRet = {0};
     toRet._componentArray = arrayMake(
         VecsComponentMetadata,

@@ -3,15 +3,19 @@
 #include "GameCommand.h"
 #include "Prototypes.h"
 
+static VecsComponentSet playerPosSet
+    = vecsComponentSetFromId(PlayerDataId)
+    | vecsComponentSetFromId(PositionId);
+static VecsComponentSet playerSet
+    = vecsComponentSetFromId(PlayerDataId);
+
 static UNNativeFuncSet *nativeFuncSetPtr = NULL;
-static Bitset playerPosSet;
-static Bitset playerSet;
 static bool initialized = false;
 
 /* used for native funcs that work on the entity */
 static Game *_gamePtr;
 static Scene *_scenePtr;
-static VecsEntity _handle;
+static VecsEntity _entity;
 
 /* the actual native funcs */
 
@@ -53,14 +57,14 @@ static VecsEntity _handle;
         if(!vecsWorldEntityContainsComponent( \
             TYPENAME, \
             &(_scenePtr->ecsWorld), \
-            _handle \
+            _entity \
         )){ \
             pgError(ERRMSG); \
         } \
         PTRNAME = vecsWorldEntityGetPtr( \
             TYPENAME, \
             &(_scenePtr->ecsWorld), \
-            _handle \
+            _entity \
         ); \
     } while(false)
 
@@ -75,21 +79,21 @@ static VecsEntity _handle;
         if(vecsWorldEntityContainsComponent( \
             TYPENAME, \
             &(_scenePtr->ecsWorld), \
-            _handle \
+            _entity \
         )){ \
             TYPENAME *componentPtr \
                 = vecsWorldEntityGetPtr( \
                     TYPENAME, \
                     &(_scenePtr->ecsWorld), \
-                    _handle \
+                    _entity \
                 ); \
             *componentPtr = *(COMPONENTPTR); \
         } \
         else{ \
-            windWorldHandleQueueSetComponent( \
+            vecsWorldEntityQueueSetComponent( \
                 TYPENAME, \
                 &(_scenePtr->ecsWorld), \
-                _handle, \
+                _entity, \
                 (COMPONENTPTR) \
             ); \
         } \
@@ -102,7 +106,7 @@ static VecsEntity _handle;
 #define removeComponent(TYPENAME) \
     vecsWorldEntityQueueRemoveComponent(TYPENAME, \
         &(_scenePtr->ecsWorld), \
-        _handle \
+        _entity \
     )
 
 /*
@@ -328,8 +332,8 @@ static UNValue getPlayerPos(int argc, UNValue *argv){
     /* get players with position */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(_scenePtr->ecsWorld),
-        &playerPosSet,
-        NULL
+        playerPosSet,
+        vecsEmptyComponentSet
     );
     /* if player exists, grab first one */
     if(vecsQueryItrHasEntity(&itr)){
@@ -350,9 +354,9 @@ static UNValue getPlayerPos(int argc, UNValue *argv){
 /* Marks the entity as visible */
 static UNValue setVisible(int argc, UNValue *argv){
     assertArity(0, "setVisible expects no args");
-    windWorldHandleQueueSetComponent(VisibleMarker,
+    vecsWorldEntityQueueSetComponent(VisibleMarker,
         &(_scenePtr->ecsWorld),
-        _handle,
+        _entity,
         NULL
     );
     return unBoolValue(false);
@@ -374,10 +378,10 @@ static UNValue setRotateSpriteForward(
         0,
         "setRotateSpriteForward expects no args"
     );
-    windWorldHandleQueueSetComponent(
+    vecsWorldEntityQueueSetComponent(
         RotateSpriteForwardMarker,
         &(_scenePtr->ecsWorld),
-        _handle,
+        _entity,
         NULL
     );
     return unBoolValue(false);
@@ -466,9 +470,9 @@ static UNValue setSpriteInstruction(
     );
 
     /* queue a set command */
-    windWorldHandleQueueSetComponent(SpriteInstruction,
+    vecsWorldEntityQueueSetComponent(SpriteInstruction,
         &(_scenePtr->ecsWorld),
-        _handle,
+        _entity,
         &spriteInstr
     );
 
@@ -668,8 +672,8 @@ static UNValue getPlayerPower(int argc, UNValue *argv){
     /* get players */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(_scenePtr->ecsWorld),
-        &playerSet,
-        NULL
+        playerSet,
+        vecsEmptyComponentSet
     );
     /* if player exists, grab first one */
     if(vecsQueryItrHasEntity(&itr)){
@@ -725,9 +729,9 @@ static UNValue isPlayerFocused(
 /* Marks the entity as collidable */
 static UNValue setCollidable(int argc, UNValue *argv){
     assertArity(0, "setCollidable expects no args");
-    windWorldHandleQueueSetComponent(CollidableMarker,
+    vecsWorldEntityQueueSetComponent(CollidableMarker,
         &(_scenePtr->ecsWorld),
-        _handle,
+        _entity,
         NULL
     );
     return unBoolValue(false);
@@ -776,9 +780,9 @@ static UNValue removeDamage(int argc, UNValue *argv){
 /* Marks the entity as clearable */
 static UNValue setClearable(int argc, UNValue *argv){
     assertArity(0, "setClearable expects no args");
-    windWorldHandleQueueSetComponent(ClearableMarker,
+    vecsWorldEntityQueueSetComponent(ClearableMarker,
         &(_scenePtr->ecsWorld),
-        _handle,
+        _entity,
         NULL
     );
     return unBoolValue(false);
@@ -934,7 +938,7 @@ static UNValue die(int argc, UNValue *argv){
     assertArity(0, "die expects 0 args");
     arrayListPushBack(VecsEntity,
         &(_scenePtr->messages.deaths),
-        _handle
+        _entity
     );
     return unBoolValue(false);
 }
@@ -945,9 +949,9 @@ static UNValue die(int argc, UNValue *argv){
  */
 static UNValue removeEntity(int argc, UNValue *argv){
     assertArity(0, "removeEntity expects 0 args");
-    windWorldHandleQueueRemoveEntity(
+    vecsWorldEntityQueueRemoveEntity(
         &(_scenePtr->ecsWorld),
-        _handle
+        _entity
     );
     return unBoolValue(false);
 }
@@ -1213,7 +1217,7 @@ static UNValue addDeathScript(int argc, UNValue *argv){
     /* get the death script component if present */
     if(vecsWorldEntityContainsComponent(DeathScripts,
         &(_scenePtr->ecsWorld),
-        _handle
+        _entity
     )){
         DeathScripts *deathScriptsPtr = NULL;
         fillComponentPtr(DeathScripts,
@@ -1298,7 +1302,7 @@ static UNValue addDeathScript(int argc, UNValue *argv){
         }
         vecsWorldEntityQueueAddComponent(DeathScripts,
             &(_scenePtr->ecsWorld),
-            _handle,
+            _entity,
             &deathScripts
         );
         return unBoolValue(true);
@@ -1333,7 +1337,7 @@ static UNValue removeDeathScript(
      */
     if(!vecsWorldEntityContainsComponent(DeathScripts,
         &(_scenePtr->ecsWorld),
-        _handle
+        _entity
     )){
         return unBoolValue(false);
     }
@@ -2048,8 +2052,8 @@ static UNValue endStage(int argc, UNValue *argv){
             VecsQueryItr itr
                 = vecsWorldRequestQueryItr(
                     &(_scenePtr->ecsWorld),
-                    &playerSet,
-                    NULL
+                    playerSet,
+                    vecsEmptyComponentSet
                 );
             /* if player exists, grab first one */
             if(vecsQueryItrHasEntity(&itr)){
@@ -2294,8 +2298,6 @@ static UNValue spawn(int argc, UNValue *argv){
  */
 static void destroy(){
     if(initialized){
-        bitsetFree(&playerPosSet);
-        bitsetFree(&playerSet);
         unNativeFuncSetFree(nativeFuncSetPtr);
         pgFree(nativeFuncSetPtr);
         initialized = false;
@@ -2311,13 +2313,6 @@ static void init(){
         nativeFuncSetPtr
             = pgAlloc(1, sizeof(*nativeFuncSetPtr));
         *nativeFuncSetPtr = unNativeFuncSetMake();
-
-        playerPosSet = bitsetMake(numComponents);
-        bitsetSet(&playerPosSet, PlayerDataId);
-        bitsetSet(&playerPosSet, PositionId);
-
-        playerSet = bitsetMake(numComponents);
-        bitsetSet(&playerSet, PlayerDataId);
 
         #define addNativeFunc(FUNCNAME) \
             unNativeFuncSetAdd( \
@@ -2485,7 +2480,7 @@ void setSceneForNativeFuncs(Scene *scenePtr){
     _scenePtr = scenePtr;
 }
 
-/* Sets the entity handle for native funcs */
-void setEntityForNativeFuncs(VecsEntity handle){
-    _handle = handle;
+/* Sets the entity for native funcs */
+void setEntityForNativeFuncs(VecsEntity entity){
+    _entity = entity;
 }

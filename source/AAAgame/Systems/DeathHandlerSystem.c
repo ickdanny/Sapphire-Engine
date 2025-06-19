@@ -30,17 +30,17 @@ static int powerLoss(int initPower){
 static void handleDeathScript(
     Game *gamePtr,
     Scene *scenePtr,
-    VecsEntity handle,
+    VecsEntity entity,
     bool removeEntityAfter
 ){
     if(vecsWorldEntityContainsComponent(DeathScripts,
         &(scenePtr->ecsWorld),
-        handle
+        entity
     )){
         DeathScripts *deathScriptsPtr
             = vecsWorldEntityGetPtr(DeathScripts,
                 &(scenePtr->ecsWorld),
-                handle
+                entity
             );
 
         declareList(componentList, 3);
@@ -91,13 +91,13 @@ static void handleDeathScript(
          */
         if(vecsWorldEntityContainsComponent(Position,
             &(scenePtr->ecsWorld),
-            handle
+            entity
         )){
             Position *positionPtr
                 = vecsWorldEntityGetPtr(
                     Position,
                     &(scenePtr->ecsWorld),
-                    handle
+                    entity
                 );
             addPosition(
                 &componentList,
@@ -111,13 +111,12 @@ static void handleDeathScript(
          */
         if(vecsWorldEntityContainsComponent(Velocity,
             &(scenePtr->ecsWorld),
-            handle
+            entity
         )){
             Velocity velocity
-                = vecsWorldEntityGet(
-                    Velocity,
+                = vecsWorldEntityGet(Velocity,
                     &(scenePtr->ecsWorld),
-                    handle
+                    entity
                 );
             velocity.magnitude = 0;
             addVelocity(&componentList, velocity);
@@ -133,9 +132,9 @@ static void handleDeathScript(
 
     /* optionally remove the dead entity */
     if(removeEntityAfter){
-        windWorldHandleRemoveEntity(
+        vecsWorldEntityRemoveEntity(
             &(scenePtr->ecsWorld),
-            handle
+            entity
         );
     }
 }
@@ -187,7 +186,7 @@ static void handleDeathCommand(
 ){
     switch(command){
         case death_remove:
-            windWorldHandleRemoveEntity(
+            vecsWorldEntityRemoveEntity(
                 &(scenePtr->ecsWorld),
                 handle
             );
@@ -232,7 +231,7 @@ void deathHandlerSystem(
     ArrayList *deathsPtr
         = &(scenePtr->messages.deaths);
     for(size_t i = 0; i < deathsPtr->size; ++i){
-        VecsEntity handle = arrayListGet(VecsEntity,
+        VecsEntity entity = arrayListGet(VecsEntity,
             deathsPtr,
             i
         );
@@ -240,9 +239,9 @@ void deathHandlerSystem(
          * skip over entities that are somehow already
          * dead
          */
-        if(!windWorldIsHandleAlive(
+        if(!vecsWorldIsEntityLive(
             &(scenePtr->ecsWorld),
-            handle
+            entity
         )){
             continue;
         }
@@ -250,25 +249,25 @@ void deathHandlerSystem(
         if(vecsWorldEntityContainsComponent(
             DeathCommand,
             &(scenePtr->ecsWorld),
-            handle
+            entity
         )){
             DeathCommand command = vecsWorldEntityGet(
                 DeathCommand,
                 &(scenePtr->ecsWorld),
-                handle
+                entity
             );
             handleDeathCommand(
                 gamePtr,
                 scenePtr,
-                handle,
+                entity,
                 command
             );
         }
         /* otherwise, default to removal */
         else{
-            windWorldHandleRemoveEntity(
+            vecsWorldEntityRemoveEntity(
                 &(scenePtr->ecsWorld),
-                handle
+                entity
             );
         }
     }

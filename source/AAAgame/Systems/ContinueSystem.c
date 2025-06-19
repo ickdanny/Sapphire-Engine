@@ -5,42 +5,19 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
+static VecsComponentSet accept
+    = vecsComponentSetFromId(PlayerDataId);
 
-/* destroys the continue system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the continue system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
-
-/* retrieves the player handle */
-static VecsEntity getPlayerHandle(Scene *scenePtr){
+/* retrieves the player entity */
+static VecsEntity getPlayerEntity(Scene *scenePtr){
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
     /* get first player */
     if(vecsQueryItrHasEntity(&itr)){
-        return vecsWorldGetEntityById(
-            &(scenePtr->ecsWorld),
-            windQueryItrCurrentId(&itr)
-        );
+        return vecsQueryItrGet(VecsEntity, &itr);
     }
     /* error if cannot find player */
     else{
@@ -71,12 +48,12 @@ static void enterContinueMenu(
      * send player data to global for init system to
      * create continue menu
      */
-    VecsEntity playerHandle
-        = getPlayerHandle(scenePtr);
+    VecsEntity playerEntity
+        = getPlayerEntity(scenePtr);
     PlayerData *playerDataPtr = vecsWorldEntityGetPtr(
         PlayerData,
         &(scenePtr->ecsWorld),
-        playerHandle
+        playerEntity
     );
     gamePtr->messages.playerData.data = *playerDataPtr;
     gamePtr->messages.playerData.isPresent = true;
@@ -87,20 +64,18 @@ static void enterContinueMenu(
  * player chooses to continue and return to the game
  */
 static void returnFromContinueMenu(Scene *scenePtr){
-    VecsEntity playerHandle
-        = getPlayerHandle(scenePtr);
+    VecsEntity playerEntity
+        = getPlayerEntity(scenePtr);
     PlayerData *playerDataPtr = vecsWorldEntityGetPtr(
         PlayerData,
         &(scenePtr->ecsWorld),
-        playerHandle
+        playerEntity
     );
     /* continue decrement occurs during respawning */
 }
 
 /* Handles entering and exiting the continue menu */
 void continueSystem(Game *gamePtr, Scene *scenePtr){
-    init();
-
     /* bail if not in game */
     if(scenePtr->id != scene_game){
         return;
@@ -133,13 +108,12 @@ void continueSystem(Game *gamePtr, Scene *scenePtr){
             == player_dead
         ){
             /* check to see if player out of lives */
-            VecsEntity playerHandle
-                = getPlayerHandle(scenePtr);
+            VecsEntity playerEntity
+                = getPlayerEntity(scenePtr);
             PlayerData *playerDataPtr
-                = vecsWorldEntityGetPtr(
-                    PlayerData,
+                = vecsWorldEntityGetPtr(PlayerData,
                     &(scenePtr->ecsWorld),
-                    playerHandle
+                    playerEntity
                 );
             if(playerDataPtr->lives <= 0
                 && playerDataPtr->continues > 0

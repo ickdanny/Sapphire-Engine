@@ -5,52 +5,31 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the player life add system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the player life add system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(PlayerDataId);
 
 /* Adds lives to the player when signaled */
 void playerLifeAddSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    init();
-
     if(scenePtr->messages.livesToAdd > 0){
         VecsQueryItr itr = vecsWorldRequestQueryItr(
             &(scenePtr->ecsWorld),
-            &accept,
-            NULL
+            accept,
+            vecsEmptyComponentSet
         );
         while(vecsQueryItrHasEntity(&itr)){
-            VecsEntity handle = vecsWorldGetEntityById(
-                &(scenePtr->ecsWorld),
-                windQueryItrCurrentId(&itr)
+            VecsEntity entity = vecsQueryItrGet(
+                VecsEntity,
+                &itr
             );
 
             PlayerData *playerDataPtr
                 = vecsWorldEntityGetPtr(PlayerData,
                     &(scenePtr->ecsWorld),
-                    handle
+                    entity
                 );
             
             playerDataPtr->lives

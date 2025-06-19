@@ -15,7 +15,7 @@ void setGameForNativeFuncs(Game *gamePtr);
 /* Sets the scene pointer for native funcs */
 void setSceneForNativeFuncs(Scene *scenePtr);
 
-/* Sets the entity handle for native funcs */
+/* Sets the entity for native funcs */
 void setEntityForNativeFuncs(VecsEntity handle);
 
 #endif

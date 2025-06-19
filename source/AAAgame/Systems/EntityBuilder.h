@@ -455,7 +455,7 @@
     SCENEPTR \
 ) \
     do{ \
-        windWorldQueueAddEntity( \
+        vecsWorldQueueAddEntity( \
             &((SCENEPTR)->ecsWorld), \
             (LISTPTR) \
         ); \

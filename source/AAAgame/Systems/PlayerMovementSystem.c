@@ -7,29 +7,9 @@
 #define accept _accept
 #endif
 
-static Bitset accept;
-static bool initialized = false;
-
-/* destroys the player movement system */
-static void destroy(){
-    if(initialized){
-        bitsetFree(&accept);
-        initialized = false;
-    }
-}
-
-/* inits the player movement system */
-static void init(){
-    if(!initialized){
-        accept = bitsetMake(numComponents);
-        bitsetSet(&accept, PlayerDataId);
-        bitsetSet(&accept, VelocityId);
-
-        registerSystemDestructor(destroy);
-        
-        initialized = true;
-    }
-}
+static VecsComponentSet accept
+    = vecsComponentSetFromId(PlayerDataId)
+    | vecsComponentSetFromId(VelocityId);
 
 /* Holds data pertaining to player movement input */
 typedef uint_fast8_t PlayerMoveState;
@@ -187,8 +167,6 @@ void playerMovementSystem(
     Game *gamePtr,
     Scene *scenePtr
 ){
-    init();
-
     ArrayList *gameCommandsPtr
         = &(scenePtr->messages.gameCommands);
 
@@ -231,8 +209,8 @@ void playerMovementSystem(
     /* get entities with player data and velocity */
     VecsQueryItr itr = vecsWorldRequestQueryItr(
         &(scenePtr->ecsWorld),
-        &accept,
-        NULL
+        accept,
+        vecsEmptyComponentSet
     );
     while(vecsQueryItrHasEntity(&itr)){
         PlayerData *playerDataPtr = vecsQueryItrGetPtr(
