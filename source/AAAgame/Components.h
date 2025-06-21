@@ -120,7 +120,7 @@ typedef struct ButtonData{
     Point2D selPos;
 
     /*
-     * OYCN will not have any locked buttons, but the
+     * SFE will not have any locked buttons, but the
      * implementation of such a feature would be
      * here
      */

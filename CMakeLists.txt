@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(OceanEngine C)
+project(SapphireEngine C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -63,14 +63,14 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 
 if(WIN32)
     add_compile_definitions(GLEW_STATIC)
-    set_target_properties(OceanEngine PROPERTIES COMPILE_FLAGS "/experimental:c11atomics")
+    set_target_properties(SapphireEngine PROPERTIES COMPILE_FLAGS "/experimental:c11atomics")
     set(LIBS
         "winmm"
         "opengl32"
         ${CMAKE_SOURCE_DIR}/libraries/glfw/lib-vc2022/glfw3.lib
         ${CMAKE_SOURCE_DIR}/libraries/glew/lib/glew32s.lib
     )
-    target_link_libraries(OceanEngine PRIVATE ${LIBS})
+    target_link_libraries(SapphireEngine PRIVATE ${LIBS})
 elseif(APPLE)
     add_compile_definitions(__unix__) # not sure why undefined
     # https://stackoverflow.com/questions/17070101/why-i-cannot-link-the-mac-framework-file-with-cmake
@@ -84,8 +84,8 @@ elseif(APPLE)
         "-framework OpenGL"
         ${CMAKE_SOURCE_DIR}/libraries/glfw/lib-arm64/libglfw3.a
     )
-    target_link_libraries(OceanEngine ${LIBS})
-    set_target_properties(OceanEngine PROPERTIES LINK_FLAGS "-Wl,-F/Library/Frameworks")
+    target_link_libraries(SapphireEngine ${LIBS})
+    set_target_properties(SapphireEngine PROPERTIES LINK_FLAGS "-Wl,-F/Library/Frameworks")
 elseif(UNIX)
     add_compile_definitions(GLEW_STATIC _POSIX_C_SOURCE)
     set(LIBS
@@ -96,5 +96,5 @@ elseif(UNIX)
         "asound"
         ${CMAKE_SOURCE_DIR}/libraries/libGLEW.a
     )
-    target_link_libraries(OceanEngine ${LIBS})
+    target_link_libraries(SapphireEngine ${LIBS})
 endif()

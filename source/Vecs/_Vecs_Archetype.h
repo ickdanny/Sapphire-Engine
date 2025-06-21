@@ -120,9 +120,6 @@ void *__vecsArchetypeGetPtr(
         )) \
     )
 
-//todo: probably need an interface for allocating space
-//for a new entity i.e. index
-
 /*
  * Sets the component specified by the given
  * component id of the entity specified by the given

@@ -2,10 +2,10 @@
 #define CONFIG_H
 
 /* The name of the game window */
-#define config_windowName "OYCN"
+#define config_windowName "SFE"
 
 /* The file name of the settings file */
-#define config_settingsFileName "oycn.cfg"
+#define config_settingsFileName "sfe.cfg"
 
 /* The width of the game window */
 #define config_windowWidth 640
