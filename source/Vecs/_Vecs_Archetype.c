@@ -325,15 +325,6 @@ void __vecsArchetypeSetPtr(
         = &(archetypePtr
             ->_componentStorageLists[componentId]);
 
-    void *componentSlotPtr = _arrayListGetPtr(
-        componentStorageListPtr,
-        index,
-        componentMetadata._componentSize
-        #ifdef _DEBUG
-        , componentMetadata._typeName
-        #endif
-    );
-
     /*
      * case 1: this operation replaces a preexisting
      * component
@@ -344,6 +335,14 @@ void __vecsArchetypeSetPtr(
     )){
         /* run component destructor if needed */
         if(componentMetadata._destructor){
+            void *componentSlotPtr = _arrayListGetPtr(
+                componentStorageListPtr,
+                index,
+                componentMetadata._componentSize
+                #ifdef _DEBUG
+                , componentMetadata._typeName
+                #endif
+            );
             componentMetadata._destructor(
                 componentSlotPtr
             );
@@ -468,6 +467,28 @@ void _vecsArchetypeMoveEntity(
     size_t srcIndex
         = entityMetadataPtr->_indexInArchetype;
 
+    /* get info about last entity */
+    ArrayList *entityStorageListPtr
+        = &(srcArchetypePtr
+            ->_componentStorageLists[VecsEntityId]);
+    
+    VecsComponentMetadata entityComponentMetadata
+        = vecsComponentListGetMetadata(
+            srcArchetypePtr->_componentListPtr,
+            VecsEntityId
+        );
+
+    size_t lastIndex = entityStorageListPtr->size - 1;
+    VecsEntity *lastEntityPtr = _arrayListGetPtr(
+        entityStorageListPtr,
+        lastIndex,
+        entityComponentMetadata._componentSize
+        #ifdef _DEBUG
+        , entityComponentMetadata._typeName
+        #endif
+    );
+    VecsEntity lastEntity = *lastEntityPtr;
+
     /*
      * the entity will be pushed to the back of the
      * destination archetype, whose index can be
@@ -503,7 +524,7 @@ void _vecsArchetypeMoveEntity(
     
         /* skip if component is a marker */
         if(componentMetadata._componentSize == 0){
-            return;
+            continue;
         }
 
         ArrayList *srcComponentStorageListPtr
@@ -578,6 +599,20 @@ void _vecsArchetypeMoveEntity(
     entityMetadataPtr->_archetypePtr
         = destArchetypePtr;
     entityMetadataPtr->_indexInArchetype = destIndex;
+
+    /*
+     * update entity metadata for entity which was
+     * moved from the tail of the list, if needed
+     */
+    if(srcIndex != lastIndex){
+        _VecsEntityMetadata *lastEntityMetadataPtr
+            = _vecsEntityListGetMetadata(
+                srcArchetypePtr->_entityListPtr,
+                lastEntity
+            );
+        lastEntityMetadataPtr->_indexInArchetype
+            = srcIndex;
+    }
 
     ++(srcArchetypePtr->_modificationCount);
     ++(destArchetypePtr->_modificationCount);
@@ -698,8 +733,9 @@ bool _vecsArchetypeRemoveEntity(
     }
 
     /* update entity metadata for removed entity */
-    _vecsEntityMetadataIncrementGeneration(
-        entityMetadataPtr
+    _vecsEntityListReclaim(
+        archetypePtr->_entityListPtr,
+        entity
     );
 
     /*
@@ -772,7 +808,7 @@ bool _vecsArchetypeRemoveEntity(
     
         /* skip if component is a marker */
         if(componentMetadata._componentSize == 0){
-            return;
+            continue;
         }
 
         /* allocate slot for each component */
@@ -860,7 +896,7 @@ static void __vecsArchetypeFreeComponentStorageLists(
             );
         /* skip if component is a marker */
         if(componentMetadata._componentSize == 0){
-            return;
+            continue;
         }
 
         ArrayList *componentStorageListPtr

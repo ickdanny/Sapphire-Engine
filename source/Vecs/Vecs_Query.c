@@ -9,7 +9,7 @@ static void errorIfAcceptRejectOverlap(
     VecsComponentSet acceptComponentSet,
     VecsComponentSet rejectComponentSet
 ){
-    assertTrue(
+    assertFalse(
         vecsComponentSetContainsAny(
             acceptComponentSet,
             rejectComponentSet

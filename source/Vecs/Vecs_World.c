@@ -1381,16 +1381,14 @@ bool vecsWorldIdRemoveEntity(
             worldPtr,
             entityId
         );
-    /* clear entity metadata */
     VecsEntity entity = vecsWorldGetEntityById(
         worldPtr,
         entityId
     );
-    _vecsEntityListReclaim(
-        &(worldPtr->_entityList),
-        entity
-    );
-    /* clear entity component data */
+    /*
+     * clear entity component data and reset entity
+     * metadata
+     */
     bool success = _vecsArchetypeRemoveEntity(
         archetypePtr,
         entity

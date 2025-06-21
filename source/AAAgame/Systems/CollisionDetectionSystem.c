@@ -548,14 +548,16 @@ static void quadTreeFree(QuadTree *quadTreePtr){
  */
 #define COLLISION_TYPE_DECLARE(PREFIX, SUFFIX) \
 static VecsComponentSet sourceSet##SUFFIX \
-    = vecsComponentSetFromId(PositionId) \
+    = vecsComponentSetFromId(VecsEntityId) \
+    | vecsComponentSetFromId(PositionId) \
     | vecsComponentSetFromId(HitboxId) \
     | vecsComponentSetFromId(CollidableMarkerId) \
     | vecsComponentSetFromId( \
         SUFFIX##CollisionSourceId \
     ); \
 static VecsComponentSet targetSet##SUFFIX \
-    = vecsComponentSetFromId(PositionId) \
+    = vecsComponentSetFromId(VecsEntityId) \
+    | vecsComponentSetFromId(PositionId) \
     | vecsComponentSetFromId(HitboxId) \
     | vecsComponentSetFromId(CollidableMarkerId) \
     | vecsComponentSetFromId( \

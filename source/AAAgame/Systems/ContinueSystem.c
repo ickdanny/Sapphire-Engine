@@ -6,7 +6,9 @@
 #endif
 
 static VecsComponentSet accept
-    = vecsComponentSetFromId(PlayerDataId);
+    = vecsComponentSetFromId(VecsEntityId)
+    | vecsComponentSetFromId(PlayerDataId);
+
 
 /* retrieves the player entity */
 static VecsEntity getPlayerEntity(Scene *scenePtr){
