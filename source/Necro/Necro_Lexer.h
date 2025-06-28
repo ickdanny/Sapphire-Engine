@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 
-//todo: update tokens for necro
 /* the types of tokens for the Necro language */
 typedef enum NecroTokenType{
     /* single character tokens */
@@ -11,8 +10,6 @@ typedef enum NecroTokenType{
     necro_tokenRightParen,
     necro_tokenLeftBrace,
     necro_tokenRightBrace,
-    necro_tokenLeftBracket,
-    necro_tokenRightBracket,
     necro_tokenComma,
     necro_tokenDot,
     necro_tokenMinus,
@@ -20,14 +17,12 @@ typedef enum NecroTokenType{
     necro_tokenPlus,
     necro_tokenSemicolon,
     necro_tokenSlash,
+    necro_tokenBackSlash,
     necro_tokenStar,
-    necro_tokenAmpersand,
-    necro_tokenVerticalBar,
 
     /* one or two character tokens */
     necro_tokenBang,
     necro_tokenBangEqual,
-    necro_tokenEqual,
     necro_tokenDoubleEqual,
     necro_tokenGreater,
     necro_tokenDoubleGreater,
@@ -35,6 +30,16 @@ typedef enum NecroTokenType{
     necro_tokenLess,
     necro_tokenDoubleLess,
     necro_tokenLessEqual,
+    necro_tokenDoubleLeftBracket,
+    necro_tokenDoubleRightBracket,
+    necro_tokenDoubleAmpersand,
+    necro_tokenDoubleVerticalBar,
+    necro_tokenColonEqual,
+    necro_tokenPlusEqual,
+    necro_tokenMinusEqual,
+    necro_tokenStarEqual,
+    necro_tokenSlashEqual,
+    necro_tokenPercentEqual,
 
     /* literals */
     necro_tokenIdentifier,
@@ -46,17 +51,16 @@ typedef enum NecroTokenType{
     necro_tokenElse,
     necro_tokenFalse,
     necro_tokenFor,
-    necro_tokenFunc,
     necro_tokenIf,
+    necro_tokenInclude,
     necro_tokenLet,
+    necro_tokenPrint, /* prints non-strings too */
     necro_tokenReturn,
     necro_tokenTrue,
+    necro_tokenVar,
     necro_tokenWait,
     necro_tokenWhile,
-    necro_tokenYield,
-
-    /* useful for printing not just strings */
-    necro_tokenPrint,
+    necro_tokenYield,    
 
     /* meta */
     necro_tokenError,
