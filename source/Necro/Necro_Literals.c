@@ -84,10 +84,10 @@ static void freeFunction(NecroValue *valuePtr){
  * compiler
  */
 static void freeNonString(NecroValue *valuePtr){
-    if(unIsObject(*valuePtr)
-        && !unIsString(*valuePtr)
+    if(necroIsObject(*valuePtr)
+        && !necroIsString(*valuePtr)
     ){
-        unValueFree(*valuePtr);
+        necroValueFree(*valuePtr);
         memset(valuePtr, 0, sizeof(*valuePtr));
     }
 }
@@ -102,7 +102,7 @@ static void freeString(
     NecroObjectString *stringPtr = *stringPtrPtr;
     /* strings are objects, so this cast is safe */
     NecroObject *objectPtr = (NecroObject*)stringPtr;
-    unObjectFree(objectPtr);
+    necroObjectFree(objectPtr);
 }
 
 /*

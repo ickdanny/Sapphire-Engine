@@ -101,7 +101,7 @@ typedef struct NecroLexer{
 NecroLexer necroLexerMake(const char *fileName);
 
 /* Gets the next token from the specified lexer */
-NecroLexer necroLexerNext(NecroLexer *lexerPtr);
+NecroToken necroLexerNext(NecroLexer *lexerPtr);
 
 /*
  * Frees the memory associated with the specified
