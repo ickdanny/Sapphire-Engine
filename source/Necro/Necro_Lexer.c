@@ -492,6 +492,9 @@ NecroToken necroLexerNext(NecroLexer *lexerPtr){
             if(necroLexerMatch(lexerPtr, '=')){
                 type = necro_tokenMinusEqual;
             }
+            if(necroLexerMatch(lexerPtr, '>')){
+                type = necro_tokenMinusGreater;
+            }
             return necroLexerMakeToken(lexerPtr, type);
         }
         case '%': {

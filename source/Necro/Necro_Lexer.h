@@ -40,6 +40,7 @@ typedef enum NecroTokenType{
     necro_tokenStarEqual,
     necro_tokenSlashEqual,
     necro_tokenPercentEqual,
+    necro_tokenMinusGreater,
 
     /* literals */
     necro_tokenIdentifier,

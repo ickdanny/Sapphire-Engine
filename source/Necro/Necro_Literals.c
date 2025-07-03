@@ -109,7 +109,7 @@ static void freeString(
  * Frees the memory associated with the specified
  * NecroLiterals
  */
-void unLiteralsFree(NecroLiterals *literalsPtr){
+void necroLiteralsFree(NecroLiterals *literalsPtr){
     /*
      * free objects on the heap (including compile
      * constant strings)
