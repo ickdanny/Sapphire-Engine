@@ -177,7 +177,9 @@ static void necroLexerSkipWhitespace(NecroLexer *lexerPtr){
                  * go to next ~ or file, whichever
                  * comes first; eof is not an error
                  */
-                while(inMultilineComment){
+                while(inMultilineComment
+                    && !necroLexerIsAtEnd(lexerPtr)
+                ){
                     switch(necroLexerPeek(lexerPtr)){
                         /* handle newline in comment */
                         case '\n':
@@ -193,6 +195,11 @@ static void necroLexerSkipWhitespace(NecroLexer *lexerPtr){
                         case '\0':
                             inMultilineComment = false;
                             break;
+                        /* skip all other chars */
+                        default:
+                            necroLexerAdvance(
+                                lexerPtr
+                            );
                     }
                 }
                 break;
