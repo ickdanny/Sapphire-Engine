@@ -52,7 +52,7 @@ typedef struct NecroParseRule{
 #define bool_ necroCompilerBool
 #define vector necroCompilerVector
 #define point necroCompilerPoint
-//todo: update this table
+#define lambda necroCompilerLambda
 static const NecroParseRule parseRules[] = {
     [necro_tokenLeftParen]
         = {grouping, call,   necro_precCall},
@@ -61,10 +61,6 @@ static const NecroParseRule parseRules[] = {
     [necro_tokenLeftBrace]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenRightBrace]
-        = {NULL,     NULL,   necro_precNone},
-    [necro_tokenDoubleLeftBracket]
-        = {point,     NULL,  necro_precNone},
-    [necro_tokenDoubleRightBracket]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenComma]
         = {NULL,     NULL,   necro_precNone},
@@ -80,14 +76,14 @@ static const NecroParseRule parseRules[] = {
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenSlash]
         = {NULL,     binary, necro_precFactor},
+    [necro_tokenBackSlash]
+        = {lambda,   NULL,   necro_precNone},
     [necro_tokenStar]
         = {NULL,     binary, necro_precFactor},
     [necro_tokenBang]
         = {unary,    NULL,   necro_precNone},
     [necro_tokenBangEqual]
         = {NULL,     binary, necro_precEquality},
-    [necro_tokenDoubleEqual]
-        = {NULL,     NULL,   necro_precNone},
     [necro_tokenDoubleEqual]
         = {NULL,     binary, necro_precEquality},
     [necro_tokenGreater]
@@ -102,41 +98,61 @@ static const NecroParseRule parseRules[] = {
         = {vector,   NULL,   necro_precNone},
     [necro_tokenLessEqual]
         = {NULL,     binary, necro_precCompare},
+    [necro_tokenDoubleLeftBracket]
+        = {point,     NULL,  necro_precNone},
+    [necro_tokenDoubleRightBracket]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenDoubleAmpersand]
+        = {NULL,     and_,   necro_precAnd},
+    [necro_tokenDoubleVerticalBar]
+        = {NULL,     or_,    necro_precOr},
+    [necro_tokenColonEqual]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenPlusEqual]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenMinusEqual]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenStarEqual]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenSlashEqual]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenPercentEqual]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenMinusGreater]
+        = {NULL,     NULL,   necro_precNone},
     [necro_tokenIdentifier]
         = {variable, NULL,   necro_precNone},
-    [necro_tokenString]
-        = {string,   NULL,   necro_precNone},
     [necro_tokenInt]
         = {number,   NULL,   necro_precNone},
     [necro_tokenFloat]
         = {number,   NULL,   necro_precNone},
-    [necro_tokenDoubleAmpersand]
-        = {NULL,     and_,   necro_precAnd},
+    [necro_tokenString]
+        = {string,   NULL,   necro_precNone},
     [necro_tokenElse]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenFalse]
         = {bool_,    NULL,   necro_precNone},
     [necro_tokenFor]
         = {NULL,     NULL,   necro_precNone},
-    [necro_tokenFunc]
-        = {NULL,     NULL,   necro_precNone},
     [necro_tokenIf]
         = {NULL,     NULL,   necro_precNone},
-    [necro_tokenDoubleVerticalBar]
-        = {NULL,     or_,    necro_precOr},
+    [necro_tokenInclude]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenLet]
+        = {NULL,     NULL,   necro_precNone},
     [necro_tokenPrint]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenReturn]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenTrue]
         = {bool_,    NULL,   necro_precNone},
-    [necro_tokenLet]
+    [necro_tokenVar]
+        = {NULL,     NULL,   necro_precNone},
+    [necro_tokenWait]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenWhile]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenYield]
-        = {NULL,     NULL,   necro_precNone},
-    [necro_tokenWait]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenError]
         = {NULL,     NULL,   necro_precNone},
@@ -156,6 +172,7 @@ static const NecroParseRule parseRules[] = {
 #undef bool_
 #undef vector
 #undef point
+#undef lambda
 
 /*
  * Returns a pointer to the parse rule for the
@@ -171,7 +188,7 @@ static const NecroParseRule *getRule(
  * Reserves the first stack slot for the VM's internal
  * use; error if called when locals already exist
  */
-static void _unFuncCompilerReserveFirstStackSlot(
+static void _necroFuncCompilerReserveFirstStackSlot(
     _NecroFuncCompiler *funcCompilerPtr
 ){
     assertTrue(
@@ -191,7 +208,7 @@ static void _unFuncCompilerReserveFirstStackSlot(
  * Initializes the func compiler passed by pointer
  * (it is a big struct)
  */
-static void _unFuncCompilerInit(
+static void _necroFuncCompilerInit(
     _NecroFuncCompiler *toInitPtr,
     NecroFuncType funcType,
     NecroCompiler *compilerPtr
@@ -817,12 +834,29 @@ void necroCompilerExpression(
  * a statement does not
  */
 void necroCompilerDeclaration(NecroCompiler *compilerPtr){
-    //todo: all decls are for variables
-    if(necroCompilerMatch(compilerPtr, necro_tokenFunc)){
-        necroCompilerFunctionDeclaration(compilerPtr);
+    if(necroCompilerMatch(
+        compilerPtr,
+        necro_tokenInclude
+    )){
+        necroCompilerIncludeDeclaration(compilerPtr);
     }
-    else if(necroCompilerMatch(compilerPtr, necro_tokenLet)){
-        necroCompilerVariableDeclaration(compilerPtr);
+    else if(necroCompilerMatch(
+        compilerPtr,
+        necro_tokenLet)
+    ){
+        necroCompilerVariableDeclaration(
+            compilerPtr,
+            false /* const variable */
+        );
+    }
+    else if(necroCompilerMatch(
+        compilerPtr,
+        necro_tokenVar)
+    ){
+        necroCompilerVariableDeclaration(
+            compilerPtr,
+            true /* mutable variable */
+        );
     }
     else{
         necroCompilerStatement(compilerPtr);
@@ -832,6 +866,17 @@ void necroCompilerDeclaration(NecroCompiler *compilerPtr){
     if(compilerPtr->inPanicMode){
         necroCompilerSynchronize(compilerPtr);
     }
+}
+
+/*
+ * Parses the next include declaration for the
+ * specified compiler
+ */
+void necroCompilerIncludeDeclaration(
+    NecroCompiler *compilerPtr
+){
+    //todo: need a new lexer for the include file,
+    //also a guard for recursive includes
 }
 
 /*
@@ -1032,130 +1077,15 @@ static void necroCompilerDefineVariable(
 }
 
 /*
- * Helps the specified compiler parse the header
- * of a function (consuming from the '(' of the
- * parameter list to the '{' prior to the body)
- */
-static void necroCompilerFunctionHeader(
-    NecroCompiler *compilerPtr
-){
-    //todo will be after lambda symbol
-    necroCompilerConsume(
-        compilerPtr,
-        necro_tokenLeftParen,
-        "Expect '(' after func name"
-    );
-    /* get parameters */
-    if(!necroCompilerCheckType(
-        compilerPtr,
-        necro_tokenRightParen
-    )){
-        do{
-            ++(compilerPtr->currentFuncCompilerPtr
-                ->funcPtr->arity);
-            if(compilerPtr->currentFuncCompilerPtr
-                ->funcPtr->arity > maxParams
-            ){
-                necroCompilerErrorCurrent(
-                    compilerPtr,
-                    "Parameters exceeding max"
-                );
-            }
-            uint8_t paramNameIndex
-                = necroCompilerParseVariable(
-                    compilerPtr,
-                    "Expect parameter name"
-                );
-            necroCompilerDefineVariable(
-                compilerPtr,
-                paramNameIndex
-            );
-        } while(necroCompilerMatch(
-            compilerPtr,
-            necro_tokenComma
-        ));
-    }
-    necroCompilerConsume(
-        compilerPtr,
-        necro_tokenRightParen,
-        "Expect ')' after parameters"
-    );
-    //todo: will need to consume arrow
-    necroCompilerConsume(
-        compilerPtr,
-        necro_tokenLeftBrace,
-        "Expect '{' before function body"
-    );
-}
-
-/* Helps the specified compiler parse a function */
-static void necroCompilerFunction(
-    NecroCompiler *compilerPtr,
-    NecroFuncType funcType
-){
-    /* create new func compiler for the new function */
-    _NecroFuncCompiler newFuncCompiler = {0};
-    _unFuncCompilerInit(
-        &newFuncCompiler,
-        funcType,
-        compilerPtr
-    );
-    /* no corresponding end scope; unneeded */
-    necroCompilerBeginScope(compilerPtr);
-
-    /* consume syntax of function declaration */
-    necroCompilerFunctionHeader(compilerPtr);
-
-    /* compile function body */
-    necroCompilerBlock(compilerPtr);
-
-    /*
-     * retrieve code for the function and write to the
-     * enclosing code as a literal
-     */
-    NecroObjectFunc *funcPtr = necroCompilerEnd(compilerPtr);
-    necroCompilerWriteBytes(
-        compilerPtr,
-        necro_literal,
-        necroCompilerMakeLiteral(
-            compilerPtr,
-            necroObjectValue(funcPtr)
-        )
-    );
-}
-
-//todo: won't need; functions are literals
-/*
- * Parses the next function declaration for the
- * specified compiler
- */
-void necroCompilerFunctionDeclaration(
-    NecroCompiler *compilerPtr
-){
-    uint8_t globalIndex = necroCompilerParseVariable(
-        compilerPtr,
-        "Expect function name"
-    );
-    /*
-     * marks local functions as initialized but does
-     * nothing for global functions
-     */
-    necroCompilerMarkLocalInitialized(compilerPtr);
-    necroCompilerFunction(
-        compilerPtr,
-        necro_functionFuncType
-    );
-    necroCompilerDefineVariable(compilerPtr, globalIndex);
-}
-
-/*
  * Parses the next variable declaration for the
  * specified compiler; uninitialized variables get the
  * default value of FALSE
  */
 void necroCompilerVariableDeclaration(
-    NecroCompiler *compilerPtr
+    NecroCompiler *compilerPtr,
+    bool mutable
 ){
+    //todo: handle const and mutable variables
     uint8_t globalIndex = necroCompilerParseVariable(
         compilerPtr,
         "Expect variable name"
@@ -1502,13 +1432,25 @@ void necroCompilerForStatement(
     )){
         /* no initializer */
     }
-    //todo: can be let or var
     else if(necroCompilerMatch(
         compilerPtr,
-        necro_tokenLet)
-    ){
-        /* variable declaration initializer */
-        necroCompilerVariableDeclaration(compilerPtr);
+        necro_tokenLet
+    )){
+        /* const var declaration initializer */
+        necroCompilerVariableDeclaration(
+            compilerPtr,
+            false
+        );
+    }
+    else if(necroCompilerMatch(
+        compilerPtr,
+        necro_tokenVar
+    )){
+        /* mutable var declaration initializer */
+        necroCompilerVariableDeclaration(
+            compilerPtr,
+            true
+        );
     }
     else{
         /* expression statement initializer */
@@ -1781,8 +1723,8 @@ void necroCompilerGrouping(
 }
 
 /*
- * Parses the argument list of a function call for the
- * specified compiler and returns the number of
+ * Parses the (actual) argument list of a function call
+ * for the specified compiler and returns the number of
  * arguments passed
  */
 static uint8_t necroCompilerArgumentList(
@@ -1867,6 +1809,7 @@ static int necroCompilerResolveLocal(
                     "initializer"
                 );
             }
+            //todo: why is the first slot the function?
             /*
              * add 1 since the first slot is always 
              * the function itself
@@ -1898,6 +1841,8 @@ static void necroCompilerNamedVariable(
         compilerPtr,
         &varName
     );
+
+    //todo: handle const variables
 
     bool isLocal = (arg != -1);
 
@@ -2035,6 +1980,108 @@ void necroCompilerVariable(
         compilerPtr,
         compilerPtr->prevToken,
         canAssign
+    );
+}
+
+/*
+ * Helps the specified compiler parse the header
+ * of a function (consuming from the '(' of the
+ * parameter list to the '{' prior to the body)
+ */
+static void necroCompilerFunctionHeader(
+    NecroCompiler *compilerPtr
+){
+    /* will be after lambda symbol */
+    necroCompilerConsume(
+        compilerPtr,
+        necro_tokenLeftParen,
+        "Expect '(' after func name"
+    );
+    /* get parameters */
+    if(!necroCompilerCheckType(
+        compilerPtr,
+        necro_tokenRightParen
+    )){
+        do{
+            ++(compilerPtr->currentFuncCompilerPtr
+                ->funcPtr->arity);
+            if(compilerPtr->currentFuncCompilerPtr
+                ->funcPtr->arity > maxParams
+            ){
+                necroCompilerErrorCurrent(
+                    compilerPtr,
+                    "Parameters exceeding max"
+                );
+            }
+            uint8_t paramNameIndex
+                = necroCompilerParseVariable(
+                    compilerPtr,
+                    "Expect parameter name"
+                );
+            //todo: are params globals?
+            necroCompilerDefineVariable(
+                compilerPtr,
+                paramNameIndex
+            );
+        } while(necroCompilerMatch(
+            compilerPtr,
+            necro_tokenComma
+        ));
+    }
+    necroCompilerConsume(
+        compilerPtr,
+        necro_tokenRightParen,
+        "Expect ')' after parameters"
+    );
+    necroCompilerConsume(
+        compilerPtr,
+        necro_tokenMinusGreater,
+        "Expect '->' before function body"
+    );
+    necroCompilerConsume(
+        compilerPtr,
+        necro_tokenLeftBrace,
+        "Expect '{' before function body"
+    );
+}
+
+/*
+ * Parses a lambda for the specified compiler
+ */
+void necroCompilerLambda(
+    NecroCompiler *compilerPtr,
+    bool canAssign
+){
+    /* create new func compiler for the new function */
+    _NecroFuncCompiler newFuncCompiler = {0};
+    _necroFuncCompilerInit(
+        &newFuncCompiler,
+        necro_functionFuncType,
+        compilerPtr
+    );
+    /* no corresponding end scope; unneeded */
+    necroCompilerBeginScope(compilerPtr);
+
+    /* consume syntax of function declaration */
+    necroCompilerFunctionHeader(compilerPtr);
+
+    /* compile function body */
+    necroCompilerBlock(compilerPtr);
+
+    /*
+     * retrieve code for the function and write to the
+     * enclosing code as a literal
+     */
+    NecroObjectFunc *funcPtr = necroCompilerEnd(
+        compilerPtr
+    );
+    necroCompilerWriteBytes(
+        compilerPtr,
+        necro_literal,
+        necroCompilerMakeLiteral(
+            compilerPtr,
+            necroObjectValue(funcPtr)
+        )
     );
 }
 
@@ -2225,7 +2272,8 @@ void necroCompilerPoint(
 }
 
 /*
- * Parses a dot for the specified compiler
+ * Parses a dot for the specified compiler; only
+ * handles get operations
  */
 void necroCompilerDot(
     NecroCompiler *compilerPtr,
@@ -2271,6 +2319,8 @@ void necroCompilerDot(
             break;
     }
     necroCompilerWriteByte(compilerPtr, instruction);
+
+    /* for set operations, see NamedVariable */
 }
 
 /* Resets the state of the specified compiler */
@@ -2307,9 +2357,12 @@ NecroObjectFunc *necroCompilerCompileScript(
     necroCompilerReset(compilerPtr);
     compilerPtr->lexer = necroLexerMake(fileName);
 
-    /* create the outermost func compiler */
+    /*
+     * create the outermost func compiler with the
+     * script type
+     */
     _NecroFuncCompiler scriptFuncCompiler = {0};
-    _unFuncCompilerInit(
+    _necroFuncCompilerInit(
         &scriptFuncCompiler,
         necro_scriptFuncType,
         compilerPtr
@@ -2340,7 +2393,7 @@ NecroObjectFunc *necroCompilerCompileScript(
         necroObjectFree((NecroObject*)toRet);
         toRet = NULL;
         pgError(
-            "halting due to Unknown compiler error(s)"
+            "halting due to Necro compiler error(s)"
         );
     }
 

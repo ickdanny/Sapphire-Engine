@@ -17,6 +17,7 @@
 typedef struct NecroLocal{
     NecroToken name;
     int depth;
+    //todo: needs to store whether const or not
 } NecroLocal;
 
 /*
@@ -25,8 +26,8 @@ typedef struct NecroLocal{
  */
 typedef enum NecroFuncType{
     necro_invalidFuncType,
-    necro_scriptFuncType,
-    necro_functionFuncType
+    necro_scriptFuncType, /* for top level */
+    necro_functionFuncType /* for lambdas */
 } NecroFuncType;
 
 /*
@@ -60,7 +61,9 @@ typedef struct NecroCompiler{
     bool inPanicMode;
 } NecroCompiler;
 
-/* Constructs and returns a new NecroCompiler by value */
+/*
+ * Constructs and returns a new NecroCompiler by value
+ */
 NecroCompiler necroCompilerMake();
 
 /* Parses the next number for the specified compiler */
@@ -100,13 +103,15 @@ void necroCompilerExpression(
  * compiler; a declaration includes declares whereas
  * a statement does not
  */
-void necroCompilerDeclaration(NecroCompiler *compilerPtr);
+void necroCompilerDeclaration(
+    NecroCompiler *compilerPtr
+);
 
 /*
- * Parses the next function declaration for the
+ * Parses the next include declaration for the
  * specified compiler
  */
-void necroCompilerFunctionDeclaration(
+void necroCompilerIncludeDeclaration(
     NecroCompiler *compilerPtr
 );
 
@@ -116,7 +121,8 @@ void necroCompilerFunctionDeclaration(
  * default value of FALSE
  */
 void necroCompilerVariableDeclaration(
-    NecroCompiler *compilerPtr
+    NecroCompiler *compilerPtr,
+    bool mutable
 );
 
 /*
@@ -208,6 +214,14 @@ void necroCompilerVariable(
 );
 
 /*
+ * Parses a lambda for the specified compiler
+ */
+void necroCompilerLambda(
+    NecroCompiler *compilerPtr,
+    bool canAssign
+);
+
+/*
  * Parses a string for the specified compiler
  */
 void necroCompilerString(
@@ -252,7 +266,8 @@ void necroCompilerPoint(
 );
 
 /*
- * Parses a dot for the specified compiler
+ * Parses a dot for the specified compiler; only
+ * handles get operations
  */
 void necroCompilerDot(
     NecroCompiler *compilerPtr,
