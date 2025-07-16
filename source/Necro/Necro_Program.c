@@ -19,12 +19,12 @@ NecroProgram necroProgramMake(
         codeInitCapacity
     );
     if(enclosingPtr){
-        toRet.literals = unLiteralsMake(
+        toRet.literals = necroLiteralsMake(
             enclosingPtr->literals.stringMapPtr
         );
     }
     else{
-        toRet.literals = unLiteralsMake(NULL);
+        toRet.literals = necroLiteralsMake(NULL);
     }
     return toRet;
 }

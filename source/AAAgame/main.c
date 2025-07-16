@@ -158,7 +158,7 @@
 //     return 0;
 // }
 
-//todo: testing Necro lexer
+//todo: testing Necro
 
 #include "Necro.h"
 #include <stdio.h>
@@ -180,11 +180,25 @@ void printToken(NecroToken token){
 }
 
 int main(){
-    NecroLexer lexer = necroLexerMake("test.nec");
-    NecroToken token = necroLexerNext(&lexer);
-    while(token.type != necro_tokenEOF){
-        printToken(token);
-        token = necroLexerNext(&lexer);
-    }
+    NecroCompiler compiler = necroCompilerMake();
+    NecroObjectFunc *programPtr
+        = necroCompilerCompileScript(
+            &compiler,
+            "test.nec"
+        );
+    necroCompilerFree(&compiler);
+
+    NecroNativeFuncSet nativeFuncSet
+        = necroNativeFuncSetMake();
+    NecroVirtualMachine vm = necroVirtualMachineMake(
+        &nativeFuncSet
+    );
+    NecroInterpretResult result
+        = necroVirtualMachineInterpret(
+            &vm,
+            programPtr
+        );
+    printf("result: %d\n", result);
+    necroVirtualMachineFree(&vm);
     return 0;
 }

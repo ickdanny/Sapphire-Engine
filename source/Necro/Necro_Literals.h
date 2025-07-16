@@ -25,7 +25,7 @@ typedef struct NecroLiterals{
  * passed, the new literals will allocate its own
  * string map and own it
  */
-NecroLiterals unLiteralsMake(HashMap *stringMapPtr);
+NecroLiterals necroLiteralsMake(HashMap *stringMapPtr);
 
 /*
  * Returns the NecroValue at the specified index

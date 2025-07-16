@@ -368,13 +368,13 @@ static void necroVirtualMachineDefineNativeFunc(
 #define memberGetOperation( \
     VMPTR, \
     TYPENAME, \
-    NecroISFNecroC, \
-    UNASFNecroC, \
+    NECROISFUNC, \
+    NECROASFUNC, \
     MEMBERNAME, \
     ERRMSG \
 ) \
     do{ \
-        if(!NecroISFNecroC( \
+        if(!NECROISFUNC( \
             necroVirtualMachineStackPeek((VMPTR), 0) \
         )){ \
             necroVirtualMachineRuntimeError( \
@@ -383,7 +383,7 @@ static void necroVirtualMachineDefineNativeFunc(
             ); \
             return necro_runtimeError; \
         } \
-        TYPENAME composite = UNASFNecroC( \
+        TYPENAME composite = NECROASFUNC( \
             necroVirtualMachineStackPop((VMPTR)) \
         ); \
         necroVirtualMachineStackPush( \
