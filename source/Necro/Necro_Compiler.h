@@ -17,8 +17,16 @@
 typedef struct NecroLocal{
     NecroToken name;
     int depth;
-    //todo: needs to store whether const or not
+    bool mutable;
 } NecroLocal;
+
+/*
+ * Stores metadata about a single global variable for
+ * a compiler
+ */
+typedef struct NecroGlobal{
+    bool mutable;
+} NecroGlobal;
 
 /*
  * Indicates what type of function is currently being
@@ -52,6 +60,11 @@ typedef struct NecroCompiler{
     NecroToken currentToken;
     NecroToken prevToken;
     NecroLexer lexer;
+    /*
+     * hashmap of NecroObjectString* to bool for
+     * keeping track of which globals are const
+     */
+    HashMap globalsTable;
     /*
      * does not own; func compilers live on the stack
      * and are created within functions

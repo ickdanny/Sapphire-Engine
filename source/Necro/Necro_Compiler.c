@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #define maxParams 255
+#define globalsTableInitCapacity 30
 
 /* define for verbose compiler output for debugging */
 /* #define COMPILER_VERBOSE */
@@ -255,6 +256,13 @@ NecroCompiler necroCompilerMake(){
     NecroCompiler toRet = {0};
     toRet.hadError = false;
     toRet.inPanicMode = false;
+    toRet.globalsTable = hashMapMake(
+        NecroObjectString*,
+        NecroGlobal,
+        globalsTableInitCapacity,
+        _necroObjectStringPtrHash,
+        _necroObjectStringPtrEquals
+    );
     return toRet;
 }
 
@@ -907,7 +915,8 @@ static uint8_t necroCompilerIdentifierLiteral(
  */
 static void necroCompilerAddLocal(
     NecroCompiler *compilerPtr,
-    NecroToken name
+    NecroToken name,
+    bool mutable
 ){
     _NecroFuncCompiler *funcCompilerPtr
         = compilerPtr->currentFuncCompilerPtr;
@@ -925,6 +934,8 @@ static void necroCompilerAddLocal(
 
     /* use -1 as sentinel value for uninitialized */
     localPtr->depth = -1;
+
+    localPtr->mutable = mutable;
 }
 
 /*
@@ -947,10 +958,12 @@ static bool identifiersEqual(
 
 /*
  * Registers information about a local variable for the
- * specified compiler
+ * specified compiler; does nothing if the variable is
+ * a global (i.e. declared at scope depth 0)
  */
 static void necroCompilerDeclareVariable(
-    NecroCompiler *compilerPtr
+    NecroCompiler *compilerPtr,
+    bool mutable
 ){
     _NecroFuncCompiler *funcCompilerPtr
         = compilerPtr->currentFuncCompilerPtr;
@@ -993,7 +1006,40 @@ static void necroCompilerDeclareVariable(
         }
     }
 
-    necroCompilerAddLocal(compilerPtr, *namePtr);
+    necroCompilerAddLocal(
+        compilerPtr,
+        *namePtr,
+        mutable
+    );
+}
+
+/*
+ * Registers the global with the given name into the
+ * global table; error if global is already defined
+ */
+static void necroCompilerRegisterGlobal(
+    NecroCompiler *compilerPtr,
+    NecroObjectString *namePtr,
+    bool mutable
+){
+    /* error out if already present */
+    if(hashMapHasKeyPtr(
+        NecroObjectString*,
+        NecroGlobal,
+        &(compilerPtr->globalsTable),
+        &(namePtr)
+    )){
+        necroCompilerErrorPrev(
+            compilerPtr,
+            "redefinition of global variable"
+        );
+    }
+
+    hashMapPutPtr(NecroObjectString*, NecroGlobal,
+        &(compilerPtr->globalsTable),
+        &namePtr,
+        &(NecroGlobal){.mutable = mutable}
+    );
 }
 
 /*
@@ -1003,6 +1049,7 @@ static void necroCompilerDeclareVariable(
  */
 static uint8_t necroCompilerParseVariable(
     NecroCompiler *compilerPtr,
+    bool mutable,
     const char *errorMsg
 ){
     necroCompilerConsume(
@@ -1011,7 +1058,8 @@ static uint8_t necroCompilerParseVariable(
         errorMsg
     );
 
-    necroCompilerDeclareVariable(compilerPtr);
+    /* if local, register info */
+    necroCompilerDeclareVariable(compilerPtr, mutable);
 
     /*
      * if parser within a block, do not register a
@@ -1024,9 +1072,18 @@ static uint8_t necroCompilerParseVariable(
         return 0;
     }
 
-    return necroCompilerIdentifierLiteral(
+    uint8_t index = necroCompilerIdentifierLiteral(
         compilerPtr,
         &(compilerPtr->prevToken)
+    );
+    necroCompilerRegisterGlobal(
+        compilerPtr,
+        necroObjectAsString(necroLiteralsGet(
+            &(compilerPtr->currentFuncCompilerPtr
+                ->funcPtr->program.literals),
+            index
+        )),
+        mutable
     );
 }
 
@@ -1051,7 +1108,8 @@ static void necroCompilerMarkLocalInitialized(
 
 /*
  * Emits the bytecode for a variable declaration
- * for the specified compiler
+ * for the specified compiler; does nothing for local
+ * variables
  */
 static void necroCompilerDefineVariable(
     NecroCompiler *compilerPtr,
@@ -1085,9 +1143,9 @@ void necroCompilerVariableDeclaration(
     NecroCompiler *compilerPtr,
     bool mutable
 ){
-    //todo: handle const and mutable variables
     uint8_t globalIndex = necroCompilerParseVariable(
         compilerPtr,
+        mutable,
         "Expect variable name"
     );
 
@@ -1102,7 +1160,10 @@ void necroCompilerVariableDeclaration(
          * if uninitialized, variables get set to
          * the value FALSE
          */
-        necroCompilerWriteByte(compilerPtr, necro_false);
+        necroCompilerWriteByte(
+            compilerPtr,
+            necro_false
+        );
     }
 
     /* eat the semicolon */
@@ -1112,6 +1173,7 @@ void necroCompilerVariableDeclaration(
         "expect ';' after var declare; "
     );
 
+    /* does nothing for locals */
     necroCompilerDefineVariable(
         compilerPtr,
         globalIndex
@@ -1779,18 +1841,22 @@ void necroCompilerCall(
 /*
  * Returns the index of the local with the same name
  * as the given token, or -1 if no such local is found;
- * The index returned is the same as the index of the
+ * the index returned is the same as the index of the
  * local on the stack during runtime since the layout
  * of the local info is the same as the layout of the
- * stack
+ * stack; outputs the index of the local if found,
+ * -1 otherwise
  */
 static int necroCompilerResolveLocal(
     NecroCompiler *compilerPtr,
-    NecroToken *name
+    NecroToken *name,
+    int *localIndexOutPtr
 ){
+    //todo: for nested, check enclosing and num jumps
     _NecroFuncCompiler *funcCompilerPtr
         = compilerPtr->currentFuncCompilerPtr;
-    for(int i = funcCompilerPtr->localCount - 1;
+    int i;
+    for(i = funcCompilerPtr->localCount - 1;
         i >= 0;
         -- i
     ){
@@ -1809,6 +1875,7 @@ static int necroCompilerResolveLocal(
                     "initializer"
                 );
             }
+            *localIndexOutPtr = i;
             //todo: why is the first slot the function?
             /*
              * add 1 since the first slot is always 
@@ -1817,7 +1884,36 @@ static int necroCompilerResolveLocal(
             return i + 1;
         }
     }
+    *localIndexOutPtr = -1;
     return -1;
+}
+
+/*
+ * Returns true if the global variable specified by
+ * necro string is mutable, false otherwise; error if
+ * no such global exists
+ */
+static bool necroCompilerIsGlobalMutable(
+    NecroCompiler *compilerPtr,
+    NecroObjectString *namePtr
+){
+    /* error out if not present */
+    if(!hashMapHasKeyPtr(
+        NecroObjectString*,
+        NecroGlobal,
+        &(compilerPtr->globalsTable),
+        &(namePtr)
+    )){
+        necroCompilerErrorPrev(
+            compilerPtr,
+            "unrecognized global variable"
+        );
+    }
+
+    return hashMapGet(NecroObjectString*, NecroGlobal,
+        &(compilerPtr->globalsTable),
+        namePtr
+    ).mutable;
 }
 
 /*
@@ -1832,6 +1928,8 @@ static void necroCompilerNamedVariable(
     uint8_t getOp = 0;
     uint8_t setOp = 0;
 
+    int localIndex;
+
     /*
      * eventually becomes the second byte following
      * the instruction code; the stack slot for locals
@@ -1839,17 +1937,19 @@ static void necroCompilerNamedVariable(
      */
     int arg = necroCompilerResolveLocal(
         compilerPtr,
-        &varName
+        &varName,
+        &localIndex
     );
 
-    //todo: handle const variables
-
     bool isLocal = (arg != -1);
+    bool mutable = false;
 
     /* if variable was resolved to a local */
     if(isLocal){
         getOp = necro_getLocal;
         setOp = necro_setLocal;
+        mutable = compilerPtr->currentFuncCompilerPtr
+            ->locals[localIndex].mutable;
     }
     else{
         arg = necroCompilerIdentifierLiteral(
@@ -1858,6 +1958,14 @@ static void necroCompilerNamedVariable(
         );
         getOp = necro_getGlobal;
         setOp = necro_setGlobal;
+        mutable = necroCompilerIsGlobalMutable(
+            compilerPtr,
+            necroObjectAsString(necroLiteralsGet(
+                &(compilerPtr->currentFuncCompilerPtr
+                    ->funcPtr->program.literals),
+                arg
+            ))
+        );
     }
 
     /*
@@ -1927,6 +2035,12 @@ static void necroCompilerNamedVariable(
             compilerPtr,
             necro_tokenColonEqual
         )){
+            if(!mutable){
+                necroCompilerErrorPrev(
+                    compilerPtr,
+                    "variable is immutable"
+                );
+            }
             necroCompilerExpression(compilerPtr);
             necroCompilerWriteBytes(
                 compilerPtr,
@@ -1952,6 +2066,12 @@ static void necroCompilerNamedVariable(
         compilerPtr,
         necro_tokenColonEqual
     )){
+        if(!mutable){
+            necroCompilerErrorPrev(
+                compilerPtr,
+                "variable is immutable"
+            );
+        }
         necroCompilerExpression(compilerPtr);
         necroCompilerWriteBytes(
             compilerPtr,
@@ -2016,6 +2136,7 @@ static void necroCompilerFunctionHeader(
             uint8_t paramNameIndex
                 = necroCompilerParseVariable(
                     compilerPtr,
+                    true,   /* params are mutable */
                     "Expect parameter name"
                 );
             //todo: are params globals?
@@ -2325,9 +2446,22 @@ void necroCompilerDot(
 
 /* Resets the state of the specified compiler */
 void necroCompilerReset(NecroCompiler *compilerPtr){
+    /* free the hashmap only to reallocate it later */
+    hashMapFree(
+        NecroObjectString*,
+        NecroGlobal,
+        &(compilerPtr->globalsTable)
+    );
     memset(compilerPtr, 0, sizeof(*compilerPtr));
     compilerPtr->hadError = false;
     compilerPtr->inPanicMode = false;
+    compilerPtr->globalsTable = hashMapMake(
+        NecroObjectString*,
+        NecroGlobal,
+        globalsTableInitCapacity,
+        _necroObjectStringPtrHash,
+        _necroObjectStringPtrEquals
+    );
     /*
      * no need to take care of the func compiler stack
      * since it lives on the C call stack as local
@@ -2341,6 +2475,11 @@ void necroCompilerReset(NecroCompiler *compilerPtr){
  */
 void necroCompilerFree(NecroCompiler *compilerPtr){
     necroLexerFree(&(compilerPtr->lexer));
+    hashMapFree(
+        NecroObjectString*,
+        NecroGlobal,
+        &(compilerPtr->globalsTable)
+    );
     /* do not free generated program */
 }
 
