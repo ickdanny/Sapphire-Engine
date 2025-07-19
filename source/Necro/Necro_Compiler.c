@@ -3,7 +3,9 @@
 #include <stdio.h>
 
 #define maxParams 255
+#define lexerStackInitCapacity 8
 #define globalsTableInitCapacity 30
+#define includedFileNamesInitCapacity 10
 
 /* define for verbose compiler output for debugging */
 /* #define COMPILER_VERBOSE */
@@ -256,12 +258,23 @@ NecroCompiler necroCompilerMake(){
     NecroCompiler toRet = {0};
     toRet.hadError = false;
     toRet.inPanicMode = false;
+    toRet.lexerStack = arrayListMake(
+        NecroLexer,
+        lexerStackInitCapacity
+    );
     toRet.globalsTable = hashMapMake(
         NecroObjectString*,
         NecroGlobal,
         globalsTableInitCapacity,
         _necroObjectStringPtrHash,
         _necroObjectStringPtrEquals
+    );
+    toRet.includedFileNames = hashMapMake(
+        String,
+        int,
+        includedFileNamesInitCapacity,
+        constructureStringHash,
+        constructureStringEquals
     );
     return toRet;
 }
@@ -332,6 +345,33 @@ static void necroCompilerError(
         MSG \
     )
 
+/* Gets the next token for the specified compiler */
+static NecroToken necroCompilerNextToken(
+    NecroCompiler *compilerPtr
+){
+    NecroToken toRet = necroLexerNext(
+        &(compilerPtr->lexer)
+    );
+    /*
+     * if reached eof of top lexer and stack has more
+     */
+    while(toRet.type == necro_tokenEOF
+        && !arrayListIsEmpty(
+            &(compilerPtr->lexerStack)
+    )){
+        necroLexerFree(&(compilerPtr->lexer));
+        compilerPtr->lexer = arrayListBack(NecroLexer,
+            &(compilerPtr->lexerStack)
+        );
+        arrayListPopBack(NecroLexer,
+            &(compilerPtr->lexerStack)
+        );
+        toRet = necroLexerNext(&(compilerPtr->lexer));
+    }
+
+    return toRet;
+}
+
 /* Advances the specified compiler to the next token */
 static void necroCompilerAdvance(
     NecroCompiler *compilerPtr
@@ -340,9 +380,8 @@ static void necroCompilerAdvance(
     /* loop to report error tokens */
     while(true){
         /* get next token from lexer */
-        compilerPtr->currentToken = necroLexerNext(
-            &(compilerPtr->lexer)
-        );
+        compilerPtr->currentToken
+            = necroCompilerNextToken(compilerPtr);
         /* bail out if good token*/
         if(compilerPtr->currentToken.type
             != necro_tokenError
@@ -883,8 +922,61 @@ void necroCompilerDeclaration(NecroCompiler *compilerPtr){
 void necroCompilerIncludeDeclaration(
     NecroCompiler *compilerPtr
 ){
-    //todo: need a new lexer for the include file,
-    //also a guard for recursive includes
+    NecroToken fileNameToken
+        = compilerPtr->currentToken;
+    
+    /* eat the filename */
+    necroCompilerConsume(
+        compilerPtr,
+        necro_tokenString,
+        "expect filename to include as a string; "
+    );
+
+    /*
+     * create a persistent string version of the
+     * filename, cutting out the quotes
+     */
+    String fileNameString = stringMakeCharCLength(
+        fileNameToken.startPtr + 1,
+        fileNameToken.length - 2
+    );
+
+    /* bail if file has already been included before */
+    if(hashMapHasKeyPtr(String, int,
+        &(compilerPtr->includedFileNames),
+        &fileNameString
+    )){
+        /* free since hashmap not taking ownership */
+        stringFree(&fileNameString);
+        goto end;
+    }
+
+    /* don't free since hashmap taking ownership */
+    hashMapPutPtr(String, int,
+        &(compilerPtr->includedFileNames),
+        &fileNameString,
+        &(int){0} /* dummy */
+    );
+
+    /* add a new lexer for the included file */
+    arrayListPushBackPtr(NecroLexer,
+        &(compilerPtr->lexerStack),
+        &(compilerPtr->lexer)
+    );
+    compilerPtr->lexer = necroLexerMake(
+        fileNameString._ptr
+    );
+
+end:
+    /*
+     * eat the semicolon AFTER we maybe replace the
+     * lexer
+     */
+    necroCompilerConsume(
+        compilerPtr,
+        necro_tokenSemicolon,
+        "expect ';' after include declaration; "
+    );
 }
 
 /*
@@ -1908,6 +2000,7 @@ static bool necroCompilerIsGlobalMutable(
             compilerPtr,
             "unrecognized global variable"
         );
+        return false;
     }
 
     return hashMapGet(NecroObjectString*, NecroGlobal,
@@ -2444,23 +2537,66 @@ void necroCompilerDot(
     /* for set operations, see NamedVariable */
 }
 
+/* Frees the lexer stack for the specified compiler */
+static void necroCompilerFreeLexerStack(
+    NecroCompiler *compilerPtr
+){
+    arrayListApply(NecroLexer,
+        &(compilerPtr->lexerStack),
+        necroLexerFree
+    );
+    arrayListFree(NecroLexer,
+        &(compilerPtr->lexerStack)
+    );
+}
+
+/*
+ * Frees the included file names map for the specified
+ * compiler
+ */
+static void necroCompilerFreeIncludedFileNames(
+    NecroCompiler *compilerPtr
+){
+    hashMapKeyApply(String, int,
+        &(compilerPtr->includedFileNames),
+        stringFree
+    );
+    hashMapFree(String, int,
+        &(compilerPtr->includedFileNames)
+    );
+}
+
 /* Resets the state of the specified compiler */
 void necroCompilerReset(NecroCompiler *compilerPtr){
-    /* free the hashmap only to reallocate it later */
+    /* free data structures only to reallocate later */
+    necroCompilerFreeLexerStack(compilerPtr);
     hashMapFree(
         NecroObjectString*,
         NecroGlobal,
         &(compilerPtr->globalsTable)
     );
+    necroCompilerFreeIncludedFileNames(compilerPtr);
+
     memset(compilerPtr, 0, sizeof(*compilerPtr));
     compilerPtr->hadError = false;
     compilerPtr->inPanicMode = false;
+    compilerPtr->lexerStack = arrayListMake(
+        NecroLexer,
+        lexerStackInitCapacity
+    );
     compilerPtr->globalsTable = hashMapMake(
         NecroObjectString*,
         NecroGlobal,
         globalsTableInitCapacity,
         _necroObjectStringPtrHash,
         _necroObjectStringPtrEquals
+    );
+    compilerPtr->includedFileNames = hashMapMake(
+        String,
+        int,
+        includedFileNamesInitCapacity,
+        constructureStringHash,
+        constructureStringEquals
     );
     /*
      * no need to take care of the func compiler stack
@@ -2475,11 +2611,13 @@ void necroCompilerReset(NecroCompiler *compilerPtr){
  */
 void necroCompilerFree(NecroCompiler *compilerPtr){
     necroLexerFree(&(compilerPtr->lexer));
+    necroCompilerFreeLexerStack(compilerPtr);
     hashMapFree(
         NecroObjectString*,
         NecroGlobal,
         &(compilerPtr->globalsTable)
     );
+    necroCompilerFreeIncludedFileNames(compilerPtr);
     /* do not free generated program */
 }
 
@@ -2494,6 +2632,7 @@ NecroObjectFunc *necroCompilerCompileScript(
 ){
     /* reset the compiler; nulls the funcPtr also */
     necroCompilerReset(compilerPtr);
+    /* freed when the compiler is freed below */
     compilerPtr->lexer = necroLexerMake(fileName);
 
     /*

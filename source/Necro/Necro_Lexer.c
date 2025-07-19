@@ -455,7 +455,10 @@ NecroToken necroLexerNext(NecroLexer *lexerPtr){
 
     /* if at end, return eof token */
     if(necroLexerIsAtEnd(lexerPtr)){
-        return necroLexerMakeToken(lexerPtr, necro_tokenEOF);
+        return necroLexerMakeToken(
+            lexerPtr,
+            necro_tokenEOF
+        );
     }
 
     char c = necroLexerAdvance(lexerPtr);

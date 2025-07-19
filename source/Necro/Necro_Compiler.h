@@ -61,6 +61,11 @@ typedef struct NecroCompiler{
     NecroToken prevToken;
     NecroLexer lexer;
     /*
+     * Holds a stack of lexers; used to implement
+     * include declarations
+     */
+    ArrayList lexerStack;
+    /*
      * hashmap of NecroObjectString* to bool for
      * keeping track of which globals are const
      */
@@ -70,6 +75,11 @@ typedef struct NecroCompiler{
      * and are created within functions
      */
     _NecroFuncCompiler *currentFuncCompilerPtr;
+    /*
+     * hashmap of String to int for preventing
+     * recursive or cyclical includes
+     */
+    HashMap includedFileNames;
     bool hadError;
     bool inPanicMode;
 } NecroCompiler;
