@@ -231,11 +231,16 @@ static void _necroFuncCompilerInit(
     toInitPtr->scopeDepth = 0;
     if(toInitPtr->enclosingPtr){
         toInitPtr->funcPtr = necroObjectFuncMake(
-            toInitPtr->enclosingPtr->funcPtr
+            toInitPtr->enclosingPtr->funcPtr,
+            toInitPtr->enclosingPtr
+                ->funcPtr->depth + 1
         );
     }
     else{
-        toInitPtr->funcPtr = necroObjectFuncMake(NULL);
+        toInitPtr->funcPtr = necroObjectFuncMake(
+            NULL,
+            0
+        );
     }
     /* single string map for all functions in a file */
     if(funcType != necro_scriptFuncType){
@@ -1177,6 +1182,7 @@ static uint8_t necroCompilerParseVariable(
         )),
         mutable
     );
+    return index;
 }
 
 /*
@@ -1931,53 +1937,72 @@ void necroCompilerCall(
 }
 
 /*
+ * Stores the index of a local variable as well as the
+ * number of access jumps required for nested procedure
+ * access
+ */
+typedef struct NecroLocalLocation{
+    int index;
+    int accessJumps;
+} NecroLocalLocation;
+
+/*
  * Returns the index of the local with the same name
  * as the given token, or -1 if no such local is found;
  * the index returned is the same as the index of the
  * local on the stack during runtime since the layout
  * of the local info is the same as the layout of the
- * stack; outputs the index of the local if found,
- * -1 otherwise
+ * stack
  */
-static int necroCompilerResolveLocal(
+static NecroLocalLocation necroCompilerResolveLocal(
     NecroCompiler *compilerPtr,
     NecroToken *name,
     int *localIndexOutPtr
 ){
-    //todo: for nested, check enclosing and num jumps
     _NecroFuncCompiler *funcCompilerPtr
         = compilerPtr->currentFuncCompilerPtr;
-    int i;
-    for(i = funcCompilerPtr->localCount - 1;
-        i >= 0;
-        -- i
-    ){
-        NecroLocal *localPtr
-            = &(funcCompilerPtr->locals[i]);
-        if(identifiersEqual(name, &(localPtr->name))){
-            /*
-             * handle case of uninitialized local
-             * trying to read itself by checking for
-             * the sentinel value -1
-             */
-            if(localPtr->depth == -1){
-                necroCompilerErrorPrev(
-                    compilerPtr,
-                    "Cannot read local var in its own "
-                    "initializer"
-                );
+    int accessJumps = 0;
+    while(funcCompilerPtr){
+        for(int i = funcCompilerPtr->localCount - 1;
+            i >= 0;
+            -- i
+        ){
+            NecroLocal *localPtr
+                = &(funcCompilerPtr->locals[i]);
+            if(identifiersEqual(
+                name,
+                &(localPtr->name)
+            )){
+                /*
+                 * handle case of uninitialized local
+                 * trying to read itself by checking
+                 * for the sentinel value -1
+                 */
+                if(localPtr->depth == -1){
+                    necroCompilerErrorPrev(
+                        compilerPtr,
+                        "Cannot read local var in its "
+                        "own initializer"
+                    );
+                }
+                *localIndexOutPtr = i;
+                /*
+                 * add 1 since the first slot is always 
+                 * the function itself (overlapping
+                 * value frames)
+                 */
+                return (NecroLocalLocation){
+                    i + 1,
+                    accessJumps
+                };
             }
-            *localIndexOutPtr = i;
-            //todo: why is the first slot the function?
-            /*
-             * add 1 since the first slot is always 
-             * the function itself
-             */
-            return i + 1;
         }
+        funcCompilerPtr
+            = funcCompilerPtr->enclosingPtr;
+        ++accessJumps;
     }
     *localIndexOutPtr = -1;
-    return -1;
+    return (NecroLocalLocation){-1, -1};
 }
 
 /*
@@ -2021,18 +2046,24 @@ static void necroCompilerNamedVariable(
     uint8_t getOp = 0;
     uint8_t setOp = 0;
 
+    /* one less than the arg */
     int localIndex;
+
+    NecroLocalLocation localLocation
+        = necroCompilerResolveLocal(
+            compilerPtr,
+            &varName,
+            &localIndex
+        );
 
     /*
      * eventually becomes the second byte following
      * the instruction code; the stack slot for locals
      * and the index of the name literal for globals
      */
-    int arg = necroCompilerResolveLocal(
-        compilerPtr,
-        &varName,
-        &localIndex
-    );
+    int arg = localLocation.index;
+
+    printf("access jumps: %d\n", localLocation.accessJumps);
 
     bool isLocal = (arg != -1);
     bool mutable = false;
@@ -2140,6 +2171,12 @@ static void necroCompilerNamedVariable(
                 setOp,
                 (uint8_t)arg
             );
+            if(isLocal){
+                necroCompilerWriteByte(
+                    compilerPtr,
+                    localLocation.accessJumps
+                );
+            }
         }
         /* otherwise member get */
         else{
@@ -2148,6 +2185,12 @@ static void necroCompilerNamedVariable(
                 getOp,
                 (uint8_t)arg
             );
+            if(isLocal){
+                necroCompilerWriteByte(
+                    compilerPtr,
+                    localLocation.accessJumps
+                );
+            }
             necroCompilerWriteByte(
                 compilerPtr,
                 memberGetOp
@@ -2171,6 +2214,12 @@ static void necroCompilerNamedVariable(
             setOp,
             (uint8_t)arg
         );
+        if(isLocal){
+            necroCompilerWriteByte(
+                compilerPtr,
+                localLocation.accessJumps
+            );
+        }
     }
     /* otherwise just a get */
     else{
@@ -2179,6 +2228,12 @@ static void necroCompilerNamedVariable(
             getOp,
             (uint8_t)arg
         );
+        if(isLocal){
+            necroCompilerWriteByte(
+                compilerPtr,
+                localLocation.accessJumps
+            );
+        }
     }
 }
 
@@ -2232,7 +2287,7 @@ static void necroCompilerFunctionHeader(
                     true,   /* params are mutable */
                     "Expect parameter name"
                 );
-            //todo: are params globals?
+            /* note: params are locals */
             necroCompilerDefineVariable(
                 compilerPtr,
                 paramNameIndex

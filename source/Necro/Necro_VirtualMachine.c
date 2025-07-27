@@ -466,13 +466,19 @@ static void necroVirtualMachineDefineNativeFunc(
 #define localMemberSetOperation( \
     VMPTR, \
     FRAMEPTR, \
-    NecroISFNecroC, \
+    NECROISFUNC, \
     VALUEASNAME, \
     MEMBERNAME, \
     ERRMSG \
 ) \
     do{ \
         uint8_t slot = readByte((FRAMEPTR)); \
+        uint8_t jumps = readByte((FRAMEPTR)); \
+        NecroCallFrame *frameToAccess = (FRAMEPTR); \
+        for(int i = 0; i < jumps; ++i){ \
+            frameToAccess \
+                = frameToAccess->accessPtr; \
+        } \
         NecroValue value \
             = necroVirtualMachineStackPeek( \
                 (VMPTR), \
@@ -494,8 +500,8 @@ static void necroVirtualMachineDefineNativeFunc(
             return necro_runtimeError; \
         } \
         NecroValue *localPtr \
-            = &((FRAMEPTR)->slots[slot]); \
-        if(!NecroISFNecroC(*localPtr)){ \
+            = &(frameToAccess->slots[slot]); \
+        if(!NECROISFUNC(*localPtr)){ \
             pgWarning((ERRMSG)); \
             necroVirtualMachineRuntimeError( \
                 (VMPTR), \
@@ -534,6 +540,29 @@ static void necroVirtualMachineConcatenate(
 }
 
 /*
+ * Sets up the access link for the given frame pointer
+ */
+static void _setAccessPtr(
+    NecroCallFrame *prevPtr,
+    NecroCallFrame *framePtr
+){
+    /*
+     * set up access links according to Dragon Book
+     * 7.3.6
+     */
+    int prevDepth = prevPtr->funcPtr->depth;
+    int depth = framePtr->funcPtr->depth;
+    framePtr->accessPtr = prevPtr;
+    if(depth <= prevDepth){
+        int numHops = prevDepth - depth + 1;
+        for(int i = 0; i < numHops; ++i){
+            framePtr->accessPtr
+                = framePtr->accessPtr->accessPtr;
+        }
+    }
+}
+
+/*
  * Calls the specified function; returns true if
  * successful, false otherwise
  */
@@ -569,6 +598,9 @@ static bool necroVirtualMachineCall(
         );
         return false;
     }
+    NecroCallFrame *prevPtr = &(vmPtr->callStack[
+        vmPtr->frameCount - 1
+    ]);
     NecroCallFrame *framePtr = &(vmPtr->callStack[
         vmPtr->frameCount++
     ]);
@@ -576,6 +608,7 @@ static bool necroVirtualMachineCall(
     framePtr->instructionPtr
         = funcPtr->program.code._ptr;
     framePtr->slots = vmPtr->stackPtr - numArgs - 1;
+    _setAccessPtr(prevPtr, framePtr);
 
     /*
      * copy strings from the function if it actually
@@ -816,6 +849,15 @@ static NecroInterpretResult necroVirtualMachineRun(
             case necro_getLocal: {
                 /* get the stack slot of the local */
                 uint8_t slot = readByte(framePtr);
+                /* get number of access jumps */
+                uint8_t jumps = readByte(framePtr);
+
+                NecroCallFrame *frameToAccess
+                    = framePtr;
+                for(int i = 0; i < jumps; ++i){
+                    frameToAccess
+                        = frameToAccess->accessPtr;
+                }
                 /*
                  * push the value of the local to the
                  * top of the stack; get the local
@@ -823,13 +865,22 @@ static NecroInterpretResult necroVirtualMachineRun(
                  */
                 necroVirtualMachineStackPush(
                     vmPtr,
-                    framePtr->slots[slot]
+                    frameToAccess->slots[slot]
                 );
                 break;
             }
             case necro_setLocal: {
                 /* get the stack slot of the local */
                 uint8_t slot = readByte(framePtr);
+                /* get number of access jumps */
+                uint8_t jumps = readByte(framePtr);
+
+                NecroCallFrame *frameToAccess
+                    = framePtr;
+                for(int i = 0; i < jumps; ++i){
+                    frameToAccess
+                        = frameToAccess->accessPtr;
+                }
                 /*
                  * write the value of the stack top
                  * to the slot (but don't pop it off
@@ -837,7 +888,7 @@ static NecroInterpretResult necroVirtualMachineRun(
                  * set the local relative to the call
                  * frame
                  */
-                framePtr->slots[slot]
+                frameToAccess->slots[slot]
                     = necroVirtualMachineStackPeek(
                         vmPtr,
                         0

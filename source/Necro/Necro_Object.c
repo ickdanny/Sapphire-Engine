@@ -237,7 +237,8 @@ NecroObjectString *necroObjectStringConcat(
  * nullable
  */
 NecroObjectFunc *necroObjectFuncMake(
-    NecroObjectFunc *enclosingPtr
+    NecroObjectFunc *enclosingPtr,
+    int depth
 ){
     NecroObjectFunc *toRet = necroObjectAlloc(
         NecroObjectFunc,
@@ -245,6 +246,7 @@ NecroObjectFunc *necroObjectFuncMake(
         NULL /* null for list; called by compiler */
     );
     toRet->arity = 0;
+    toRet->depth = depth;
     toRet->namePtr = NULL;
     if(!enclosingPtr){
         toRet->program = necroProgramMake(NULL);

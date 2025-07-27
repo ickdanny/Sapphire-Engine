@@ -35,6 +35,7 @@ typedef struct NecroObjectString{
 typedef struct NecroObjectFunc{
     NecroObject objectBase;
     int arity;
+    int depth;
     NecroProgram program;
     NecroObjectString *namePtr;
 } NecroObjectFunc;
@@ -214,7 +215,8 @@ NecroObjectString *necroObjectStringConcat(
  * nullable
  */
 NecroObjectFunc *necroObjectFuncMake(
-    NecroObjectFunc *enclosingPtr
+    NecroObjectFunc *enclosingPtr,
+    int depth
 );
 
 /*

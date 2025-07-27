@@ -26,6 +26,11 @@ typedef struct NecroCallFrame{
     NecroObjectFunc *funcPtr;
     uint8_t *instructionPtr;
     NecroValue *slots;
+    /*
+     * points to the frame of the last call of the
+     * enclosing procedure
+     */
+    struct NecroCallFrame *accessPtr;
 } NecroCallFrame;
 
 /*
