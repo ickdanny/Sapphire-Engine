@@ -4,17 +4,15 @@
 #include "BLoader.h"
 #include "Trifecta.h"
 #include "MokyoMidi.h"
-#include "Unknown.h"
+#include "Necro.h"
 #include "Dialogue.h"
 
 /* Stores file resources for scripts */
 typedef struct ScriptResources{
     /* compiler for scripts */
-    UNCompiler _compiler;
-    /* map of UNObjectFunc* */
+    NecroCompiler _compiler;
+    /* map of NecroObjectFunc* */
     HashMap _scriptMap;
-    /* set of user functions detected while loading */
-    UNUserFuncSet userFuncSet;
 } ScriptResources;
 
 /*
@@ -94,7 +92,7 @@ Dialogue *resourcesGetDialogue(
  * by the given String or NULL if no such script
  * exists
  */
-UNObjectFunc *resourcesGetScript(
+NecroObjectFunc *resourcesGetScript(
     Resources *resourcesPtr,
     String *stringPtr
 );

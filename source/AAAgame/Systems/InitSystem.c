@@ -1091,7 +1091,7 @@ static void addStageScript(
             break;
     }
     scripts.vm1 = vmPoolRequest();
-    unVirtualMachineLoad(
+    necroVirtualMachineLoad(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,
@@ -1561,7 +1561,7 @@ static void initCredits(
     Scripts scripts = {0};
     String scriptId = stringMakeC("credits");
     scripts.vm1 = vmPoolRequest();
-    unVirtualMachineLoad(
+    necroVirtualMachineLoad(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,
@@ -1585,11 +1585,7 @@ void initSystem(Game *gamePtr, Scene *scenePtr){
     scenePtr->messages.initFlag = true;
 
     /* putting the vm pool initializer here */
-    vmPoolInit(
-        getNativeFuncSet(), 
-        &(gamePtr->resourcesPtr->scriptResourcesPtr
-            ->userFuncSet)
-    );
+    vmPoolInit(getNativeFuncSet());
 
     switch(scenePtr->id){
         case scene_main:

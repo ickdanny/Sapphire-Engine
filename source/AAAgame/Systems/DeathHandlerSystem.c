@@ -59,7 +59,7 @@ static void handleDeathScript(
                             ->scriptId##SLOT) \
                     ) \
                 ){ \
-                    UNObjectFunc *scriptPtr \
+                    NecroObjectFunc *scriptPtr \
                         = resourcesGetScript( \
                             gamePtr->resourcesPtr, \
                             &(deathScriptsPtr \
@@ -67,7 +67,7 @@ static void handleDeathScript(
                         ); \
                     scripts.vm##SLOT \
                         = vmPoolRequest(); \
-                    unVirtualMachineLoad( \
+                    necroVirtualMachineLoad( \
                         scripts.vm##SLOT, \
                         scriptPtr \
                     ); \

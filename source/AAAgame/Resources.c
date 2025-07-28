@@ -11,23 +11,22 @@
  */
 ScriptResources scriptResourcesMake(){
     ScriptResources toRet = {0};
-    toRet._compiler = unCompilerMake();
+    toRet._compiler = necroCompilerMake();
     toRet._scriptMap = hashMapMake(
-        String, UNObjectFunc*,
+        String, NecroObjectFunc*,
         initScriptCapacity,
         constructureStringHash,
         constructureStringEquals
     );
-    toRet.userFuncSet = unUserFuncSetMake();
     return toRet;
 }
 
 /*
- * For freeing UNObjectFunc* with hashmap since hashmap
+ * For freeing NecroObjectFunc* with hashmap since hashmap
  * apply provides double pointers
  */
-static void freeScript(UNObjectFunc** doublePtr){
-    unObjectFree((UNObject*)(*doublePtr));
+static void freeScript(NecroObjectFunc** doublePtr){
+    necroObjectFree((NecroObject*)(*doublePtr));
 }
 
 /*
@@ -37,24 +36,19 @@ static void freeScript(UNObjectFunc** doublePtr){
 void scriptResourcesFree(
     ScriptResources *scriptResourcesPtr
 ){
-    unCompilerFree(&(scriptResourcesPtr->_compiler));
+    necroCompilerFree(&(scriptResourcesPtr->_compiler));
 
     /* free script map */
-    hashMapApply(String, UNObjectFunc*,
+    hashMapApply(String, NecroObjectFunc*,
         &(scriptResourcesPtr->_scriptMap),
         freeScript
     );
-    hashMapKeyApply(String, UNObjectFunc*,
+    hashMapKeyApply(String, NecroObjectFunc*,
         &(scriptResourcesPtr->_scriptMap),
         stringFree
     );
-    hashMapFree(String, UNObjectFunc*,
+    hashMapFree(String, NecroObjectFunc*,
         &(scriptResourcesPtr->_scriptMap)
-    );
-
-    /* free user func set */
-    unUserFuncSetFree(
-        &(scriptResourcesPtr->userFuncSet)
     );
 
     memset(
@@ -197,66 +191,27 @@ static void loadScriptIntoResources(
         = scriptResourcesVoidPtr;
     HashMap *scriptMapPtr
         = &(scriptResourcesPtr->_scriptMap);
-    UNCompiler *compilerPtr
+    NecroCompiler *compilerPtr
         = &(scriptResourcesPtr->_compiler);
 
-    UNObjectFunc *scriptPtr = unCompilerCompileScript(
+    NecroObjectFunc *scriptPtr = necroCompilerCompileScript(
         compilerPtr,
         fileName
     );
 
     String stringId = isolateFileName(fileName);
-    if(hashMapHasKeyPtr(String, UNObjectFunc*,
+    if(hashMapHasKeyPtr(String, NecroObjectFunc*,
         scriptMapPtr,
         &stringId
     )){
         pgWarning(fileName);
         pgError("try to load multiple of same script");
     }
-    hashMapPutPtr(String, UNObjectFunc*,
+    hashMapPutPtr(String, NecroObjectFunc*,
         scriptMapPtr,
         &stringId,
         &scriptPtr
     );
-}
-
-/* User func loading callback (.unf) */
-static void loadUserFuncIntoResources(
-    const char *fileName,
-    void *scriptResourcesVoidPtr
-){
-    ScriptResources *scriptResourcesPtr
-        = scriptResourcesVoidPtr;
-    UNUserFuncSet *userFuncSetPtr
-        = &(scriptResourcesPtr->userFuncSet);
-    UNCompiler *compilerPtr
-        = &(scriptResourcesPtr->_compiler);
-
-    UNObjectFunc *funcPtr
-        = unCompilerCompileFuncFile(
-            compilerPtr,
-            fileName
-        );
-
-    /*
-     * do not attempt to insert into the script map
-     * because a double free will occur
-     */
-
-    String stringId = isolateFileName(fileName);
-
-    /*
-     * add the func to the set using the c string
-     * owned by the stringId object
-     */
-    unUserFuncSetAdd(
-        userFuncSetPtr,
-        stringId._ptr,
-        funcPtr
-    );
-    
-    /* free our string; it gets heap copied */
-    stringFree(&stringId);
 }
 
 /*
@@ -322,13 +277,8 @@ Resources resourcesMake(){
         toRet._dialogueMapPtr
     );
     BLResourceType scriptType = blResourceTypeMake(
-        "un",
+        "nec",
         loadScriptIntoResources,
-        toRet.scriptResourcesPtr
-    );
-    BLResourceType userFuncType = blResourceTypeMake(
-        "unf",
-        loadUserFuncIntoResources,
         toRet.scriptResourcesPtr
     );
     blResourceLoaderRegisterType(
@@ -346,10 +296,6 @@ Resources resourcesMake(){
     blResourceLoaderRegisterType(
         &(toRet._loader),
         &scriptType
-    );
-    blResourceLoaderRegisterType(
-        &(toRet._loader),
-        &userFuncType
     );
 
     return toRet;
@@ -419,13 +365,13 @@ Dialogue *resourcesGetDialogue(
  * by the given String or NULL if no such script
  * exists
  */
-UNObjectFunc *resourcesGetScript(
+NecroObjectFunc *resourcesGetScript(
     Resources *resourcesPtr,
     String *stringPtr
 ){
-    UNObjectFunc **returnedPtr = hashMapGetPtr(
+    NecroObjectFunc **returnedPtr = hashMapGetPtr(
         String,
-        UNObjectFunc*,
+        NecroObjectFunc*,
         &(resourcesPtr->scriptResourcesPtr
             ->_scriptMap),
         stringPtr

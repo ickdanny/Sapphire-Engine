@@ -9,7 +9,7 @@ static VecsComponentSet playerPosSet
 static VecsComponentSet playerSet
     = vecsComponentSetFromId(PlayerDataId);
 
-static UNNativeFuncSet *nativeFuncSetPtr = NULL;
+static NecroNativeFuncSet *nativeFuncSetPtr = NULL;
 static bool initialized = false;
 
 /* used for native funcs that work on the entity */
@@ -110,15 +110,15 @@ static VecsEntity _entity;
     )
 
 /*
- * Retrieves the value of the specified UNValue as
+ * Retrieves the value of the specified NecroValue as
  * a number; error if the value was not an int or
  * a float
  */
 #define getValueAsNumber(VALUE, ERRMSG) \
-    (unIsInt(VALUE) \
-        ? unAsInt(VALUE) \
-        : (unIsFloat(VALUE) \
-            ? unAsFloat(VALUE) \
+    (necroIsInt(VALUE) \
+        ? necroAsInt(VALUE) \
+        : (necroIsFloat(VALUE) \
+            ? necroAsFloat(VALUE) \
             : ( \
                 pgError(ERRMSG), \
                 0 \
@@ -127,39 +127,39 @@ static VecsEntity _entity;
     )
 
 #define DECLARE_FLOAT_CONST(FUNCNAME, VALUE) \
-    static UNValue FUNCNAME( \
+    static NecroValue FUNCNAME( \
         int argc, \
-        UNValue *argv \
+        NecroValue *argv \
     ){ \
         assertArity(0, #FUNCNAME); \
-        return unFloatValue(VALUE); \
+        return necroFloatValue(VALUE); \
     }
 
 #define DECLARE_INT_CONST(FUNCNAME, VALUE) \
-    static UNValue FUNCNAME( \
+    static NecroValue FUNCNAME( \
         int argc, \
-        UNValue *argv \
+        NecroValue *argv \
     ){ \
         assertArity(0, #FUNCNAME); \
-        return unIntValue(VALUE); \
+        return necroIntValue(VALUE); \
     }
 
 #define DECLARE_POLAR_CONST(FUNCNAME, VALUE) \
-    static UNValue FUNCNAME( \
+    static NecroValue FUNCNAME( \
         int argc, \
-        UNValue *argv \
+        NecroValue *argv \
     ){ \
         assertArity(0, #FUNCNAME); \
-        return unVectorValue(VALUE); \
+        return necroVectorValue(VALUE); \
     }
 
 #define DECLARE_POINT_CONST(FUNCNAME, VALUE) \
-    static UNValue FUNCNAME( \
+    static NecroValue FUNCNAME( \
         int argc, \
-        UNValue *argv \
+        NecroValue *argv \
     ){ \
         assertArity(0, #FUNCNAME); \
-        return unPointValue(VALUE); \
+        return necroPointValue(VALUE); \
     }
 
 /* CONSTANT FUNCTIONS */
@@ -250,20 +250,20 @@ DECLARE_FLOAT_CONST(phi, z_phi)
  * errors the whole program with the specified
  * error message
  */
-static UNValue error(int argc, UNValue *argv){
+static NecroValue error(int argc, NecroValue *argv){
     assertArity(1, "error expects 1 string arg");
     pgWarning("SCRIPT ERROR");
-    pgError(unObjectAsCString(*argv));
+    pgError(necroObjectAsCString(*argv));
     /* should never be reached */
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* warns the specified message */
-static UNValue warn(int argc, UNValue *argv){
+static NecroValue warn(int argc, NecroValue *argv){
     assertArity(1, "warn expects 1 string arg");
     pgWarning("SCRIPT WARNING");
-    pgWarning(unObjectAsCString(*argv));
-    return unBoolValue(false);
+    pgWarning(necroObjectAsCString(*argv));
+    return necroBoolValue(false);
 }
 
 /* GENERAL QUERIES */
@@ -272,51 +272,51 @@ static UNValue warn(int argc, UNValue *argv){
  * Returns true if the boss death flag was set and
  * unsets it, false otherwise
  */
-static UNValue isBossDead(int argc, UNValue *argv){
+static NecroValue isBossDead(int argc, NecroValue *argv){
     assertArity(0, "isBossDead expects no args");
     if(_scenePtr->messages.bossDeathFlag){
         _scenePtr->messages.bossDeathFlag = false;
-        return unBoolValue(true);
+        return necroBoolValue(true);
     }
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Returns true if the end dialogue flag was set and
  * unsets it, false otherwise
  */
-static UNValue isDialogueOver(
+static NecroValue isDialogueOver(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(0, "isDialogueOver expects no args");
     if(_gamePtr->messages.endDialogueFlag){
         _gamePtr->messages.endDialogueFlag = false;
-        return unBoolValue(true);
+        return necroBoolValue(true);
     }
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Returns true if the win flag was set and unsets it,
  * false otherwise
  */
-static UNValue isWin(int argc, UNValue *argv){
+static NecroValue isWin(int argc, NecroValue *argv){
     assertArity(0, "isWin expects no args");
     if(_scenePtr->messages.winFlag){
         _scenePtr->messages.winFlag = false;
-        return unBoolValue(true);
+        return necroBoolValue(true);
     }
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Returns the difficulty of the game as an int where
  * 1 is normal, 2 is hard, and 3 is lunatic
  */
-static UNValue getDifficulty(int argc, UNValue *argv){
+static NecroValue getDifficulty(int argc, NecroValue *argv){
     assertArity(0, "getDifficulty expects no args");
-    return unIntValue(
+    return necroIntValue(
         _gamePtr->messages.gameState.difficulty
     );
 }
@@ -326,7 +326,7 @@ static UNValue getDifficulty(int argc, UNValue *argv){
  * or the player spawn if such an operation is not
  * possible
  */
-static UNValue getPlayerPos(int argc, UNValue *argv){
+static NecroValue getPlayerPos(int argc, NecroValue *argv){
     assertArity(0, "getPlayerPos expects no args");
 
     /* get players with position */
@@ -341,38 +341,38 @@ static UNValue getPlayerPos(int argc, UNValue *argv){
             Position,
             &itr
         );
-        return unPointValue(positionPtr->currentPos);
+        return necroPointValue(positionPtr->currentPos);
     }
     /* otherwise just return player spawn */
     else{
-        return unPointValue(config_playerSpawn);
+        return necroPointValue(config_playerSpawn);
     }
 }
 
 /* ENTITY GRAPHICS */
 
 /* Marks the entity as visible */
-static UNValue setVisible(int argc, UNValue *argv){
+static NecroValue setVisible(int argc, NecroValue *argv){
     assertArity(0, "setVisible expects no args");
     vecsWorldEntityQueueSetComponent(VisibleMarker,
         &(_scenePtr->ecsWorld),
         _entity,
         NULL
     );
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Unmarks the entity as visible */
-static UNValue removeVisible(int argc, UNValue *argv){
+static NecroValue removeVisible(int argc, NecroValue *argv){
     assertArity(0, "removeVisible expects no args");
     removeComponent(VisibleMarker);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Marks the entity as rotate forward */
-static UNValue setRotateSpriteForward(
+static NecroValue setRotateSpriteForward(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(
         0,
@@ -384,29 +384,29 @@ static UNValue setRotateSpriteForward(
         _entity,
         NULL
     );
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Unmarks the entity as rotate forward */
-static UNValue removeRotateSpriteForward(
+static NecroValue removeRotateSpriteForward(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(
         0,
         "removeRotateSpriteForward expects no args"
     );
     removeComponent(RotateSpriteForwardMarker);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Set the sprite of the entity to the requested image
  */
-static UNValue setSprite(int argc, UNValue *argv){
+static NecroValue setSprite(int argc, NecroValue *argv){
     assertArity(1, "setSprite expects 1 string arg");
     String *stringPtr
-        = &(unObjectAsString(*argv)->string);
+        = &(necroObjectAsString(*argv)->string);
     TFSprite *spritePtr = resourcesGetSprite(
         _gamePtr->resourcesPtr,
         stringPtr
@@ -425,7 +425,7 @@ static UNValue setSprite(int argc, UNValue *argv){
 
     spriteInstrPtr->spritePtr = spritePtr;
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
@@ -433,9 +433,9 @@ static UNValue setSprite(int argc, UNValue *argv){
  * the parameters (string id, int depth, vector offset,
  * float rotation, float scale)
  */
-static UNValue setSpriteInstruction(
+static NecroValue setSpriteInstruction(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(
         5,
@@ -447,7 +447,7 @@ static UNValue setSpriteInstruction(
     /* build the sprite instruction */
     SpriteInstruction spriteInstr = {0};
     String *stringPtr
-        = &(unObjectAsString(argv[0])->string);
+        = &(necroObjectAsString(argv[0])->string);
     spriteInstr.spritePtr = resourcesGetSprite(
         _gamePtr->resourcesPtr,
         stringPtr
@@ -456,9 +456,9 @@ static UNValue setSpriteInstruction(
         pgWarning(stringPtr->_ptr);
         pgError("failed to get sprite;" SRC_LOCATION);
     }
-    spriteInstr.depth = unAsInt(argv[1]);
+    spriteInstr.depth = necroAsInt(argv[1]);
     spriteInstr.offset = polarToVector(
-        unAsVector(argv[2])
+        necroAsVector(argv[2])
     );
     spriteInstr.rotation = getValueAsNumber(
         argv[3],
@@ -476,13 +476,13 @@ static UNValue setSpriteInstruction(
         &spriteInstr
     );
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the depth of the entity sprite */
-static UNValue setDepth(int argc, UNValue *argv){
+static NecroValue setDepth(int argc, NecroValue *argv){
     assertArity(1, "setDepth expects 1 int arg");
-    int depth = unAsInt(*argv);
+    int depth = necroAsInt(*argv);
 
     SpriteInstruction *spriteInstrPtr = NULL;
     fillComponentPtr(SpriteInstruction,
@@ -492,11 +492,11 @@ static UNValue setDepth(int argc, UNValue *argv){
     );
     spriteInstrPtr->depth = depth;
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the rotation of the entity sprite */
-static UNValue setRotation(int argc, UNValue *argv){
+static NecroValue setRotation(int argc, NecroValue *argv){
     assertArity(1, "setRotation expects 1 float arg");
     float rotation = getValueAsNumber(
         *argv,
@@ -511,11 +511,11 @@ static UNValue setRotation(int argc, UNValue *argv){
     );
     spriteInstrPtr->rotation = rotation;
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the scale of the entity sprite */
-static UNValue setScale(int argc, UNValue *argv){
+static NecroValue setScale(int argc, NecroValue *argv){
     assertArity(1, "setScale expects 1 float arg");
     float scale = getValueAsNumber(
         *argv,
@@ -531,15 +531,15 @@ static UNValue setScale(int argc, UNValue *argv){
 
     spriteInstrPtr->scale = scale;
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* ENTITY QUERIES */
 
 /* Returns the position of the entity */
-static UNValue getPosition(
+static NecroValue getPosition(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(0, "getPosition expects no args");
 
@@ -550,49 +550,49 @@ static UNValue getPosition(
         "position component; " SRC_LOCATION
     );
 
-    return unPointValue(positionPtr->currentPos);
+    return necroPointValue(positionPtr->currentPos);
 }
 
 /* Returns the x coordinate of the entity */
-static UNValue getX(int argc, UNValue *argv){
+static NecroValue getX(int argc, NecroValue *argv){
     assertArity(0, "getX expects no args");
 
     Point2D position
-        = unAsPoint(getPosition(0, NULL));
-    return unFloatValue(position.x);
+        = necroAsPoint(getPosition(0, NULL));
+    return necroFloatValue(position.x);
 }
 
 /* Returns the y coordinate of the entity */
-static UNValue getY(int argc, UNValue *argv){
+static NecroValue getY(int argc, NecroValue *argv){
     assertArity(0, "getY expects no args");
 
     Point2D position
-        = unAsPoint(getPosition(0, NULL));
-    return unFloatValue(position.y);
+        = necroAsPoint(getPosition(0, NULL));
+    return necroFloatValue(position.y);
 }
 
 /* Returns the angle from the entity to the player */
-static UNValue getAngleToPlayer(
+static NecroValue getAngleToPlayer(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(0, "getAngleToPlayer expects no args");
     
     Point2D playerPos
-        = unAsPoint(getPlayerPos(0, NULL));
+        = necroAsPoint(getPlayerPos(0, NULL));
 
     Point2D entityPos
-        = unAsPoint(getPosition(0, NULL));
+        = necroAsPoint(getPosition(0, NULL));
 
     float angle = point2DAngle(entityPos, playerPos);
-    return unFloatValue(angle);
+    return necroFloatValue(angle);
 }
 
 /*
  * Returns the velocity of the entity (as a polar
  * vector)
  */
-static UNValue getVelocity(int argc, UNValue *argv){
+static NecroValue getVelocity(int argc, NecroValue *argv){
     assertArity(0, "getVelocity expects no args");
 
     Velocity *velocityPtr = NULL;
@@ -602,35 +602,35 @@ static UNValue getVelocity(int argc, UNValue *argv){
         "velocity component; " SRC_LOCATION
     );
 
-    return unVectorValue(*velocityPtr);
+    return necroVectorValue(*velocityPtr);
 }
 
 /*
  * Returns the speed of the entity (r component of
  * its velocity
  */
-static UNValue getSpeed(int argc, UNValue *argv){
+static NecroValue getSpeed(int argc, NecroValue *argv){
     assertArity(0, "getSpeed expects no args");
 
     Polar velocity
-        = unAsVector(getVelocity(0, NULL));
-    return unFloatValue(velocity.magnitude);
+        = necroAsVector(getVelocity(0, NULL));
+    return necroFloatValue(velocity.magnitude);
 }
 
 /*
  * Returns the angle of the entity (a component of
  * its velocity
  */
-static UNValue getAngle(int argc, UNValue *argv){
+static NecroValue getAngle(int argc, NecroValue *argv){
     assertArity(0, "getAngle expects no args");
 
     Polar velocity
-        = unAsVector(getVelocity(0, NULL));
-    return unFloatValue(velocity.angle);
+        = necroAsVector(getVelocity(0, NULL));
+    return necroFloatValue(velocity.angle);
 }
 
 /* Returns the sprite spin of the entity */
-static UNValue getSpin(int argc, UNValue *argv){
+static NecroValue getSpin(int argc, NecroValue *argv){
     assertArity(0, "getSpin expects no args");
 
     SpriteSpin *spinPtr = NULL;
@@ -640,7 +640,7 @@ static UNValue getSpin(int argc, UNValue *argv){
         "lacks sprite spin component; " SRC_LOCATION
     );
 
-    return unFloatValue(*spinPtr);
+    return necroFloatValue(*spinPtr);
 }
 
 /*
@@ -648,7 +648,7 @@ static UNValue getSpin(int argc, UNValue *argv){
  * otherwise; spawning scripts go in virtual machine
  * slots 3 and 4
  */
-static UNValue isSpawning(int argc, UNValue *argv){
+static NecroValue isSpawning(int argc, NecroValue *argv){
     assertArity(0, "isSpawning expects no args");
 
     Scripts *scriptsPtr = NULL;
@@ -660,13 +660,13 @@ static UNValue isSpawning(int argc, UNValue *argv){
     );
 
     /* if either vm3 or vm4 is active, return true */
-    return unBoolValue(
+    return necroBoolValue(
         scriptsPtr->vm3 || scriptsPtr->vm4
     );
 }
 
 /* Returns the current power of the player */
-static UNValue getPlayerPower(int argc, UNValue *argv){
+static NecroValue getPlayerPower(int argc, NecroValue *argv){
     assertArity(0, "getPlayerPower expects no args");
 
     /* get players */
@@ -681,7 +681,7 @@ static UNValue getPlayerPower(int argc, UNValue *argv){
             PlayerData,
             &itr
         );
-        return unIntValue(playerDataPtr->power);
+        return necroIntValue(playerDataPtr->power);
     }
     /* error if no player exists */
     else{
@@ -690,7 +690,7 @@ static UNValue getPlayerPower(int argc, UNValue *argv){
             "getPlayerPower; "
             SRC_LOCATION
         );
-        return unBoolValue(false);
+        return necroBoolValue(false);
     }
 }
 
@@ -698,9 +698,9 @@ static UNValue getPlayerPower(int argc, UNValue *argv){
  * Returns true if the player is currently focused,
  * false otherwise
  */
-static UNValue isPlayerFocused(
+static NecroValue isPlayerFocused(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(0, "isPlayerFocused expects no args");
 
@@ -718,126 +718,126 @@ static UNValue isPlayerFocused(
             i
         );
         if(command == game_focus){
-            return unBoolValue(true);
+            return necroBoolValue(true);
         }
     }
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* ENTITY MUTATORS */
 
 /* Marks the entity as collidable */
-static UNValue setCollidable(int argc, UNValue *argv){
+static NecroValue setCollidable(int argc, NecroValue *argv){
     assertArity(0, "setCollidable expects no args");
     vecsWorldEntityQueueSetComponent(CollidableMarker,
         &(_scenePtr->ecsWorld),
         _entity,
         NULL
     );
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Unmarks the entity as collidable */
-static UNValue removeCollidable(
+static NecroValue removeCollidable(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(0, "removeCollidable expects no args");
     removeComponent(CollidableMarker);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity health to the specified value */
-static UNValue setHealth(int argc, UNValue *argv){
+static NecroValue setHealth(int argc, NecroValue *argv){
     assertArity(1, "setHealth expects int arg");
-    int health = unAsInt(*argv);
+    int health = necroAsInt(*argv);
     setComponent(Health, &health);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Removes the entity's health component entirely */
-static UNValue removeHealth(int argc, UNValue *argv){
+static NecroValue removeHealth(int argc, NecroValue *argv){
     assertArity(0, "removeHealth expects 0 args");
     removeComponent(Health);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity damage to the specified value */
-static UNValue setDamage(int argc, UNValue *argv){
+static NecroValue setDamage(int argc, NecroValue *argv){
     assertArity(1, "setDamage expects int arg");
-    int damage = unAsInt(*argv);
+    int damage = necroAsInt(*argv);
     setComponent(Damage, &damage);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Removes the entity's damage component entirely */
-static UNValue removeDamage(int argc, UNValue *argv){
+static NecroValue removeDamage(int argc, NecroValue *argv){
     assertArity(0, "removeDamage expects 0 args");
     removeComponent(Damage);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Marks the entity as clearable */
-static UNValue setClearable(int argc, UNValue *argv){
+static NecroValue setClearable(int argc, NecroValue *argv){
     assertArity(0, "setClearable expects no args");
     vecsWorldEntityQueueSetComponent(ClearableMarker,
         &(_scenePtr->ecsWorld),
         _entity,
         NULL
     );
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Unmarks the entity as clearable */
-static UNValue removeClearable(
+static NecroValue removeClearable(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(0, "removeClearable expects no args");
     removeComponent(ClearableMarker);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity inbound to the specified value */
-static UNValue setInbound(int argc, UNValue *argv){
+static NecroValue setInbound(int argc, NecroValue *argv){
     assertArity(1, "setInbound expects float arg");
     float inbound = getValueAsNumber(
         *argv,
         "set inbound expects a number; " SRC_LOCATION
     );
     setComponent(Inbound, &inbound);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Removes the entity's inbound component entirely */
-static UNValue removeInbound(int argc, UNValue *argv){
+static NecroValue removeInbound(int argc, NecroValue *argv){
     assertArity(0, "removeInbound expects 0 args");
     removeComponent(Inbound);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity outbound to the specified value */
-static UNValue setOutbound(int argc, UNValue *argv){
+static NecroValue setOutbound(int argc, NecroValue *argv){
     assertArity(1, "setOutbound expects float arg");
     float outbound = getValueAsNumber(
         *argv,
         "set outbound expects a number; " SRC_LOCATION
     );
     setComponent(Outbound, &outbound);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Removes the entity's outbound component entirely */
-static UNValue removeOutbound(int argc, UNValue *argv){
+static NecroValue removeOutbound(int argc, NecroValue *argv){
     assertArity(0, "removeOutbound expects 0 args");
     removeComponent(Outbound);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity position to the specified value */
-static UNValue setPosition(int argc, UNValue *argv){
+static NecroValue setPosition(int argc, NecroValue *argv){
     assertArity(1, "setPosition expects point arg");
-    Point2D point = unAsPoint(*argv);
+    Point2D point = necroAsPoint(*argv);
     /*
      * by using the point for both frames, essentially
      * the same as teleportation (otherwise the
@@ -846,33 +846,33 @@ static UNValue setPosition(int argc, UNValue *argv){
      */
     Position position = {point, point};
     setComponent(Position, &position);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Removes the entity's position component entirely */
-static UNValue removePosition(int argc, UNValue *argv){
+static NecroValue removePosition(int argc, NecroValue *argv){
     assertArity(0, "removePosition expects 0 args");
     removeComponent(Position);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity velocity to the specified value */
-static UNValue setVelocity(int argc, UNValue *argv){
+static NecroValue setVelocity(int argc, NecroValue *argv){
     assertArity(1, "setVelocity expects vector arg");
-    Velocity velocity = unAsVector(*argv);
+    Velocity velocity = necroAsVector(*argv);
     setComponent(Velocity, &velocity);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Removes the entity's velocity component entirely */
-static UNValue removeVelocity(int argc, UNValue *argv){
+static NecroValue removeVelocity(int argc, NecroValue *argv){
     assertArity(0, "removeVelocity expects 0 args");
     removeComponent(Velocity);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity speed to the specified value */
-static UNValue setSpeed(int argc, UNValue *argv){
+static NecroValue setSpeed(int argc, NecroValue *argv){
     assertArity(1, "setSpeed expects float arg");
     float speed = getValueAsNumber(
         *argv,
@@ -888,11 +888,11 @@ static UNValue setSpeed(int argc, UNValue *argv){
 
     velocityPtr->magnitude = speed;
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Sets the entity angle to the specified value */
-static UNValue setAngle(int argc, UNValue *argv){
+static NecroValue setAngle(int argc, NecroValue *argv){
     assertArity(1, "setAngle expects float arg");
     float angle = getValueAsNumber(
         *argv,
@@ -908,52 +908,52 @@ static UNValue setAngle(int argc, UNValue *argv){
 
     velocityPtr->angle = angle;
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Sets the entity sprite spin to the specified value
  */
-static UNValue setSpin(int argc, UNValue *argv){
+static NecroValue setSpin(int argc, NecroValue *argv){
     assertArity(1, "setSpin expects float arg");
     SpriteSpin spin = getValueAsNumber(
         *argv,
         "set spin expects a number; " SRC_LOCATION
     );
     setComponent(SpriteSpin, &spin);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Removes the entity's sprite spin component entirely
  */
-static UNValue removeSpin(int argc, UNValue *argv){
+static NecroValue removeSpin(int argc, NecroValue *argv){
     assertArity(0, "removeSpin expects 0 args");
     removeComponent(SpriteSpin);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* Flags the entity as dead */
-static UNValue die(int argc, UNValue *argv){
+static NecroValue die(int argc, NecroValue *argv){
     assertArity(0, "die expects 0 args");
     arrayListPushBack(VecsEntity,
         &(_scenePtr->messages.deaths),
         _entity
     );
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Removes the entity entirely without going through
  * the death system
  */
-static UNValue removeEntity(int argc, UNValue *argv){
+static NecroValue removeEntity(int argc, NecroValue *argv){
     assertArity(0, "removeEntity expects 0 args");
     vecsWorldEntityQueueRemoveEntity(
         &(_scenePtr->ecsWorld),
         _entity
     );
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /* SCRIPTING */
@@ -962,11 +962,11 @@ static UNValue removeEntity(int argc, UNValue *argv){
  * Returns true if the entity has a script in the
  * specified VM slot, false otherwise
  */
-static UNValue hasScript(int argc, UNValue *argv){
+static NecroValue hasScript(int argc, NecroValue *argv){
     assertArity(1, "usage: hasScript(slot)");
 
     /* get the slot */
-    int slot = unAsInt(*argv);
+    int slot = necroAsInt(*argv);
     if(slot < 1 || slot > 4){
         pgError("invalid VM slot; " SRC_LOCATION);
     }
@@ -982,13 +982,13 @@ static UNValue hasScript(int argc, UNValue *argv){
 
     switch(slot){
         case 1:
-            return unBoolValue(scriptsPtr->vm1);
+            return necroBoolValue(scriptsPtr->vm1);
         case 2:
-            return unBoolValue(scriptsPtr->vm2);
+            return necroBoolValue(scriptsPtr->vm2);
         case 3:
-            return unBoolValue(scriptsPtr->vm3);
+            return necroBoolValue(scriptsPtr->vm3);
         case 4:
-            return unBoolValue(scriptsPtr->vm4);
+            return necroBoolValue(scriptsPtr->vm4);
         default:
             pgError(
                 "unexpected default vm slot; "
@@ -998,7 +998,7 @@ static UNValue hasScript(int argc, UNValue *argv){
     }
 
     /* should never be reached */
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
@@ -1007,13 +1007,13 @@ static UNValue hasScript(int argc, UNValue *argv){
  * true if successful, false otherwise; Spawns go
  * in slots 3 and 4
  */
-static UNValue addScript(int argc, UNValue *argv){
+static NecroValue addScript(int argc, NecroValue *argv){
     assertArity(2, "usage: addScript(scriptId, slot)");
 
     /* get the script */
     String *stringPtr
-        = &(unObjectAsString(argv[0])->string);
-    UNObjectFunc *scriptPtr = resourcesGetScript(
+        = &(necroObjectAsString(argv[0])->string);
+    NecroObjectFunc *scriptPtr = resourcesGetScript(
         _gamePtr->resourcesPtr,
         stringPtr
     );
@@ -1023,7 +1023,7 @@ static UNValue addScript(int argc, UNValue *argv){
     }
 
     /* get the slot */
-    int slot = unAsInt(argv[1]);
+    int slot = necroAsInt(argv[1]);
     if(slot < 1 || slot > 4){
         pgError("invalid VM slot; " SRC_LOCATION);
     }
@@ -1046,14 +1046,14 @@ static UNValue addScript(int argc, UNValue *argv){
             if(!scriptsPtr->vm##SLOT){ \
                 scriptsPtr->vm##SLOT \
                     = vmPoolRequest(); \
-                unVirtualMachineLoad( \
+                necroVirtualMachineLoad( \
                     scriptsPtr->vm##SLOT, \
                     scriptPtr \
                 ); \
-                return unBoolValue(true); \
+                return necroBoolValue(true); \
             } \
             else{ \
-                return unBoolValue(false); \
+                return necroBoolValue(false); \
             } \
         } while(false)
 
@@ -1079,7 +1079,7 @@ static UNValue addScript(int argc, UNValue *argv){
     }
 
     /* should never be reached */
-    return unBoolValue(false);
+    return necroBoolValue(false);
 
     #undef loadScript
 }
@@ -1089,11 +1089,11 @@ static UNValue addScript(int argc, UNValue *argv){
  * true if successful, false if no such script existed;
  * UB IF ATTEMPTING TO REMOVE SELF
  */
-static UNValue removeScript(int argc, UNValue *argv){
+static NecroValue removeScript(int argc, NecroValue *argv){
     assertArity(1, "usage: removeScript(slot)");
 
     /* get the slot */
-    int slot = unAsInt(*argv);
+    int slot = necroAsInt(*argv);
     if(slot < 1 || slot > 4){
         pgError("invalid VM slot; " SRC_LOCATION);
     }
@@ -1116,10 +1116,10 @@ static UNValue removeScript(int argc, UNValue *argv){
             if(scriptsPtr->vm##SLOT){ \
                 vmPoolReclaim(scriptsPtr->vm##SLOT); \
                 scriptsPtr->vm##SLOT = NULL; \
-                return unBoolValue(true); \
+                return necroBoolValue(true); \
             } \
             else{ \
-                return unBoolValue(false); \
+                return necroBoolValue(false); \
             } \
         } while(false)
 
@@ -1145,7 +1145,7 @@ static UNValue removeScript(int argc, UNValue *argv){
     }
 
     /* should never be reached */
-    return unBoolValue(false);
+    return necroBoolValue(false);
 
     #undef _removeScriptAndReturn
 }
@@ -1155,7 +1155,7 @@ static UNValue removeScript(int argc, UNValue *argv){
  * in VM slots 3 and 4; UB IF ATTEMPTING TO REMOVE
  * SELF
  */
-static UNValue removeSpawns(int argc, UNValue *argv){
+static NecroValue removeSpawns(int argc, NecroValue *argv){
     assertArity(0, "removeSpawns expects 0 args");
 
     /* get the script component */
@@ -1179,7 +1179,7 @@ static UNValue removeSpawns(int argc, UNValue *argv){
     _removeScript(3);
     _removeScript(4);
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 
     /*
      * undefine macro _removeScript which was defined
@@ -1195,7 +1195,7 @@ static UNValue removeSpawns(int argc, UNValue *argv){
  * that just like with normal scripts, slots 3 and 4
  * are typically used for spawns
  */
-static UNValue addDeathScript(int argc, UNValue *argv){
+static NecroValue addDeathScript(int argc, NecroValue *argv){
     assertArity(
         2,
         "usage: addDeathScript(scriptId, slot)"
@@ -1203,10 +1203,10 @@ static UNValue addDeathScript(int argc, UNValue *argv){
 
     /* get the script Id */
     String *stringPtr
-        = &(unObjectAsString(argv[0])->string);
+        = &(necroObjectAsString(argv[0])->string);
 
     /* get the slot */
-    int slot = unAsInt(argv[1]);
+    int slot = necroAsInt(argv[1]);
     if(slot < 1 || slot > 4){
         pgError(
             "invalid death script slot; "
@@ -1238,10 +1238,10 @@ static UNValue addDeathScript(int argc, UNValue *argv){
                 ){ \
                     deathScriptsPtr->scriptId##SLOT \
                         = stringCopy(stringPtr); \
-                    return unBoolValue(true); \
+                    return necroBoolValue(true); \
                 } \
                 else{ \
-                    return unBoolValue(false); \
+                    return necroBoolValue(false); \
                 } \
             } while(false)
 
@@ -1305,11 +1305,11 @@ static UNValue addDeathScript(int argc, UNValue *argv){
             _entity,
             &deathScripts
         );
-        return unBoolValue(true);
+        return necroBoolValue(true);
     }
 
     /* should never be reached */
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
@@ -1317,13 +1317,13 @@ static UNValue addDeathScript(int argc, UNValue *argv){
  * of the specified slot (int slot); returns true if
  * successful, false otherwise
  */
-static UNValue removeDeathScript(
+static NecroValue removeDeathScript(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(1, "usage: removeDeathScript(slot)");
 
-    int slot = unAsInt(*argv);
+    int slot = necroAsInt(*argv);
     if(slot < 1 || slot > 4){
         pgError(
             "invalid death script slot; "
@@ -1339,7 +1339,7 @@ static UNValue removeDeathScript(
         &(_scenePtr->ecsWorld),
         _entity
     )){
-        return unBoolValue(false);
+        return necroBoolValue(false);
     }
 
     DeathScripts *deathScriptsPtr = NULL;
@@ -1362,10 +1362,10 @@ static UNValue removeDeathScript(
                     &(deathScriptsPtr \
                         ->scriptId##SLOT) \
                 ); \
-                return unBoolValue(true); \
+                return necroBoolValue(true); \
             } \
             else{ \
-                return unBoolValue(false); \
+                return necroBoolValue(false); \
             } \
         } while(false)
 
@@ -1391,7 +1391,7 @@ static UNValue removeDeathScript(
             break;
     }
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 
     #undef removeDeathScript
 }
@@ -1402,29 +1402,29 @@ static UNValue removeDeathScript(
  * Flips a float angle or a polar vector about the x
  * axis
  */
-static UNValue flipX(int argc, UNValue *argv){
+static NecroValue flipX(int argc, NecroValue *argv){
     assertArity(
         1,
         "flipX expects float or vector arg"
     );
 
-    UNValue value = *argv;
-    if(unIsFloat(value)){
-        float floatValue = unAsFloat(value);
-        return unFloatValue(angleFlipX(floatValue));
+    NecroValue value = *argv;
+    if(necroIsFloat(value)){
+        float floatValue = necroAsFloat(value);
+        return necroFloatValue(angleFlipX(floatValue));
     }
-    else if(unIsVector(value)){
-        Polar vectorValue = unAsVector(value);
+    else if(necroIsVector(value)){
+        Polar vectorValue = necroAsVector(value);
         vectorValue.angle
             = angleFlipX(vectorValue.angle);
-        return unVectorValue(vectorValue);
+        return necroVectorValue(vectorValue);
     }
     else{
         pgError(
             "flipX expects float or vector; "
             SRC_LOCATION
         );
-        return unBoolValue(false);
+        return necroBoolValue(false);
     }
 }
 
@@ -1432,29 +1432,29 @@ static UNValue flipX(int argc, UNValue *argv){
  * Flips a float angle or a polar vector about the x
  * axis
  */
-static UNValue flipY(int argc, UNValue *argv){
+static NecroValue flipY(int argc, NecroValue *argv){
     assertArity(
         1,
         "flipY expects float or vector arg"
     );
 
-    UNValue value = *argv;
-    if(unIsFloat(value)){
-        float floatValue = unAsFloat(value);
-        return unFloatValue(angleFlipY(floatValue));
+    NecroValue value = *argv;
+    if(necroIsFloat(value)){
+        float floatValue = necroAsFloat(value);
+        return necroFloatValue(angleFlipY(floatValue));
     }
-    else if(unIsVector(value)){
-        Polar vectorValue = unAsVector(value);
+    else if(necroIsVector(value)){
+        Polar vectorValue = necroAsVector(value);
         vectorValue.angle
             = angleFlipY(vectorValue.angle);
-        return unVectorValue(vectorValue);
+        return necroVectorValue(vectorValue);
     }
     else{
         pgError(
             "flipY expects float or vector; "
             SRC_LOCATION
         );
-        return unBoolValue(false);
+        return necroBoolValue(false);
     }
 }
 
@@ -1464,24 +1464,24 @@ static UNValue flipY(int argc, UNValue *argv){
  * int, otherwise float (if the exponent is negative,
  * the result will also be a float)
  */
-static UNValue _pow(int argc, UNValue *argv){
+static NecroValue _pow(int argc, NecroValue *argv){
     assertArity(
         2,
         "usage: pow(base, exponent)"
     );
 
-    UNValue baseValue = argv[0];
-    UNValue expValue = argv[1];
+    NecroValue baseValue = argv[0];
+    NecroValue expValue = argv[1];
 
     /* if both ints, we may return an int */
-    if(unIsInt(baseValue) && unIsInt(expValue)){
-        int base = unAsInt(baseValue);
-        int exp = unAsInt(expValue);
+    if(necroIsInt(baseValue) && necroIsInt(expValue)){
+        int base = necroAsInt(baseValue);
+        int exp = necroAsInt(expValue);
         if(exp == 0){
-            return unIntValue(1);
+            return necroIntValue(1);
         }
         if(exp < 0){
-            return unFloatValue(powf(base, exp));
+            return necroFloatValue(powf(base, exp));
         }
         /* calculate integer power */
         int result = 1;
@@ -1495,7 +1495,7 @@ static UNValue _pow(int argc, UNValue *argv){
             }
             base *= base;
         }
-        return unIntValue(result);
+        return necroIntValue(result);
     }
 
     /* if not both ints, return a float */
@@ -1509,14 +1509,14 @@ static UNValue _pow(int argc, UNValue *argv){
         "exp of pow() function should be number; "
         SRC_LOCATION
     );
-    return unFloatValue(powf(base, exp));
+    return necroFloatValue(powf(base, exp));
 }
 
 /*
  * Computes the sin function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue _sin(int argc, UNValue *argv){
+static NecroValue _sin(int argc, NecroValue *argv){
     assertArity(1, "sin expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1524,14 +1524,14 @@ static UNValue _sin(int argc, UNValue *argv){
         "arg of sin() function should be number; "
         SRC_LOCATION
     );
-    return unFloatValue(sinf(arg));
+    return necroFloatValue(sinf(arg));
 }
 
 /*
  * Computes the cos function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue _cos(int argc, UNValue *argv){
+static NecroValue _cos(int argc, NecroValue *argv){
     assertArity(1, "cos expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1539,14 +1539,14 @@ static UNValue _cos(int argc, UNValue *argv){
         "arg of cos() function should be number; "
         SRC_LOCATION
     );
-    return unFloatValue(cosf(arg));
+    return necroFloatValue(cosf(arg));
 }
 
 /*
  * Computes the tan function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue _tan(int argc, UNValue *argv){
+static NecroValue _tan(int argc, NecroValue *argv){
     assertArity(1, "tan expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1554,14 +1554,14 @@ static UNValue _tan(int argc, UNValue *argv){
         "arg of tan() function should be number; "
         SRC_LOCATION
     );
-    return unFloatValue(tanf(arg));
+    return necroFloatValue(tanf(arg));
 }
 
 /*
  * Computes the sec function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue _sec(int argc, UNValue *argv){
+static NecroValue _sec(int argc, NecroValue *argv){
     assertArity(1, "sec expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1573,14 +1573,14 @@ static UNValue _sec(int argc, UNValue *argv){
     if(cos == 0.0f){
         pgError("cannot compute sec; divide by 0");
     }
-    return unFloatValue(1.0f/cos);
+    return necroFloatValue(1.0f/cos);
 }
 
 /*
  * Computes the csc function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue _csc(int argc, UNValue *argv){
+static NecroValue _csc(int argc, NecroValue *argv){
     assertArity(1, "csc expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1592,14 +1592,14 @@ static UNValue _csc(int argc, UNValue *argv){
     if(sin == 0.0f){
         pgError("cannot compute csc; divide by 0");
     }
-    return unFloatValue(1.0f/sin);
+    return necroFloatValue(1.0f/sin);
 }
 
 /*
  * Computes the cot function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue _cot(int argc, UNValue *argv){
+static NecroValue _cot(int argc, NecroValue *argv){
     assertArity(1, "cot expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1611,14 +1611,14 @@ static UNValue _cot(int argc, UNValue *argv){
     if(tan == 0.0f){
         pgError("cannot compute cot; divide by 0");
     }
-    return unFloatValue(1.0f/tan);
+    return necroFloatValue(1.0f/tan);
 }
 
 /*
  * Computes the arcsin function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue arcsin(int argc, UNValue *argv){
+static NecroValue arcsin(int argc, NecroValue *argv){
     assertArity(1, "arcsin expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1626,14 +1626,14 @@ static UNValue arcsin(int argc, UNValue *argv){
         "arg of arcsin() function should be number; "
         SRC_LOCATION
     );
-    return unFloatValue(asinf(arg));
+    return necroFloatValue(asinf(arg));
 }
 
 /*
  * Computes the arccos function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue arccos(int argc, UNValue *argv){
+static NecroValue arccos(int argc, NecroValue *argv){
     assertArity(1, "arccos expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1641,14 +1641,14 @@ static UNValue arccos(int argc, UNValue *argv){
         "arg of arccos() function should be number; "
         SRC_LOCATION
     );
-    return unFloatValue(acosf(arg));
+    return necroFloatValue(acosf(arg));
 }
 
 /*
  * Computes the arctan function; takes either int or
  * float and returns a float, works in radians
  */
-static UNValue arctan(int argc, UNValue *argv){
+static NecroValue arctan(int argc, NecroValue *argv){
     assertArity(1, "arctan expects 1 number arg");
 
     float arg = getValueAsNumber(
@@ -1656,14 +1656,14 @@ static UNValue arctan(int argc, UNValue *argv){
         "arg of arctan() function should be number; "
         SRC_LOCATION
     );
-    return unFloatValue(atanf(arg));
+    return necroFloatValue(atanf(arg));
 }
 
 /*
  * Returns the maximum of any number of numbers passed
  * in; error if 0 numbers passed in
  */
-static UNValue _max(int argc, UNValue *argv){
+static NecroValue _max(int argc, NecroValue *argv){
     static const char* notNumberErrMsg
         = "args of max() should all be numbers";
     if(argc <= 0){
@@ -1691,7 +1691,7 @@ static UNValue _max(int argc, UNValue *argv){
  * Returns the minimum of any number of numbers passed
  * in; error if 0 numbers passed in
  */
-static UNValue _min(int argc, UNValue *argv){
+static NecroValue _min(int argc, NecroValue *argv){
     static const char* notNumberErrMsg
         = "args of min() should all be numbers";
     if(argc <= 0){
@@ -1719,9 +1719,9 @@ static UNValue _min(int argc, UNValue *argv){
  * Returns the smaller angle difference from the first
  * number arg to the second as a float
  */
-static UNValue smallerAngleDiff(
+static NecroValue smallerAngleDiff(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     static const char* notNumberErrMsg
         = "args of smallerAngleDiff() should all be "
@@ -1739,7 +1739,7 @@ static UNValue smallerAngleDiff(
         argv[1],
         notNumberErrMsg
     );
-    return unFloatValue(
+    return necroFloatValue(
         angleSmallerDifference(from, to)
     );
 }
@@ -1748,9 +1748,9 @@ static UNValue smallerAngleDiff(
  * Returns the larger angle difference from the first
  * number arg to the second as a float
  */
-static UNValue largerAngleDiff(
+static NecroValue largerAngleDiff(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     static const char* notNumberErrMsg
         = "args of largerAngleDiff() should all be "
@@ -1768,7 +1768,7 @@ static UNValue largerAngleDiff(
         argv[1],
         notNumberErrMsg
     );
-    return unFloatValue(
+    return necroFloatValue(
         angleLargerDifference(from, to)
     );
 }
@@ -1777,33 +1777,33 @@ static UNValue largerAngleDiff(
  * Returns the absolute value of the argument as an
  * integer or a float depending on its type
  */
-static UNValue _abs(int argc, UNValue *argv){
+static NecroValue _abs(int argc, NecroValue *argv){
     assertArity(1, "abs expects 1 number arg");
 
-    UNValue value = *argv;
-    if(unIsInt(value)){
-        return unIntValue(abs(unAsInt(value)));
+    NecroValue value = *argv;
+    if(necroIsInt(value)){
+        return necroIntValue(abs(necroAsInt(value)));
     }
-    else if(unIsFloat(value)){
-        return unFloatValue(fabsf(unAsFloat(value)));
+    else if(necroIsFloat(value)){
+        return necroFloatValue(fabsf(necroAsFloat(value)));
     }
     else{
         pgError(
             "arg of abs() should be number; "
             SRC_LOCATION
         );
-        return unBoolValue(false);
+        return necroBoolValue(false);
     }
 }
 
 /* Returns the distance between two points */
-static UNValue pointDist(int argc, UNValue *argv){
+static NecroValue pointDist(int argc, NecroValue *argv){
     assertArity(2, "pointDist expects 2 point args");
 
-    Point2D pointA = unAsPoint(argv[0]);
-    Point2D pointB = unAsPoint(argv[1]);
+    Point2D pointA = necroAsPoint(argv[0]);
+    Point2D pointB = necroAsPoint(argv[1]);
 
-    return unFloatValue(
+    return necroFloatValue(
         point2DDistance(pointA, pointB)
     );
 }
@@ -1812,41 +1812,41 @@ static UNValue pointDist(int argc, UNValue *argv){
  * Returns the angle from point a to point b 
  * in degrees
  */
-static UNValue pointAngle(int argc, UNValue *argv){
+static NecroValue pointAngle(int argc, NecroValue *argv){
     assertArity(2, "pointAngle expects 2 point args");
 
-    Point2D pointA = unAsPoint(argv[0]);
-    Point2D pointB = unAsPoint(argv[1]);
+    Point2D pointA = necroAsPoint(argv[0]);
+    Point2D pointB = necroAsPoint(argv[1]);
 
-    return unFloatValue(point2DAngle(pointA, pointB));
+    return necroFloatValue(point2DAngle(pointA, pointB));
 }
 
 /*
  * Converts the given number from degrees to radians
  * and returns the result as a float
  */
-static UNValue _toRadians(int argc, UNValue *argv){
+static NecroValue _toRadians(int argc, NecroValue *argv){
     assertArity(1, "toRadians expects 1 number arg");
     float degrees = getValueAsNumber(
         *argv,
         "toRadians expects a number; "
         SRC_LOCATION
     );
-    return unFloatValue(toRadians(degrees));
+    return necroFloatValue(toRadians(degrees));
 }
 
 /*
  * Converts the given number from radians to degrees
  * and returns the result as a float
  */
-static UNValue _toDegrees(int argc, UNValue *argv){
+static NecroValue _toDegrees(int argc, NecroValue *argv){
     assertArity(1, "toDegrees expects 1 number arg");
     float radians = getValueAsNumber(
         *argv,
         "toDegrees expects a number; "
         SRC_LOCATION
     );
-    return unFloatValue(toDegrees(radians));
+    return necroFloatValue(toDegrees(radians));
 }
 
 /*
@@ -1855,7 +1855,7 @@ static UNValue _toDegrees(int argc, UNValue *argv){
  * calculates a random int if both numbers are ints,
  * otherwise calculates a random float
  */
-static UNValue _random(int argc, UNValue *argv){
+static NecroValue _random(int argc, NecroValue *argv){
     assertArity(
         2,
         "usage: random(number min, number max)"
@@ -1863,18 +1863,18 @@ static UNValue _random(int argc, UNValue *argv){
 
     ZMT *prngPtr = &(_scenePtr->messages.prng);
     
-    UNValue minValue = argv[0];
-    UNValue maxValue = argv[1];
+    NecroValue minValue = argv[0];
+    NecroValue maxValue = argv[1];
 
     /* if both ints, calculate random int */
-    if(unIsInt(minValue) && unIsInt(maxValue)){
-        int min = unAsInt(minValue);
-        int max = unAsInt(maxValue);
+    if(necroIsInt(minValue) && necroIsInt(maxValue)){
+        int min = necroAsInt(minValue);
+        int max = necroAsInt(maxValue);
         if(max < min){
             pgError("max < min; " SRC_LOCATION);
         }
         int result = zmtIntDie(prngPtr, min, max);
-        return unIntValue(result);
+        return necroIntValue(result);
     }
 
     /* if not both ints, return a float */
@@ -1892,7 +1892,7 @@ static UNValue _random(int argc, UNValue *argv){
         pgError("max < min; " SRC_LOCATION);
     }
     float result = zmtFloatDie(prngPtr, min, max);
-    return unFloatValue(result);
+    return necroFloatValue(result);
 }
 
 /*
@@ -1900,52 +1900,52 @@ static UNValue _random(int argc, UNValue *argv){
  * chance [0.0, 1.0]; error if the chance is out of
  * bounds
  */
-static UNValue chance(int argc, UNValue *argv){
+static NecroValue chance(int argc, NecroValue *argv){
     assertArity(1, "chance() expects 1 float arg");
 
     ZMT *prngPtr = &(_scenePtr->messages.prng);
 
     assertTrue(
-        unIsFloat(*argv),
+        necroIsFloat(*argv),
         "chance expects a float; " SRC_LOCATION
     );
-    float chance = unAsFloat(*argv);
+    float chance = necroAsFloat(*argv);
 
     if(chance < 0.0f || chance > 1.0f){
         pgError("chance out of range; " SRC_LOCATION);
     }
 
     if(chance == 0.0f){
-        return unBoolValue(false);
+        return necroBoolValue(false);
     }
     if(chance == 1.0f){
-        return unBoolValue(true);
+        return necroBoolValue(true);
     }
 
     /* random float in range [0.0, 1.0] */
     float rand = zmtRandFloat(prngPtr);
     
-    return unBoolValue(rand < chance);
+    return necroBoolValue(rand < chance);
 }
 
 /*
  * Returns true if the specified point is outside the
  * given bounds, false otherwise; (point, bound)
  */
-static UNValue isPointOutOfBounds(
+static NecroValue isPointOutOfBounds(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(
         2,
         "usage: isPointOutOfBounds(point, bound)"
     );
-    Point2D point = unAsPoint(argv[0]);
+    Point2D point = necroAsPoint(argv[0]);
     float bound = getValueAsNumber(
         argv[1],
         "bound should be a number; " SRC_LOCATION
     );
-    return unBoolValue(isOutOfBounds(point, bound));
+    return necroBoolValue(isOutOfBounds(point, bound));
 }
 
 /* SCENE SIGNALING */
@@ -1954,53 +1954,53 @@ static UNValue isPointOutOfBounds(
  * Adds a life to the player; calling multiple times
  * on the same tick will have an extra effect
  */
-static UNValue addLife(int argc, UNValue *argv){
+static NecroValue addLife(int argc, NecroValue *argv){
     assertArity(0, "addLife expects 0 args");
     ++(_scenePtr->messages.livesToAdd);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Adds a bomb to the player; calling multiple times
  * on the same tick will have an extra effect
  */
-static UNValue addBomb(int argc, UNValue *argv){
+static NecroValue addBomb(int argc, NecroValue *argv){
     assertArity(0, "addBomb expects 0 args");
     ++(_scenePtr->messages.bombsToAdd);
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Flags a boss death; flagging multiple times on the
  * same tick has no extra effect
  */
-static UNValue flagBossDeath(int argc, UNValue *argv){
+static NecroValue flagBossDeath(int argc, NecroValue *argv){
     assertArity(0, "flagBossDeath expects 0 args");
     _scenePtr->messages.bossDeathFlag = true;
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Flags a bullet clear; flagging multiple times on the
  * same tick has no extra effect
  */
-static UNValue flagBulletClear(
+static NecroValue flagBulletClear(
     int argc,
-    UNValue *argv
+    NecroValue *argv
 ){
     assertArity(0, "flagBulletClear expects 0 args");
     _scenePtr->messages.clearFlag = true;
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Flags a stage win; flagging multiple times on the
  * same tick has no extra effect
  */
-static UNValue flagWin(int argc, UNValue *argv){
+static NecroValue flagWin(int argc, NecroValue *argv){
     assertArity(0, "flagWin expects 0 args");
     _scenePtr->messages.winFlag = true;
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
@@ -2008,7 +2008,7 @@ static UNValue flagWin(int argc, UNValue *argv){
  * next stage, goes back to the menu, or enters the
  * credits scene depending on the game state
  */
-static UNValue endStage(int argc, UNValue *argv){
+static NecroValue endStage(int argc, NecroValue *argv){
     assertArity(0, "endStage expects 0 args");
     
     GameState *gameStatePtr
@@ -2107,16 +2107,16 @@ static UNValue endStage(int argc, UNValue *argv){
         );
     }
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Displays the dialogue with the specified string Id
  */
-static UNValue startDialogue(int argc, UNValue *argv){
+static NecroValue startDialogue(int argc, NecroValue *argv){
     assertArity(1, "startDialogue expects string arg");
     String *stringPtr
-        = &(unObjectAsString(*argv)->string);
+        = &(necroObjectAsString(*argv)->string);
     
     arrayListPushBack(SceneId,
         &(_gamePtr->messages.sceneEntryList),
@@ -2127,7 +2127,7 @@ static UNValue startDialogue(int argc, UNValue *argv){
         stringPtr
     );
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
@@ -2139,21 +2139,21 @@ static UNValue startDialogue(int argc, UNValue *argv){
  * Sets the user flag 1 such that other entities will
  * see it next tick
  */
-static UNValue flagUser1(int argc, UNValue *argv){
+static NecroValue flagUser1(int argc, NecroValue *argv){
     assertArity(0, "flagUser1 expects no args");
 
     _scenePtr->messages.userFlag1 |= 2;
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 /*
  * Returns true if the user flag 1 was set last tick,
  * false otherwise
  */
-static UNValue isFlagged1(int argc, UNValue *argv){
+static NecroValue isFlagged1(int argc, NecroValue *argv){
     assertArity(0, "isFlagged1 expects no args");
 
-    return unBoolValue(
+    return necroBoolValue(
         _scenePtr->messages.userFlag1 & 1
     );
 }
@@ -2170,7 +2170,7 @@ static UNValue isFlagged1(int argc, UNValue *argv){
  *      OPTIONAL string scriptId1, 2, 3, 4
  * )
  */
-static UNValue spawn(int argc, UNValue *argv){
+static NecroValue spawn(int argc, NecroValue *argv){
     static const char *usageMsg
         = "spawn(String prototypeId, Point position, "
             "Vector velocity, int depthOffset, "
@@ -2180,10 +2180,10 @@ static UNValue spawn(int argc, UNValue *argv){
     }
 
     String *prototypeIdPtr
-        = &(unObjectAsString(argv[0])->string);
-    Point2D pos = unAsPoint(argv[1]);
-    Polar vel = unAsVector(argv[2]);
-    int depthOffset = unAsInt(argv[3]);
+        = &(necroObjectAsString(argv[0])->string);
+    Point2D pos = necroAsPoint(argv[1]);
+    Polar vel = necroAsVector(argv[2]);
+    int depthOffset = necroAsInt(argv[3]);
 
     String *scriptId1Ptr = NULL;
     String *scriptId2Ptr = NULL;
@@ -2192,19 +2192,19 @@ static UNValue spawn(int argc, UNValue *argv){
     switch(argc){
         case 8:
             scriptId4Ptr
-                = &(unObjectAsString(argv[7])->string);
+                = &(necroObjectAsString(argv[7])->string);
             /* fallthrough */
         case 7:
             scriptId3Ptr
-                = &(unObjectAsString(argv[6])->string);
+                = &(necroObjectAsString(argv[6])->string);
             /* fallthrough */
         case 6:
             scriptId2Ptr
-                = &(unObjectAsString(argv[5])->string);
+                = &(necroObjectAsString(argv[5])->string);
             /* fallthrough */
         case 5:
             scriptId1Ptr
-                = &(unObjectAsString(argv[4])->string);
+                = &(necroObjectAsString(argv[4])->string);
             /* fallthrough */
         default:
             break;
@@ -2241,12 +2241,12 @@ static UNValue spawn(int argc, UNValue *argv){
                 ){ \
                     scripts.vm##SLOT \
                         = vmPoolRequest(); \
-                    UNObjectFunc *scriptPtr \
+                    NecroObjectFunc *scriptPtr \
                         = resourcesGetScript( \
                             _gamePtr->resourcesPtr, \
                             scriptId##SLOT##Ptr \
                         ); \
-                    unVirtualMachineLoad( \
+                    necroVirtualMachineLoad( \
                         scripts.vm##SLOT, \
                         scriptPtr \
                     ); \
@@ -2276,7 +2276,7 @@ static UNValue spawn(int argc, UNValue *argv){
         _scenePtr
     );
 
-    return unBoolValue(false);
+    return necroBoolValue(false);
 }
 
 #undef assertArity
@@ -2298,7 +2298,7 @@ static UNValue spawn(int argc, UNValue *argv){
  */
 static void destroy(){
     if(initialized){
-        unNativeFuncSetFree(nativeFuncSetPtr);
+        necroNativeFuncSetFree(nativeFuncSetPtr);
         pgFree(nativeFuncSetPtr);
         initialized = false;
     }
@@ -2312,16 +2312,16 @@ static void init(){
     if(!initialized){
         nativeFuncSetPtr
             = pgAlloc(1, sizeof(*nativeFuncSetPtr));
-        *nativeFuncSetPtr = unNativeFuncSetMake();
+        *nativeFuncSetPtr = necroNativeFuncSetMake();
 
         #define addNativeFunc(FUNCNAME) \
-            unNativeFuncSetAdd( \
+            necroNativeFuncSetAdd( \
                 nativeFuncSetPtr, \
                 #FUNCNAME, \
                 FUNCNAME \
             );
         #define addNativeFuncWithName(FUNC, NAME) \
-            unNativeFuncSetAdd( \
+            necroNativeFuncSetAdd( \
                 nativeFuncSetPtr, \
                 #NAME, \
                 FUNC \
@@ -2465,7 +2465,7 @@ static void init(){
  * Returns a pointer to the native func set used by
  * the game
  */
-UNNativeFuncSet *getNativeFuncSet(){
+NecroNativeFuncSet *getNativeFuncSet(){
     init();
     return nativeFuncSetPtr;
 }

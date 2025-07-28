@@ -129,7 +129,7 @@ static void removeLife(
     addAnimations(&componentList, &animations);
     Scripts scripts = {0};
     scripts.vm1 = vmPoolRequest();
-    unVirtualMachineLoad(
+    necroVirtualMachineLoad(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,
@@ -201,7 +201,7 @@ static void removeBomb(
     addAnimations(&componentList, &animations);
     Scripts scripts = {0};
     scripts.vm1 = vmPoolRequest();
-    unVirtualMachineLoad(
+    necroVirtualMachineLoad(
         scripts.vm1,
         resourcesGetScript(
             gamePtr->resourcesPtr,

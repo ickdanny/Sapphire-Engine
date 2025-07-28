@@ -78,7 +78,7 @@ void playerBombSystem(Game *gamePtr, Scene *scenePtr){
         "is occupied; " SRC_LOCATION
     );
     scriptsPtr->vm4 = vmPoolRequest();
-    unVirtualMachineLoad(
+    necroVirtualMachineLoad(
         scriptsPtr->vm4,
         resourcesGetScript(
             gamePtr->resourcesPtr,

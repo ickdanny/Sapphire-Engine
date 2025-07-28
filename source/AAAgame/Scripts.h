@@ -1,7 +1,7 @@
 #ifndef SCRIPTS_H
 #define SCRIPTS_H
 
-#include "Unknown.h"
+#include "Necro.h"
 
 /*
  * Points to scripts that run in the context of the
@@ -9,10 +9,10 @@
  * scripts
  */
 typedef struct Scripts{
-    UNVirtualMachine *vm1;
-    UNVirtualMachine *vm2;
-    UNVirtualMachine *vm3;
-    UNVirtualMachine *vm4;
+    NecroVirtualMachine *vm1;
+    NecroVirtualMachine *vm2;
+    NecroVirtualMachine *vm3;
+    NecroVirtualMachine *vm4;
 } Scripts;
 
 /*
@@ -20,18 +20,17 @@ typedef struct Scripts{
  * been initialized
  */
 void vmPoolInit(
-    UNNativeFuncSet *nativeFuncSetPtr,
-    UNUserFuncSet *userFuncSetPtr
+    NecroNativeFuncSet *nativeFuncSetPtr
 );
 
 /*
  * Returns a pointer to a fresh virtual machine from
  * the VM pool
  */
-UNVirtualMachine *vmPoolRequest();
+NecroVirtualMachine *vmPoolRequest();
 
 /* Reclaims the specified VM pointer into the pool */
-void vmPoolReclaim(UNVirtualMachine *vmPtr);
+void vmPoolReclaim(NecroVirtualMachine *vmPtr);
 
 /*
  * Reclaims the virtual machines associated with the

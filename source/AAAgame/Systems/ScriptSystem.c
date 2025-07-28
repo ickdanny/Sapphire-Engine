@@ -15,18 +15,18 @@ static VecsComponentSet accept
 #define runVM(VMPTRNAME) \
     do{ \
         if(VMPTRNAME){ \
-            UNInterpretResult result \
-                = unVirtualMachineResume( \
+            NecroInterpretResult result \
+                = necroVirtualMachineResume( \
                     VMPTRNAME \
                 ); \
             switch(result){ \
-                case un_success: \
+                case necro_success: \
                     vmPoolReclaim(VMPTRNAME); \
                     VMPTRNAME = NULL; \
                     break; \
-                case un_yielded: \
+                case necro_yielded: \
                     break; \
-                case un_runtimeError: \
+                case necro_runtimeError: \
                     pgError( \
                         "halt due to unknown " \
                         "runtime error" \

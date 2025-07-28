@@ -6,7 +6,7 @@
  * machines
  */
 typedef struct VMNode{
-    UNVirtualMachine vm;
+    NecroVirtualMachine vm;
     struct VMNode *next;
 } VMNode;
 
@@ -27,8 +27,7 @@ static ArrayList blockHandleList;
 
 static bool initialized = false;
 
-static UNNativeFuncSet *_nativeFuncSetPtr = NULL;
-static UNUserFuncSet *_userFuncSetPtr = NULL;
+static NecroNativeFuncSet *_nativeFuncSetPtr = NULL;
 
 #define initBlockSize config_gameMaxEntities
 #define growBlockSize 100
@@ -68,9 +67,8 @@ static void addNewBlock(int size){
     /* initialize and link up the whole block */
     VMNode *currentPtr = blockHandle.blockPtr;
     for(int i = 0; i < size; ++i){
-        currentPtr->vm = unVirtualMachineMake(
-            _nativeFuncSetPtr,
-            _userFuncSetPtr
+        currentPtr->vm = necroVirtualMachineMake(
+            _nativeFuncSetPtr
         );
         currentPtr->next = poolHeadPtr;
         poolHeadPtr = currentPtr;
@@ -83,8 +81,7 @@ static void addNewBlock(int size){
  * been initialized
  */
 void vmPoolInit(
-    UNNativeFuncSet *nativeFuncSetPtr,
-    UNUserFuncSet *userFuncSetPtr
+    NecroNativeFuncSet *nativeFuncSetPtr
 ){
     if(initialized){
         return;
@@ -92,7 +89,6 @@ void vmPoolInit(
     initialized = true;
     blockHandleList = arrayListMake(VMBlockHandle, 10);
     _nativeFuncSetPtr = nativeFuncSetPtr;
-    _userFuncSetPtr = userFuncSetPtr;
     
     addNewBlock(initBlockSize);
 }
@@ -101,7 +97,7 @@ void vmPoolInit(
  * Returns a pointer to a fresh virtual machine from
  * the VM pool
  */
-UNVirtualMachine *vmPoolRequest(){
+NecroVirtualMachine *vmPoolRequest(){
     assertTrue(
         initialized,
         "vm pool not initialized; " SRC_LOCATION
@@ -119,7 +115,7 @@ UNVirtualMachine *vmPoolRequest(){
 }
 
 /* Reclaims the specified VM pointer into the pool */
-void vmPoolReclaim(UNVirtualMachine *vmPtr){
+void vmPoolReclaim(NecroVirtualMachine *vmPtr){
     if(!vmPtr){
         return;
     }
@@ -131,7 +127,7 @@ void vmPoolReclaim(UNVirtualMachine *vmPtr){
     VMNode *nodePtr = (VMNode*)vmPtr;
     nodePtr->next = poolHeadPtr;
     poolHeadPtr = nodePtr;
-    unVirtualMachineReset(vmPtr);
+    necroVirtualMachineReset(vmPtr);
 }
 
 /*
@@ -165,7 +161,7 @@ static void vmBlockHandleFree(
     /* walk thru the block and free every VM */
     VMNode *nodePtr = handlePtr->blockPtr;
     for(int i = 0; i < handlePtr->blockSize; ++i){
-        unVirtualMachineFree(&(nodePtr->vm));
+        necroVirtualMachineFree(&(nodePtr->vm));
         ++nodePtr;
     }
     pgFree(handlePtr->blockPtr);
@@ -189,6 +185,5 @@ void vmPoolDestroy(){
         &(blockHandleList)
     );
     _nativeFuncSetPtr = NULL;
-    _userFuncSetPtr = NULL;
     initialized = false;
 }

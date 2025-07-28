@@ -2063,8 +2063,6 @@ static void necroCompilerNamedVariable(
      */
     int arg = localLocation.index;
 
-    printf("access jumps: %d\n", localLocation.accessJumps);
-
     bool isLocal = (arg != -1);
     bool mutable = false;
 

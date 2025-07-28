@@ -7,7 +7,7 @@
  * Returns a pointer to the native func set used by
  * the game
  */
-UNNativeFuncSet *getNativeFuncSet();
+NecroNativeFuncSet *getNativeFuncSet();
 
 /* Sets the game pointer for native funcs */
 void setGameForNativeFuncs(Game *gamePtr);
