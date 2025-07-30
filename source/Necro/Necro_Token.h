@@ -57,6 +57,7 @@ typedef enum NecroTokenType{
     necro_tokenLet,
     necro_tokenPrint, /* prints non-strings too */
     necro_tokenReturn,
+    necro_tokenSelf,
     necro_tokenTrue,
     necro_tokenVar,
     necro_tokenWait,

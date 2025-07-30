@@ -386,6 +386,12 @@ NecroTokenType necroLexerDeduceIdentifierType(
             5,
             "eturn"
         ) ? necro_tokenReturn : necro_tokenIdentifier;
+        case 's': return necroLexerStringMatch(
+            lexerPtr,
+            1,
+            3,
+            "elf"
+        ) ? necro_tokenSelf : necro_tokenIdentifier;
         case 't': return necroLexerStringMatch(
             lexerPtr,
             1,

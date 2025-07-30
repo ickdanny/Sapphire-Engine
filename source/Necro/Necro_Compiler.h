@@ -237,6 +237,15 @@ void necroCompilerVariable(
 );
 
 /*
+ * Parses a lambda self reference for the specified
+ * compiler
+ */
+void necroCompilerSelf(
+    NecroCompiler *compilerPtr,
+    bool canAssign
+);
+
+/*
  * Parses a lambda for the specified compiler
  */
 void necroCompilerLambda(

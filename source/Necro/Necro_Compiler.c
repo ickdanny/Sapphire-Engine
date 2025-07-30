@@ -56,6 +56,7 @@ typedef struct NecroParseRule{
 #define vector necroCompilerVector
 #define point necroCompilerPoint
 #define lambda necroCompilerLambda
+#define self necroCompilerSelf
 static const NecroParseRule parseRules[] = {
     [necro_tokenLeftParen]
         = {grouping, call,   necro_precCall},
@@ -147,6 +148,8 @@ static const NecroParseRule parseRules[] = {
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenReturn]
         = {NULL,     NULL,   necro_precNone},
+    [necro_tokenSelf]
+        = {self,     NULL,   necro_precNone},
     [necro_tokenTrue]
         = {bool_,    NULL,   necro_precNone},
     [necro_tokenVar]
@@ -176,6 +179,7 @@ static const NecroParseRule parseRules[] = {
 #undef vector
 #undef point
 #undef lambda
+#undef self
 
 /*
  * Returns a pointer to the parse rule for the
@@ -2246,6 +2250,33 @@ void necroCompilerVariable(
         compilerPtr,
         compilerPtr->prevToken,
         canAssign
+    );
+}
+
+/*
+ * Parses a lambda self reference for the specified
+ * compiler
+ */
+void necroCompilerSelf(
+    NecroCompiler *compilerPtr,
+    bool canAssign
+){
+    if(compilerPtr->currentFuncCompilerPtr->funcType
+        != necro_functionFuncType
+    ){
+        necroCompilerErrorPrev(
+            compilerPtr,
+            "self must be used in a lambda context"
+        );
+    }
+    necroCompilerWriteBytes(
+        compilerPtr,
+        necro_getLocal,
+        0   /* stack slot 0 for self reference */
+    );
+    necroCompilerWriteByte(
+        compilerPtr,
+        0   /* zero access jumps for self reference */
     );
 }
 
