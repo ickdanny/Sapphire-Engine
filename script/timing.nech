@@ -1,0 +1,14 @@
+let tickTimer := \(time) -> {
+    for(var i := 0; i < time; i += 1){
+        yield;
+    }
+};
+
+let secTimer := \(secs) -> {    
+    let ticks = secs * updatesPerSecond();
+    tickTimer(ticks);
+};
+
+let trapTimer := \() -> {
+    tickTimer(12 * 3);
+};

@@ -1,0 +1,149 @@
+# =================== #
+# PATTERN COMPOSITION #
+# =================== #
+
+# nextFunc takes velocity and spawn index
+let arc := \(
+    velocity, symmetry, increment, nextFunc
+) -> {
+    velocity.t -= ((symmetry - 1) * increment / 2.0);
+    for(let i := 0; i < symmetry; i += 1){
+        nextFunc(velocity, i);
+        velocity.t += increment;
+    }
+};
+
+# nextFunc takes velocity and spawn index
+let col := \(velocity, count, increment, nextFunc) -> {
+    for(let i := 0; i < count; i += 1){
+        nextFunc(velocity, i);
+        velocity.r += increment;
+    }
+};
+
+# nextFunc takes velocity and spawn index
+let ring := \(velocity, symmetry, nextFunc) -> {
+    let increment := 360.0 / symmetry;
+    for(let i := 0; i < symmetry; i += 1){
+        nextFunc(velocity, i);
+        velocity.t := velocity.t + increment;
+    }
+}
+
+# next func takes position, velocity, and spawn index
+let mirror := \(position, velocity, axis, nextFunc) -> {
+    let mirrorPosition := [
+        -position.x + (2.0 * axis),
+        position.y
+    ];
+    let mirrorVelocity := <<
+        velocity.r,
+        180.0 - velocity.t
+    >>;
+
+    nextFunc(position, velocity, 0);
+    nextFunc(mirrorPosition, mirrorVelocity, 1);
+}
+
+# next func takes velocity and spawn index
+let polygon := \(
+    vertexVelocity, sides, bulletsPerSide, nextFunc
+) -> {
+    if(sides < 3){
+        error("polygon needs >= 3 sides!");
+    }
+    if(bulletsPerSide < 1){
+        error("polygon needs >= 1 bullet per side!");
+    }
+
+    let vertexAngle := vertexVelocity.t;
+    let vertexSpeed := vertexVelocity.r;
+    let subtendedAngle := 360.0 / sides;
+    let angleDecrement
+        := subtendedAngle / bulletsPerSide;
+    let halfAngle := subtendedAngle / 2.0;
+    let midSpeed := vertexSpeed
+        * cos(toRadians(halfAngle));
+
+    # spawn the vertex first
+    ring(vertexVelocity, sides, nextFunc);
+
+    # spawn in the rest of the bullets; r = sec(theta)
+    let angle := vertexAngle;
+    let speed;
+    # theta at the first non-vertex angle
+    let theta := halfAngle - angleDecrement;
+    for(let i := 1; i < bulletsPerSide; i += 1){
+        angle := angle - angleDecrement;
+        speed := sec(toRadians(theta)) * midSpeed;
+        ring(<<speed, angle>>, sides, nextFunc);
+        theta := theta - angleDecrement;
+    }
+};
+
+# nextFunc takes position, angle, and spawn index
+let spawnLaser := \(basePos, angle, nextFunc) -> {
+    let bound := -6.0;
+    let distToNextSegment := 4.4;
+    let nextSegmentVector
+        := <<distToNextSegment, angle>>;
+    
+    let pos := basePos;
+    let numSpawns := 0;
+    while(!isPointOutOfBounds(pos, bound)){
+        nextFunc(pos, angle, numSpawns);
+        numSpawns := numSpawns + 1;
+        pos := pos + nextSegmentVector;
+    }
+};
+
+# ========== #
+# BULLET USE #
+# ========== #
+
+# this function is for actual lasers to use
+let laser := \(lifetimeSecs) -> {
+    secTimer(0.5);
+    setCollidable();
+    secTimer(lifetimeSecs);
+    die();
+};
+
+let gravity := \(
+    direction, acceleration, dragCoefficient
+) -> {
+    if(dragCoefficient < 0.0){
+        print dragCoefficient;
+        error("error: negative drag coefficient");
+    }
+    if(dragCoefficient > 0.05){
+        print dragCoefficient;
+        error(
+            "drag coefficient too high; you will "
+                + "not like the results"
+        );
+    }
+
+    let velocity;
+    let speed;
+    let drag;
+    let accelVector := <<acceleration, direction>>;
+
+    let running := true;
+    while(running){
+        velocity := getVelocity();
+        let newVelocity := velocity + accelVector;
+        speed := newVelocity.r;
+
+        drag := 0.5 * speed * speed * dragCoefficient;
+        newVelocity.r := speed - drag;
+        setVelocity(newVelocity);
+
+        if(vectorEquals(velocity, newVelocity)){
+            running := false;
+        }
+
+        velocity := newVelocity;
+        yield;
+    }
+};

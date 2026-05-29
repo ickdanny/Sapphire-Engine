@@ -1,0 +1,38 @@
+let sqrt := \(root) -> {
+    return pow(root, 0.5);
+};
+
+# returns true if the two specified vectors are equal
+# under the point epsilon, false otherwise
+let vectorEquals := \(vector1, vector2) -> {
+    let p1 = [0,0] + vector1;
+    let p2 = [0,0] + vector2;
+    let dist = pointDist(p1, p2);
+    return dist < pointEpsilon();
+};
+
+# returns vector dot product
+let dot := \(a, b) -> {
+    let theta = smallerAngleDiff(a.t, b.t);
+    let thetaRads = toRadians(theta);
+    
+    # |a||b|cos(theta)
+    return a.r * b.r * cos(thetaRads);
+};
+
+# normalizes an angle to the range [0, 360); assumes
+# the angle is not too far out of range
+let normalizeAngle := (angle) -> {
+    if(angle >= 360.0){
+        return angle - 360.0;
+    }
+    if(angle < 0){
+        return angle + 360.0;
+    }
+    return angle;
+}
+
+# returns a random angle
+let randomAngle := \() -> {
+    return random(0.0, 360.0);
+}

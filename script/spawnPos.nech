@@ -1,0 +1,22 @@
+let getLeftSpawn := \(y) -> {
+    let preOffset = [-enemySpawnDist(), y];
+    return preOffset + gameOffset();
+};
+
+let getRightSpawn := \(y) -> {
+    let preOffset = [gameWidth() + enemySpawnDist(), y];
+    return preOffset + gameOffset();
+};
+
+let getTopSpawnLeft := \(x) -> {
+    let preOffset = [x, gameHeight() + enemySpawnDist()];
+    return preOffset + gameOffset();
+};
+
+let getTopSpawnRight := \(x) -> {
+    let preOffset = [
+        gameWidth() - x,
+        gameHeight() + enemySpawnDist()
+    ];
+    return preOffset + gameOffset();
+};

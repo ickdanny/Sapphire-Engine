@@ -1,0 +1,15 @@
+
+# calculates the initial speed for a pickup based on
+# its height on the field
+let initPickupSpeed := \() -> {
+    let initSpeedMulti := 0.7;
+    let initSpeedBase := 90;
+    let gameOffsetPoint := [0, 0] + gameOffset();
+
+    let yCoord := getY();
+    let heightRatio := (yCoord - gameOffsetPoint.y)
+        / gameHeight();
+    let speedMulti := 1 
+        + (heightRatio * initSpeedMulti);
+    return initSpeedBase * speedMulti;
+};
