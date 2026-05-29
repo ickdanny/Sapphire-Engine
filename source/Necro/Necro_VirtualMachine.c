@@ -540,12 +540,31 @@ static void necroVirtualMachineConcatenate(
 }
 
 /*
- * Sets up the access link for the given frame pointer
+ * Sets up the access link for the given frame pointer;
+ * if prevPtr is NULL, the access link will also
+ * be set to NULL.
  */
 static void _setAccessPtr(
     NecroCallFrame *prevPtr,
     NecroCallFrame *framePtr
 ){
+    assertNotNull(
+        framePtr,
+        "NULL framePtr passed into _setAccessPtr"
+        SRC_LOCATION
+    );
+
+    /*
+     * if prevPtr is NULL, then we are setting the
+     * access ptr for the outermost depth, so
+     * we can safely just set the accessPtr to NULL
+     * also.
+     */
+    if(prevPtr == NULL){
+        framePtr->accessPtr = NULL;
+        return;
+    }
+
     /*
      * set up access links according to Dragon Book
      * 7.3.6
@@ -598,9 +617,21 @@ static bool necroVirtualMachineCall(
         );
         return false;
     }
-    NecroCallFrame *prevPtr = &(vmPtr->callStack[
-        vmPtr->frameCount - 1
-    ]);
+    /* sanity check */
+    if(vmPtr->frameCount < 0){
+        necroVirtualMachineRuntimeError(
+            vmPtr,
+            "frame count somehow negative"
+        );
+        return false;
+    }
+
+    NecroCallFrame *prevPtr = NULL;
+    if(vmPtr->frameCount > 0){
+        prevPtr = &(vmPtr->callStack[
+            vmPtr->frameCount - 1
+        ]);
+    }
     NecroCallFrame *framePtr = &(vmPtr->callStack[
         vmPtr->frameCount++
     ]);
@@ -1830,7 +1861,7 @@ void necroVirtualMachineLoad(
     necroVirtualMachineCall(
         vmPtr,
         funcObjectProgramPtr,
-        0,
+        0,    /* 0 args */
         false /* do not copy strings */
     );
 }

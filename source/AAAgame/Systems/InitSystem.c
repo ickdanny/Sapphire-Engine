@@ -1070,6 +1070,12 @@ static void addStageScript(
     declareList(componentList, 1);
     Scripts scripts = {0};
     String scriptId = {0};
+    NecroObjectFunc *scriptPtr = NULL;
+
+    /*
+     * pick stage script string id in order to
+     * request from resouces later
+     */
     switch(stage){
         case 1:
             scriptId = stringMakeC("stage1");
@@ -1091,13 +1097,17 @@ static void addStageScript(
             break;
     }
     scripts.vm1 = vmPoolRequest();
-    necroVirtualMachineLoad(
-        scripts.vm1,
-        resourcesGetScript(
-            gamePtr->resourcesPtr,
-            &scriptId
-        )
+
+    scriptPtr = resourcesGetScript(
+        gamePtr->resourcesPtr,
+        &scriptId
     );
+    assertNotNull(
+        scriptPtr,
+        "failed to find script for stage;"
+        SRC_LOCATION
+    );
+    necroVirtualMachineLoad(scripts.vm1, scriptPtr);
     addScripts(&componentList, scripts);
     addEntityAndFreeList(
         &componentList,

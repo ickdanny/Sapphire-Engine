@@ -651,6 +651,35 @@ static uint8_t necroCompilerMakeLiteral(
     )
 
 /*
+ * Returns true if the specified token is one of the
+ * assign tokens (i.e. :=, +=, -=, etc), false
+ * otherwise
+ */
+static bool necroCompilerMatchAssignToken(
+    NecroCompiler *compilerPtr
+){
+    return necroCompilerMatch(
+        compilerPtr,
+        necro_tokenColonEqual
+    ) || necroCompilerMatch(
+        compilerPtr,
+        necro_tokenPlusEqual
+    ) || necroCompilerMatch(
+        compilerPtr,
+        necro_tokenMinusEqual
+    ) || necroCompilerMatch(
+        compilerPtr,
+        necro_tokenStarEqual
+    ) || necroCompilerMatch(
+        compilerPtr,
+        necro_tokenSlashEqual
+    ) || necroCompilerMatch(
+        compilerPtr,
+        necro_tokenPercentEqual
+    );
+}
+
+/*
  * Parses the next expression for the specified
  * compiler at or above the given precedence level
  */
@@ -690,10 +719,9 @@ static void necroCompilerExpressionPrecedence(
         infixFunc(compilerPtr, canAssign);
     }
 
-    /* error if trailing := */
-    if(canAssign && necroCompilerMatch(
-        compilerPtr,
-        necro_tokenColonEqual
+    /* error if trailing assign token */
+    if(canAssign && necroCompilerMatchAssignToken(
+        compilerPtr
     )){
         necroCompilerErrorPrev(
             compilerPtr,
@@ -2038,6 +2066,84 @@ static bool necroCompilerIsGlobalMutable(
     ).mutable;
 }
 
+/* Emits instructions for a variable get */
+static void necroCompilerVariableGet(
+    NecroCompiler *compilerPtr,
+    uint8_t getOp,
+    uint8_t memberGetOp,
+    uint8_t arg,
+    uint8_t accessJumps,
+    bool isLocal,
+    bool isMember
+){
+    necroCompilerWriteBytes(
+        compilerPtr,
+        getOp,
+        (uint8_t)arg
+    );
+    if(isLocal){
+        necroCompilerWriteByte(
+            compilerPtr,
+            accessJumps
+        );
+    }
+    if(isMember){
+        necroCompilerWriteByte(
+            compilerPtr,
+            memberGetOp
+        );
+    }
+}
+
+/* Emits instructions for a variable set */
+static void necroCompilerVariableSet(
+    NecroCompiler *compilerPtr,
+    uint8_t getOp,
+    uint8_t setOp,
+    uint8_t memberGetOp,
+    uint8_t op,
+    uint8_t arg,
+    uint8_t accessJumps,
+    bool isLocal,
+    bool isMember,
+    bool hasOp
+){
+    /* assume variable is mutable */
+
+    /* generate code for get for sugar operators */
+    if(hasOp){
+        necroCompilerVariableGet(
+            compilerPtr,
+            getOp,
+            memberGetOp,
+            arg,
+            accessJumps,
+            isLocal,
+            isMember
+        );
+        necroCompilerExpression(compilerPtr);
+        necroCompilerWriteByte(
+            compilerPtr,
+            op
+        );
+    }
+    /* otherwise just get the rhs */
+    else{
+        necroCompilerExpression(compilerPtr);
+    }
+    necroCompilerWriteBytes(
+        compilerPtr,
+        setOp,
+        arg
+    );
+    if(isLocal){
+        necroCompilerWriteByte(
+            compilerPtr,
+            accessJumps
+        );
+    }
+}
+
 /*
  * Emits instructions for the specified global or local
  * variable passed as a token for the given compiler
@@ -2049,6 +2155,7 @@ static void necroCompilerNamedVariable(
 ){
     uint8_t getOp = 0;
     uint8_t setOp = 0;
+    NecroInstruction memberGetOp = 0;
 
     /* one less than the arg */
     int localIndex;
@@ -2094,6 +2201,8 @@ static void necroCompilerNamedVariable(
         );
     }
 
+    bool isMember = false;
+
     /*
      * if following token is dot, either get/set on
      * vector or point
@@ -2102,6 +2211,8 @@ static void necroCompilerNamedVariable(
         compilerPtr,
         necro_tokenDot
     )){
+        isMember = true;
+
         /* expect current token to be an identifier */
         necroCompilerConsume(
             compilerPtr,
@@ -2120,7 +2231,6 @@ static void necroCompilerNamedVariable(
          * of a member; one to load the whole composite
          * type, another to get specifically the member
          */
-        NecroInstruction memberGetOp = 0;
         switch(*(compilerPtr->prevToken.startPtr)){
             case 'r':
                 memberGetOp = necro_getR;
@@ -2153,89 +2263,105 @@ static void necroCompilerNamedVariable(
                 );
                 break;
         }
-        /*
-         * if following token is :=, member
-         * assignment
-         */
-        if(canAssign && necroCompilerMatch(
+    }
+
+    /*
+     * true if the variable is being set, false
+     * otherwise
+     */
+    bool isAssign = false;
+
+    /*
+     * true if the assignment operator is syntactic
+     * sugar e.g. +=, false otherwise
+     */
+    bool hasOp = false;
+
+    /* the operator used for syntactic sugar */
+    NecroInstruction op = 0;
+
+    if(canAssign){
+        if(necroCompilerMatch(
             compilerPtr,
             necro_tokenColonEqual
         )){
-            if(!mutable){
-                necroCompilerErrorPrev(
-                    compilerPtr,
-                    "variable is immutable"
-                );
-            }
-            necroCompilerExpression(compilerPtr);
-            necroCompilerWriteBytes(
-                compilerPtr,
-                setOp,
-                (uint8_t)arg
-            );
-            if(isLocal){
-                necroCompilerWriteByte(
-                    compilerPtr,
-                    localLocation.accessJumps
-                );
-            }
+            isAssign = true;
+            hasOp = false;
         }
-        /* otherwise member get */
-        else{
-            necroCompilerWriteBytes(
-                compilerPtr,
-                getOp,
-                (uint8_t)arg
-            );
-            if(isLocal){
-                necroCompilerWriteByte(
-                    compilerPtr,
-                    localLocation.accessJumps
-                );
-            }
-            necroCompilerWriteByte(
-                compilerPtr,
-                memberGetOp
-            );
+        else if(necroCompilerMatch(
+            compilerPtr,
+            necro_tokenPlusEqual
+        )){
+            isAssign = true;
+            hasOp = true;
+            op = necro_add;
+        }
+        else if(necroCompilerMatch(
+            compilerPtr,
+            necro_tokenMinusEqual
+        )){
+            isAssign = true;
+            hasOp = true;
+            op = necro_subtract;
+        }
+        else if(necroCompilerMatch(
+            compilerPtr,
+            necro_tokenStarEqual
+        )){
+            isAssign = true;
+            hasOp = true;
+            op = necro_multiply;
+        }
+        else if(necroCompilerMatch(
+            compilerPtr,
+            necro_tokenSlashEqual
+        )){
+            isAssign = true;
+            hasOp = true;
+            op = necro_divide;
+        }
+        else if(necroCompilerMatch(
+            compilerPtr,
+            necro_tokenPercentEqual
+        )){
+            isAssign = true;
+            hasOp = true;
+            op = necro_modulo;
         }
     }
-    /* if following token is :=, assignment */
-    else if(canAssign && necroCompilerMatch(
-        compilerPtr,
-        necro_tokenColonEqual
-    )){
+
+    /* generate set code */
+    if(isAssign){
         if(!mutable){
             necroCompilerErrorPrev(
                 compilerPtr,
                 "variable is immutable"
             );
         }
-        necroCompilerExpression(compilerPtr);
-        necroCompilerWriteBytes(
-            compilerPtr,
-            setOp,
-            (uint8_t)arg
-        );
-        if(isLocal){
-            necroCompilerWriteByte(
-                compilerPtr,
-                localLocation.accessJumps
-            );
-        }
-    }
-    /* otherwise just a get */
-    else{
-        necroCompilerWriteBytes(
+        necroCompilerVariableSet(
             compilerPtr,
             getOp,
-            (uint8_t)arg
+            setOp,
+            memberGetOp,
+            op,
+            arg,
+            localLocation.accessJumps,
+            isLocal,
+            isMember,
+            hasOp
         );
-        if(isLocal){
-            necroCompilerWriteByte(
-                compilerPtr,
-                localLocation.accessJumps
-            );
-        }
+    }
+    /* generate get code */
+    else{
+        necroCompilerVariableGet(
+            compilerPtr,
+            getOp,
+            memberGetOp,
+            arg,
+            localLocation.accessJumps,
+            isLocal,
+            isMember
+        );
     }
 }
 
