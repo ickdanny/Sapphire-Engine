@@ -104,9 +104,15 @@ int main(){
         &(engine.resources),
         "res/dialogue"
     );
+
+    /* load each subdirectory of scripts */
     resourcesLoadDirectory(
         &(engine.resources),
-        "res/script"
+        "res/script/header"
+    );
+    resourcesLoadDirectory(
+        &(engine.resources),
+        "res/script/stage"
     );
 
     /* init MIDI */

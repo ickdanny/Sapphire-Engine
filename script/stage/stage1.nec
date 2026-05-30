@@ -1,4 +1,4 @@
-include "res/script/timing.nech";
+include "res/script/header/timing.nech";
 
 var count := 0;
 while(true){

@@ -1,4 +1,4 @@
-include "res/script/spawnPos.nech";
+include "res/script/header/stage.nech";
 
 while(true){
     print "TODO: STAGE 2 SCRIPT";
