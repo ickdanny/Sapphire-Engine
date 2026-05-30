@@ -4,6 +4,6 @@ var count := 0;
 while(true){
     print "TODO: STAGE 1 SCRIPT";
     print(count);
-    tickTimer(5);
+    secTimer(2);
     count += 1;
 }

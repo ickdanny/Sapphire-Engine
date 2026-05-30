@@ -1,3 +1,5 @@
+include "res/script/spawnPos.nech";
+
 while(true){
     print "TODO: STAGE 2 SCRIPT";
     yield;

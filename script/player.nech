@@ -1,7 +1,7 @@
 let playerPowerSplit := \(
     func0, func1, func2, func3, func4, func5, func6
 ) -> {
-    let power = getPlayerPower();
+    let power := getPlayerPower();
     if(power < 48){
         if(power < 16){
             if(power < 8){
@@ -40,4 +40,4 @@ let playerPowerSplit := \(
             }
         }
     }
-}
+};

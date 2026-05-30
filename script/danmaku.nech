@@ -7,7 +7,7 @@ let arc := \(
     velocity, symmetry, increment, nextFunc
 ) -> {
     velocity.t -= ((symmetry - 1) * increment / 2.0);
-    for(let i := 0; i < symmetry; i += 1){
+    for(var i := 0; i < symmetry; i += 1){
         nextFunc(velocity, i);
         velocity.t += increment;
     }
@@ -15,7 +15,7 @@ let arc := \(
 
 # nextFunc takes velocity and spawn index
 let col := \(velocity, count, increment, nextFunc) -> {
-    for(let i := 0; i < count; i += 1){
+    for(var i := 0; i < count; i += 1){
         nextFunc(velocity, i);
         velocity.r += increment;
     }
@@ -24,18 +24,18 @@ let col := \(velocity, count, increment, nextFunc) -> {
 # nextFunc takes velocity and spawn index
 let ring := \(velocity, symmetry, nextFunc) -> {
     let increment := 360.0 / symmetry;
-    for(let i := 0; i < symmetry; i += 1){
+    for(var i := 0; i < symmetry; i += 1){
         nextFunc(velocity, i);
         velocity.t := velocity.t + increment;
     }
-}
+};
 
 # next func takes position, velocity, and spawn index
 let mirror := \(position, velocity, axis, nextFunc) -> {
-    let mirrorPosition := [
+    let mirrorPosition := [[
         -position.x + (2.0 * axis),
         position.y
-    ];
+    ]];
     let mirrorVelocity := <<
         velocity.r,
         180.0 - velocity.t
@@ -43,7 +43,7 @@ let mirror := \(position, velocity, axis, nextFunc) -> {
 
     nextFunc(position, velocity, 0);
     nextFunc(mirrorPosition, mirrorVelocity, 1);
-}
+};
 
 # next func takes velocity and spawn index
 let polygon := \(
@@ -69,11 +69,11 @@ let polygon := \(
     ring(vertexVelocity, sides, nextFunc);
 
     # spawn in the rest of the bullets; r = sec(theta)
-    let angle := vertexAngle;
-    let speed;
+    var angle := vertexAngle;
+    var speed;
     # theta at the first non-vertex angle
-    let theta := halfAngle - angleDecrement;
-    for(let i := 1; i < bulletsPerSide; i += 1){
+    var theta := halfAngle - angleDecrement;
+    for(var i := 1; i < bulletsPerSide; i += 1){
         angle := angle - angleDecrement;
         speed := sec(toRadians(theta)) * midSpeed;
         ring(<<speed, angle>>, sides, nextFunc);
@@ -88,8 +88,8 @@ let spawnLaser := \(basePos, angle, nextFunc) -> {
     let nextSegmentVector
         := <<distToNextSegment, angle>>;
     
-    let pos := basePos;
-    let numSpawns := 0;
+    var pos := basePos;
+    var numSpawns := 0;
     while(!isPointOutOfBounds(pos, bound)){
         nextFunc(pos, angle, numSpawns);
         numSpawns := numSpawns + 1;
@@ -124,15 +124,15 @@ let gravity := \(
         );
     }
 
-    let velocity;
-    let speed;
-    let drag;
+    var velocity;
+    var speed;
+    var drag;
     let accelVector := <<acceleration, direction>>;
 
-    let running := true;
+    var running := true;
     while(running){
         velocity := getVelocity();
-        let newVelocity := velocity + accelVector;
+        var newVelocity := velocity + accelVector;
         speed := newVelocity.r;
 
         drag := 0.5 * speed * speed * dragCoefficient;

@@ -4,7 +4,7 @@
 let initPickupSpeed := \() -> {
     let initSpeedMulti := 0.7;
     let initSpeedBase := 90;
-    let gameOffsetPoint := [0, 0] + gameOffset();
+    let gameOffsetPoint := [[0, 0]] + gameOffset();
 
     let yCoord := getY();
     let heightRatio := (yCoord - gameOffsetPoint.y)

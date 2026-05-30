@@ -5,7 +5,7 @@ let tickTimer := \(time) -> {
 };
 
 let secTimer := \(secs) -> {    
-    let ticks = secs * updatesPerSecond();
+    let ticks := secs * updatesPerSecond();
     tickTimer(ticks);
 };
 

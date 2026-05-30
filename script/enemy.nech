@@ -5,7 +5,7 @@ let isLeft := \(point) -> {
     # account for game offset
     point := point - gameOffset();
     return point.x < (gameWidth() / 2.0);
-}
+};
 
 # switches on the difficulty value and selects the
 # corresponding provided value
@@ -21,4 +21,4 @@ let diff := \(normalVal, hardVal, lunaticVal) -> {
         return lunaticVal;
     }
     error("difficulty is not 1, 2, or 3");
-}
+};

@@ -1,21 +1,21 @@
 # shifts the angle of the entity by a specified amount
 # each tick until reaching a target angle
 let shiftAngleIncrement := \(targetAngle, increment) -> {
-    var currentAngle = getAngle();
+    var currentAngle := getAngle();
 
     while(currentAngle != targetAngle){
         currentAngle +=  increment;
 
         # break condition; reached target from below
         if(increment >= 0
-            & currentAngle >= targetAngle
+            && currentAngle >= targetAngle
         ){
             setAngle(targetAngle);
             return;
         }
         # break condition; reached target from above
         else if(increment <= 0
-            & currentAngle <= targetAngle
+            && currentAngle <= targetAngle
         ){
             setAngle(targetAngle);
             return;
@@ -31,15 +31,15 @@ let shiftAngleIncrement := \(targetAngle, increment) -> {
 # across a specified period the short way around
 # (<= 180 degrees)
 let shiftAnglePeriod := \(targetAngle, ticks) -> {
-    var currentAngle = getAngle();
+    var currentAngle := getAngle();
 
-    let angleDiff = smallerAngleDiff(
+    let angleDiff := smallerAngleDiff(
         targetAngle,
         currentAngle
     );
-    let increment = angleDiff / ticks;
+    let increment := angleDiff / ticks;
 
-    for(var tick = 0; tick < ticks; tick += 1){
+    for(var tick := 0; tick < ticks; tick += 1){
         currentAngle += increment;
         setAngle(currentAngle);
         yield;
@@ -47,21 +47,21 @@ let shiftAnglePeriod := \(targetAngle, ticks) -> {
 
     # finish by setting angle exactly
     setAngle(targetAngle);
-}
+};
 
 # shifts the angle of the entity to a target angle
 # across a specified period the long way around
 # (>= 180 degrees)
 let shiftAngleLongPeriod := \(targetAngle, ticks) -> {
-    var currentAngle = getAngle();
+    var currentAngle := getAngle();
 
-    let angleDiff = largerAngleDiff(
+    let angleDiff := largerAngleDiff(
         targetAngle,
         currentAngle
     );
-    let increment = angleDiff / ticks;
+    let increment := angleDiff / ticks;
 
-    for(var tick = 0; tick < ticks; tick += 1){
+    for(var tick := 0; tick < ticks; tick += 1){
         currentAngle += increment;
         setAngle(currentAngle);
         yield;
@@ -74,14 +74,14 @@ let shiftAngleLongPeriod := \(targetAngle, ticks) -> {
 # shifts the speed of the entity by a specified amount
 # each tick until reaching a target speed
 let shiftSpeedIncrement := \(targetSpeed, increment) -> {
-    var currentSpeed = getSpeed();
+    var currentSpeed := getSpeed();
 
     while(currentSpeed != targetSpeed){
         currentSpeed += increment;
 
         # break condition: reached target from below
         if(increment >= 0
-            & currentSpeed >= targetSpeed
+            && currentSpeed >= targetSpeed
         ){
             setSpeed(targetSpeed);
             return;
@@ -89,7 +89,7 @@ let shiftSpeedIncrement := \(targetSpeed, increment) -> {
 
         # break condition: reached target from above
         else if(increment <= 0
-            & currentSpeed <= targetSpeed
+            && currentSpeed <= targetSpeed
         ){
             setSpeed(targetSpeed);
             return;
@@ -104,12 +104,12 @@ let shiftSpeedIncrement := \(targetSpeed, increment) -> {
 # shifts the speed of the entity to a target speed
 # across a specified period
 let shiftSpeedPeriod := \(targetSpeed, ticks) -> {
-    var currentSpeed = getSpeed();
+    var currentSpeed := getSpeed();
 
-    let speedDiff = targetSpeed - currentSpeed;
-    let increment = speedDiff / ticks;
+    let speedDiff := targetSpeed - currentSpeed;
+    let increment := speedDiff / ticks;
 
-    for(var tick = 0; tick < ticks; tick += 1){
+    for(var tick := 0; tick < ticks; tick += 1){
         currentSpeed += increment;
         setSpeed(currentSpeed);
         yield;
@@ -123,7 +123,7 @@ let shiftSpeedPeriod := \(targetSpeed, ticks) -> {
 # and angle over a specified period; sets angle
 # immediately and only shifts speed across the period
 let shiftVelocityPeriod :=
-\(targetSpeed, targetAngle, ticks) ->{    
+\(targetSpeed, targetAngle, ticks) -> {    
     setAngle(targetAngle);
     shiftSpeedPeriod(targetSpeed, ticks);
 };
@@ -133,19 +133,19 @@ let shiftVelocityPeriod :=
 # way around (<= 180 degrees)
 let shiftVelocityTurnPeriod :=
 \(targetSpeed, targetAngle, ticks) -> {
-    var currentSpeed = getSpeed();
-    var currentAngle = getAngle();
+    var currentSpeed := getSpeed();
+    var currentAngle := getAngle();
 
-    let speedDiff = targetSpeed - currentSpeed;
-    let angleDiff = smallerAngleDiff(
+    let speedDiff := targetSpeed - currentSpeed;
+    let angleDiff := smallerAngleDiff(
         targetAngle,
         currentAngle
     );
 
-    let speedIncrement = speedDiff / ticks;
-    let angleIncrement = angleDiff / ticks;
+    let speedIncrement := speedDiff / ticks;
+    let angleIncrement := angleDiff / ticks;
 
-    for(var tick = 0; tick < ticks; tick += 1){
+    for(var tick := 0; tick < ticks; tick += 1){
         currentSpeed += speedIncrement;
         currentAngle += angleIncrement;
         setSpeed(currentSpeed);
@@ -175,7 +175,7 @@ let shiftVelocityLongTurnPeriod :=
     let speedIncrement := speedDiff / ticks;
     let angleIncrement := angleDiff / ticks;
 
-    for(var tick = 0; tick < ticks; tick += 1){
+    for(var tick := 0; tick < ticks; tick += 1){
         currentSpeed += speedIncrement;
         currentAngle += angleIncrement;
         setSpeed(currentSpeed);
@@ -209,19 +209,19 @@ let gotoDecelerating := \(targetPos, maxSpeed) -> {
             maxSpeed * speedMulti,
             currentDist * updatesPerSecond()
         );
-    }
+    };
 
-    let pos := getPosition();
+    var pos := getPosition();
     let initDist := pointDist(pos, targetPos);
-    let currentDist := initDist;
+    var currentDist := initDist;
 
     let epsilon := pointEpsilon();
 
     #while entity has not reached target, continually
     #modulate speed
     if(currentDist > epsilon){
-        let angle;
-        let speed;
+        var angle;
+        var speed;
 
         while(currentDist > epsilon){
             angle := pointAngle(pos, targetPos);
@@ -249,19 +249,23 @@ let boundGotoDecelerating := \(
     xLow, xHigh, yLow, yHigh, rLow, rHigh, maxSpeed
 ) -> {
     let pos := getPosition();
-    let r := max(
+    var r := max(
         random(rLow, rHigh),
         random(rLow, rHigh)
     );
-    let angle := randomAngle();
-    let targetPos := pos + <<r, angle>>;
+    var angle := randomAngle();
+    var targetPos := pos + <<r, angle>>;
 
     #keep rolling until we get a point within the
     #bounds - DON'T CLAMP!
 
-    let x := targetPos.x;
-    let y := targetPos.y;
-    while(x < xLow | x > xHigh | y < yLow | y > yHigh){
+    var x := targetPos.x;
+    var y := targetPos.y;
+    while(x < xLow
+       || x > xHigh
+       || y < yLow
+       || y > yHigh
+    ){
         r := max(
             random(rLow, rHigh),
             random(rLow, rHigh)
@@ -272,5 +276,5 @@ let boundGotoDecelerating := \(
         y := targetPos.y;
     }
 
-    gotoDecelerating([x, y], maxSpeed);
+    gotoDecelerating([[x, y]], maxSpeed);
 };
