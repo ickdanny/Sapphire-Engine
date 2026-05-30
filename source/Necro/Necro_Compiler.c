@@ -103,7 +103,7 @@ static const NecroParseRule parseRules[] = {
     [necro_tokenLessEqual]
         = {NULL,     binary, necro_precCompare},
     [necro_tokenDoubleLeftBracket]
-        = {point,     NULL,  necro_precNone},
+        = {point,    NULL,   necro_precNone},
     [necro_tokenDoubleRightBracket]
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenDoubleAmpersand]

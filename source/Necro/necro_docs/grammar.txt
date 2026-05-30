@@ -1,0 +1,131 @@
+This file describes the formal grammar of the Necro
+programming language. Symbols starting with a capital
+letter are nonterminals. We use 'e' to mean epsilon,
+and we use "->" to represent a production, although
+the symbol "->" is also a token in the language itself
+(see the production for Lambda).
+There may be errors (sorry!).
+
+# The start symbol
+Script -> Decls
+
+# A list of declarations
+Decls -> Decl Decls | e
+
+# A single declaration
+Decl -> IncludeDecl
+      | VarDecl
+      | Stmt
+
+# Includes the entire contents of another file
+IncludeDecl -> include string ;
+
+# Declares a variable
+VarDecl     -> ConstDecl | MutDecl
+ConstDecl   -> let VarDeclBody ;
+MutDecl     -> var VarDeclBody ;
+VarDeclBody -> identifier VarInit
+VarInit     -> := Expr | e
+
+# All statement types
+Stmt -> PrintStmt
+      | IfStmt
+      | WhileStmt
+      | ForStmt
+      | ReturnStmt
+      | YieldStmt
+      | WaitStmt
+      | BlockStmt
+      | ExprStmt
+
+# Print is a built-in io operation
+PrintStmt -> print Expr ;
+
+# If branches between two control flow paths
+IfStmt     -> if ( Expr ) Stmt ElseBranch
+ElseBranch -> else Stmt | e
+
+# While loops based on a condition being met
+WhileStmt -> while ( Expr ) Stmt
+
+# For uses C-style syntax and semantics
+ForStmt -> for ( ForInit ForCond ForInc ) Stmt
+ForInit -> VarDecl | ExprStmt | ;
+ForCond -> Expr ; | ;
+ForInc  -> Expr | e
+
+# Returns from a function
+ReturnStmt -> return ; | return Expr ;
+
+# Yields control from the script for an external user
+# to resume
+YieldStmt -> yield ;
+
+# Waits (continuously yields) until the condition is
+# true
+WaitStmt -> wait Expr ;
+
+# A block defines its own scope
+BlockStmt -> { Decls }
+
+# An expression statement computes the value of the
+# expression but does not evaluate to a value
+ExprStmt -> Expr ;
+
+# All expression types, in precedence order
+Expr     -> Assign
+Assign   -> LValue := Expr
+          | LValue += Expr
+          | LValue -= Expr
+          | LValue *= Expr
+          | LValue /= Expr
+          | LValue %= Expr
+          | Or
+Or       -> And || And
+          | And
+And      -> Equality && Equality
+          | Equality
+Equality -> Compare == Compare
+          | Compare != Compare
+          | Compare
+Compare  -> Term > Term
+          | Term >= Term
+          | Term < Term
+          | Term <= Term
+          | Term
+Term     -> Factor + Factor
+          | Factor - Factor
+          | Factor
+Factor   -> Unary * Unary
+          | Unary / Unary
+          | Unary % Unary
+          | Unary
+Unary    -> - Call | ! Call | Call
+Call     -> Primary ( ArgList ) | Primary
+Primary  -> Lambda
+          | LValue
+          | number            # either int or float
+          | string            # of form "Hello, world!"
+          | self              # ref enclosing lambda
+          | bool              # true | false
+          | ( Expr )
+          | << Expr , Expr >> # construct vector
+          | [[ Expr , Expr ]] # construct point
+
+# Lambdas are how all functions are defined, and can
+# be nested
+Lambda -> \(ParamList) -> { Decls }
+
+# L values may be identifiers or point/vector
+# components
+LValue -> identifier
+        | identifier . r
+        | identifier . t
+        | identifier . x
+        | identifier . y
+
+# We use C syntax for arguments / params
+ArgList    -> e | _ArgList
+_ArgList   -> Expr | Expr , _ArgList
+ParamList  -> e | _ParamList
+_ParamList -> identifier | identifier , _ParamList
