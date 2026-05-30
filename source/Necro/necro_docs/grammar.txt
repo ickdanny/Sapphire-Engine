@@ -74,34 +74,34 @@ ExprStmt -> Expr ;
 
 # All expression types, in precedence order
 Expr     -> Assign
-Assign   -> LValue := Expr
-          | LValue += Expr
-          | LValue -= Expr
-          | LValue *= Expr
-          | LValue /= Expr
-          | LValue %= Expr
+Assign   -> LValue := Assign
+          | LValue += Assign
+          | LValue -= Assign
+          | LValue *= Assign
+          | LValue /= Assign
+          | LValue %= Assign
           | Or
-Or       -> And || And
+Or       -> Or || And
           | And
-And      -> Equality && Equality
+And      -> And && Equality
           | Equality
-Equality -> Compare == Compare
-          | Compare != Compare
+Equality -> Equality == Compare
+          | Equality != Compare
           | Compare
-Compare  -> Term > Term
-          | Term >= Term
-          | Term < Term
-          | Term <= Term
+Compare  -> Compare > Term
+          | Compare >= Term
+          | Compare < Term
+          | Compare <= Term
           | Term
-Term     -> Factor + Factor
-          | Factor - Factor
+Term     -> Term + Factor
+          | Term - Factor
           | Factor
-Factor   -> Unary * Unary
-          | Unary / Unary
-          | Unary % Unary
+Factor   -> Factor * Unary
+          | Factor / Unary
+          | Factor % Unary
           | Unary
-Unary    -> - Call | ! Call | Call
-Call     -> Primary ( ArgList ) | Primary
+Unary    -> - Unary | ! Unary | Call
+Call     -> Call ( ArgList ) | Primary
 Primary  -> Lambda
           | LValue
           | number            # either int or float
