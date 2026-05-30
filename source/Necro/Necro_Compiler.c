@@ -2046,17 +2046,17 @@ static bool necroCompilerIsGlobalMutable(
     NecroCompiler *compilerPtr,
     NecroObjectString *namePtr
 ){
-    /* error out if not present */
+    /* check if global not present */
     if(!hashMapHasKeyPtr(
         NecroObjectString*,
         NecroGlobal,
         &(compilerPtr->globalsTable),
         &(namePtr)
     )){
-        necroCompilerErrorPrev(
-            compilerPtr,
-            "unrecognized global variable"
-        );
+        /*
+         * if global not present, likely a builtin,
+         * in which case make sure its not mutable
+         */
         return false;
     }
 
@@ -2880,6 +2880,7 @@ NecroObjectFunc *necroCompilerCompileScript(
     if(hadError){
         necroObjectFree((NecroObject*)toRet);
         toRet = NULL;
+        pgError(fileName);
         pgError(
             "halting due to Necro compiler error(s)"
         );
