@@ -1,0 +1,36 @@
+# Welcome to Necro, a DSL for scripting shmup games!
+# Single-line comments begin with the '#' symbol.
+
+~ Multi-line comments use the tilde symbol and are not
+  nested. ~
+
+# todo better examples
+
+# Example 1: Necro supports nested lambda definitions.
+
+let test := \(x) -> {
+    let a := 2;
+    let test2 := \(y) -> {return y + a;};
+    let test3 := \(z) -> {
+        return \(w) -> {return test2(w);}(z);
+    };
+    return test3(x);
+};
+
+print "expect 5 + 2 = 7";
+print test(5);
+
+# Example 2: Necro supports recursion using the 'self'
+# keyword
+let fib := \(n) -> {
+    if(n <= 1){
+        return n;
+    }
+    return self(n - 2) + self(n - 1);
+};
+
+print "expect fib(6) = 0 1 1 2 3 5 8";
+print fib(6);
+
+print "expect 5 * 2 = 10";
+print \(n) -> {return n * 2;}(5);
