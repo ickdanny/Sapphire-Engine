@@ -32,7 +32,7 @@ yield;
 
 # wait statement waits for an external condition to be
 # true
-wait(isReady()); # where isReady is a builtin external
+wait isReady(); # where isReady is a builtin external
 
 # Example 2: Necro lambdas need not be bound to names.
 print "expect 5 * 2 = 10";
