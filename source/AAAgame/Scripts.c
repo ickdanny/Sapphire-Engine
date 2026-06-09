@@ -143,10 +143,9 @@ void scriptsReclaim(Scripts *scriptsPtr){
         "vm pool not initialized; " SRC_LOCATION
     );
 
-    vmPoolReclaim(scriptsPtr->vm1);
-    vmPoolReclaim(scriptsPtr->vm2);
-    vmPoolReclaim(scriptsPtr->vm3);
-    vmPoolReclaim(scriptsPtr->vm4);
+    for(int i = 0; i < SCRIPTS_NUM_VMS; ++i){
+        vmPoolReclaim(scriptsPtr->vms[i]);
+    }
 
     memset(scriptsPtr, 0, sizeof(*scriptsPtr));
 }

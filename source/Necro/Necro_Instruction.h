@@ -22,6 +22,11 @@ typedef enum NecroInstruction {
      */
     necro_setGlobal,
     /*
+     * instructs VM to retrieve the value of the arg
+     * with index given by the top of the stack
+     */
+    necro_getArg,
+    /*
      * instructs VM to retrieve the value of a local
      * variable
      */

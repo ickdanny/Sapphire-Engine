@@ -229,6 +229,14 @@ void necroCompilerCall(
 );
 
 /*
+ * Parses an arg for the specified compiler
+ */
+void necroCompilerArg(
+    NecroCompiler *compilerPtr,
+    bool canAssign
+);
+
+/*
  * Parses a variable for the specified compiler
  */
 void necroCompilerVariable(

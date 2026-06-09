@@ -646,7 +646,7 @@ static NecroValue getSpin(int argc, NecroValue *argv){
 /*
  * Returns true if the entity is spawning, false
  * otherwise; spawning scripts go in virtual machine
- * slots 3 and 4
+ * slots 2 and 3
  */
 static NecroValue isSpawning(int argc, NecroValue *argv){
     assertArity(0, "isSpawning expects no args");
@@ -659,9 +659,9 @@ static NecroValue isSpawning(int argc, NecroValue *argv){
         SRC_LOCATION
     );
 
-    /* if either vm3 or vm4 is active, return true */
+    /* if either vm2 or vm3 is active, return true */
     return necroBoolValue(
-        scriptsPtr->vm3 || scriptsPtr->vm4
+        scriptsPtr->vms[2] || scriptsPtr->vms[3]
     );
 }
 
@@ -967,7 +967,7 @@ static NecroValue hasScript(int argc, NecroValue *argv){
 
     /* get the slot */
     int slot = necroAsInt(*argv);
-    if(slot < 1 || slot > 4){
+    if(slot < 0 || slot >= SCRIPTS_NUM_VMS){
         pgError("invalid VM slot; " SRC_LOCATION);
     }
     
@@ -980,32 +980,36 @@ static NecroValue hasScript(int argc, NecroValue *argv){
         SRC_LOCATION
     );
 
-    switch(slot){
-        case 1:
-            return necroBoolValue(scriptsPtr->vm1);
-        case 2:
-            return necroBoolValue(scriptsPtr->vm2);
-        case 3:
-            return necroBoolValue(scriptsPtr->vm3);
-        case 4:
-            return necroBoolValue(scriptsPtr->vm4);
-        default:
-            pgError(
-                "unexpected default vm slot; "
-                SRC_LOCATION
-            );
-            break;
-    }
+    return necroBoolValue(scriptsPtr->vms[slot]);
+}
 
-    /* should never be reached */
-    return necroBoolValue(false);
+/*
+ * Tries to load script; returns true if the requested
+ * slot was available, false otherwise.
+ */
+static bool loadScript(
+    NecroObjectFunc *scriptPtr,
+    Scripts *scriptsPtr,
+    int slot
+){
+    if(!scriptsPtr->vms[slot]){
+        scriptsPtr->vms[slot] = vmPoolRequest();
+        necroVirtualMachineLoad(
+            scriptsPtr->vms[slot],
+            scriptPtr
+        );
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 /*
  * Adds a script to the specified VM slot
  * (String scriptId, int slot), returns
  * true if successful, false otherwise; Spawns go
- * in slots 3 and 4
+ * in slots 2 and 3
  */
 static NecroValue addScript(int argc, NecroValue *argv){
     assertArity(2, "usage: addScript(scriptId, slot)");
@@ -1024,7 +1028,7 @@ static NecroValue addScript(int argc, NecroValue *argv){
 
     /* get the slot */
     int slot = necroAsInt(argv[1]);
-    if(slot < 1 || slot > 4){
+    if(slot < 0 || slot >= SCRIPTS_NUM_VMS){
         pgError("invalid VM slot; " SRC_LOCATION);
     }
     
@@ -1037,51 +1041,29 @@ static NecroValue addScript(int argc, NecroValue *argv){
         SRC_LOCATION
     );
 
-    /*
-     * try to load script; return true if the
-     * requested slot was availible, false otherwise
-     */
-    #define loadScript(SLOT) \
-        do{ \
-            if(!scriptsPtr->vm##SLOT){ \
-                scriptsPtr->vm##SLOT \
-                    = vmPoolRequest(); \
-                necroVirtualMachineLoad( \
-                    scriptsPtr->vm##SLOT, \
-                    scriptPtr \
-                ); \
-                return necroBoolValue(true); \
-            } \
-            else{ \
-                return necroBoolValue(false); \
-            } \
-        } while(false)
+    return necroBoolValue(loadScript(
+        scriptPtr,
+        scriptsPtr,
+        slot)
+    );
+}
 
-    switch(slot){
-        case 1:
-            loadScript(1);
-            break;
-        case 2:
-            loadScript(2);
-            break;
-        case 3:
-            loadScript(3);
-            break;
-        case 4:
-            loadScript(4);
-            break;
-        default:
-            pgError(
-                "unexpected default vm slot; "
-                SRC_LOCATION
-            );
-            break;
+/*
+ * Try to remove script; return true if successful,
+ * false if the slot was not occupied.
+ */
+static bool removeScriptInSlot(
+    Scripts *scriptsPtr,
+    int slot
+){
+    if(scriptsPtr->vms[slot]){
+        vmPoolReclaim(scriptsPtr->vms[slot]);
+        scriptsPtr->vms[slot] = NULL;
+        return true;
     }
-
-    /* should never be reached */
-    return necroBoolValue(false);
-
-    #undef loadScript
+    else{
+        return false;
+    }
 }
 
 /*
@@ -1094,7 +1076,7 @@ static NecroValue removeScript(int argc, NecroValue *argv){
 
     /* get the slot */
     int slot = necroAsInt(*argv);
-    if(slot < 1 || slot > 4){
+    if(slot < 0 || slot >= SCRIPTS_NUM_VMS){
         pgError("invalid VM slot; " SRC_LOCATION);
     }
     
@@ -1107,52 +1089,15 @@ static NecroValue removeScript(int argc, NecroValue *argv){
         SRC_LOCATION
     );
 
-    /*
-     * try to remove script; return true if the
-     * requested slot was occupied, false otherwise
-     */
-    #define _removeScriptAndReturn(SLOT) \
-        do{ \
-            if(scriptsPtr->vm##SLOT){ \
-                vmPoolReclaim(scriptsPtr->vm##SLOT); \
-                scriptsPtr->vm##SLOT = NULL; \
-                return necroBoolValue(true); \
-            } \
-            else{ \
-                return necroBoolValue(false); \
-            } \
-        } while(false)
-
-    switch(slot){
-        case 1:
-            _removeScriptAndReturn(1);
-            break;
-        case 2:
-            _removeScriptAndReturn(2);
-            break;
-        case 3:
-            _removeScriptAndReturn(3);
-            break;
-        case 4:
-            _removeScriptAndReturn(4);
-            break;
-        default:
-            pgError(
-                "unexpected default vm slot; "
-                SRC_LOCATION
-            );
-            break;
-    }
-
-    /* should never be reached */
-    return necroBoolValue(false);
-
-    #undef _removeScriptAndReturn
+    return necroBoolValue(removeScriptInSlot(
+        scriptsPtr,
+        slot
+    ));
 }
 
 /*
  * Removes spawns from the entity, i.e. scripts running
- * in VM slots 3 and 4; UB IF ATTEMPTING TO REMOVE
+ * in VM slots 2 and 3; UB IF ATTEMPTING TO REMOVE
  * SELF
  */
 static NecroValue removeSpawns(int argc, NecroValue *argv){
@@ -1167,32 +1112,44 @@ static NecroValue removeSpawns(int argc, NecroValue *argv){
         SRC_LOCATION
     );
 
-    /* try to remove script */
-    #define _removeScript(SLOT) \
-        do{ \
-            if(scriptsPtr->vm##SLOT){ \
-                vmPoolReclaim(scriptsPtr->vm##SLOT); \
-                scriptsPtr->vm##SLOT = NULL; \
-            } \
-        } while(false)
+    /* try to remove spawn scripts */
 
-    _removeScript(3);
-    _removeScript(4);
+    if(scriptsPtr->vms[2]){
+        vmPoolReclaim(scriptsPtr->vms[2]);
+        scriptsPtr->vms[2] = NULL;
+    }
+    if(scriptsPtr->vms[3]){
+        vmPoolReclaim(scriptsPtr->vms[3]);
+        scriptsPtr->vms[3] = NULL;
+    }
 
     return necroBoolValue(false);
+}
 
-    /*
-     * undefine macro _removeScript which was defined
-     * in the body of removeScript
-     */
-    #undef _removeScript
+/*
+ * Try to load death script; return true if requested
+ * slot was available, false otherwise
+ */
+static bool loadDeathScript(
+    DeathScripts *deathScriptsPtr,
+    String *stringPtr,
+    int slot
+){
+    if(!deathScriptsPtr->scriptIds[slot]._ptr){
+        deathScriptsPtr->scriptIds[slot]
+            = stringCopy(stringPtr);
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 /*
  * Adds the specified death script to the entity 
  * in the specified slot (String scriptId, int slot);
  * returns true if successful, false otherwise - note
- * that just like with normal scripts, slots 3 and 4
+ * that just like with normal scripts, slots 2 and 3
  * are typically used for spawns
  */
 static NecroValue addDeathScript(int argc, NecroValue *argv){
@@ -1207,7 +1164,7 @@ static NecroValue addDeathScript(int argc, NecroValue *argv){
 
     /* get the slot */
     int slot = necroAsInt(argv[1]);
-    if(slot < 1 || slot > 4){
+    if(slot < 0 || slot >= SCRIPTS_NUM_VMS){
         pgError(
             "invalid death script slot; "
             SRC_LOCATION
@@ -1225,49 +1182,11 @@ static NecroValue addDeathScript(int argc, NecroValue *argv){
             "error: failed to get death scripts; "
             SRC_LOCATION
         );
-
-        /*
-         * try to load death script; return true if the
-         * requested slot was availible, false
-         * otherwise
-         */
-        #define loadDeathScript(SLOT) \
-            do{ \
-                if(!deathScriptsPtr->scriptId##SLOT \
-                    ._ptr \
-                ){ \
-                    deathScriptsPtr->scriptId##SLOT \
-                        = stringCopy(stringPtr); \
-                    return necroBoolValue(true); \
-                } \
-                else{ \
-                    return necroBoolValue(false); \
-                } \
-            } while(false)
-
-        switch(slot){
-            case 1:
-                loadDeathScript(1);
-                break;
-            case 2:
-                loadDeathScript(2);
-                break;
-            case 3:
-                loadDeathScript(3);
-                break;
-            case 4:
-                loadDeathScript(4);
-                break;
-            default:
-                pgError(
-                    "unexpected default death script "
-                    "slot; "
-                    SRC_LOCATION
-                );
-                break;
-        }
-
-        #undef loadDeathScript
+        return necroBoolValue(loadDeathScript(
+            deathScriptsPtr,
+            stringPtr,
+            slot
+        ));
     }
     /*
      * otherwise prepare a new component to add and
@@ -1275,31 +1194,9 @@ static NecroValue addDeathScript(int argc, NecroValue *argv){
      */
     else{
         DeathScripts deathScripts = {0};
-        switch(slot){
-            case 1:
-                deathScripts.scriptId1
-                    = stringCopy(stringPtr);
-                break;
-            case 2:
-                deathScripts.scriptId2
-                    = stringCopy(stringPtr);
-                break;
-            case 3:
-                deathScripts.scriptId3
-                    = stringCopy(stringPtr);
-                break;
-            case 4:
-                deathScripts.scriptId4
-                    = stringCopy(stringPtr);
-                break;
-            default:
-                pgError(
-                    "unexpected default death script "
-                    "slot; "
-                    SRC_LOCATION
-                );
-                break;
-        }
+        deathScripts.scriptIds[slot]
+            = stringCopy(stringPtr);
+
         vecsWorldEntityQueueAddComponent(DeathScripts,
             &(_scenePtr->ecsWorld),
             _entity,
@@ -1310,6 +1207,25 @@ static NecroValue addDeathScript(int argc, NecroValue *argv){
 
     /* should never be reached */
     return necroBoolValue(false);
+}
+
+/*
+ * Tries to remove death script; return true if the
+ * requested slot was present, false otherwise
+ */
+static bool removeDeathScriptBySlot(
+    DeathScripts *deathScriptsPtr,
+    int slot
+){
+    if(deathScriptsPtr->scriptIds[slot]._ptr){
+        stringFree(
+            &(deathScriptsPtr->scriptIds[slot])
+        );
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 /*
@@ -1324,7 +1240,7 @@ static NecroValue removeDeathScript(
     assertArity(1, "usage: removeDeathScript(slot)");
 
     int slot = necroAsInt(*argv);
-    if(slot < 1 || slot > 4){
+    if(slot < 0 || slot >= SCRIPTS_NUM_VMS){
         pgError(
             "invalid death script slot; "
             SRC_LOCATION
@@ -1349,51 +1265,10 @@ static NecroValue removeDeathScript(
         SRC_LOCATION
     );
 
-    /*
-     * try to remove death script; return true if the
-     * requested slot was present, false otherwise
-     */
-    #define removeDeathScript(SLOT) \
-        do{ \
-            if(deathScriptsPtr->scriptId##SLOT \
-                ._ptr \
-            ){ \
-                stringFree( \
-                    &(deathScriptsPtr \
-                        ->scriptId##SLOT) \
-                ); \
-                return necroBoolValue(true); \
-            } \
-            else{ \
-                return necroBoolValue(false); \
-            } \
-        } while(false)
-
-    switch(slot){
-        case 1:
-            removeDeathScript(1);
-            break;
-        case 2:
-            removeDeathScript(2);
-            break;
-        case 3:
-            removeDeathScript(3);
-            break;
-        case 4:
-            removeDeathScript(4);
-            break;
-        default:
-            pgError(
-                "unexpected default death script "
-                "slot; "
-                SRC_LOCATION
-            );
-            break;
-    }
-
-    return necroBoolValue(false);
-
-    #undef removeDeathScript
+    return necroBoolValue(removeDeathScriptBySlot(
+        deathScriptsPtr,
+        slot
+    ));
 }
 
 /* MATH */
@@ -2161,21 +2036,68 @@ static NecroValue isFlagged1(int argc, NecroValue *argv){
 /* SPAWNING */
 
 /*
+ * Loads the script given by the script id in the
+ * specified slot into the Scripts provided script
+ * object, assuming the script id is valid
+ */
+static void loadScriptIfStringIdValid(
+    String **scriptIdPtrs,
+    int *argStartIndices,
+    int *argCounts,
+    NecroValue *argv,
+    Scripts *scriptsPtr,
+    int slot
+){
+    if(slot < 0 || slot >= SCRIPTS_NUM_VMS){
+        pgError("invalid VM slot; " SRC_LOCATION);
+    }
+    if((scriptIdPtrs[slot])
+        && !stringIsEmpty(scriptIdPtrs[slot])
+    ){
+        scriptsPtr->vms[slot] = vmPoolRequest();
+        NecroObjectFunc *scriptPtr
+            = resourcesGetScript(
+                _gamePtr->resourcesPtr,
+                scriptIdPtrs[slot]
+            );
+        necroVirtualMachineLoad(
+            scriptsPtr->vms[slot],
+            scriptPtr
+        );
+        /* argPtr starts pointing to first arg */
+        NecroValue *argPtr
+            = argv + argStartIndices[slot];
+        for(int i = 0; i < argCounts[slot]; ++i){
+            /* i 0-indexed, but args 1-indexed */
+            int index = i + 1;
+            necroVirtualMachineSetArg(
+                scriptsPtr->vms[slot],
+                index,
+                argPtr
+            );
+            ++argPtr;
+        }
+    }
+}
+
+/*
  * Queues a new entity to be spawned:
  * spawn(
  *      String prototypeId,
  *      Point pos,
  *      Vector vel,
  *      int depthOffset,
- *      OPTIONAL string scriptId1, 2, 3, 4
+ *      OPTIONAL string scriptId0, 1, 2, 3
+ *          (also args after scriptId; cannot be str)
  * )
  */
 static NecroValue spawn(int argc, NecroValue *argv){
     static const char *usageMsg
         = "spawn(String prototypeId, Point position, "
             "Vector velocity, int depthOffset, "
-            "OPTIONAL String scriptId1, 2, 3, 4)";
-    if(argc < 4 || argc > 8){
+            "OPTIONAL String scriptId0, 1, 2, 3)\n"
+            "(also args after scriptId; cannot be str)";
+    if(argc < 4){
         pgError(usageMsg);
     }
 
@@ -2185,30 +2107,72 @@ static NecroValue spawn(int argc, NecroValue *argv){
     Polar vel = necroAsVector(argv[2]);
     int depthOffset = necroAsInt(argv[3]);
 
-    String *scriptId1Ptr = NULL;
-    String *scriptId2Ptr = NULL;
-    String *scriptId3Ptr = NULL;
-    String *scriptId4Ptr = NULL;
-    switch(argc){
-        case 8:
-            scriptId4Ptr
-                = &(necroObjectAsString(argv[7])->string);
-            /* fallthrough */
-        case 7:
-            scriptId3Ptr
-                = &(necroObjectAsString(argv[6])->string);
-            /* fallthrough */
-        case 6:
-            scriptId2Ptr
-                = &(necroObjectAsString(argv[5])->string);
-            /* fallthrough */
-        case 5:
-            scriptId1Ptr
-                = &(necroObjectAsString(argv[4])->string);
-            /* fallthrough */
-        default:
-            break;
-            /* do nothing */
+    /* parse scriptid and args for each script */
+
+    /* current script id */
+    int currId = 0; /* start at 0 so we increment to 1 */
+    int currArg = 4;
+
+    String *scriptIdPtrs[SCRIPTS_NUM_VMS] = {0};
+    int argStartIndices[SCRIPTS_NUM_VMS] = {0};
+    int argCounts[SCRIPTS_NUM_VMS] = {0};
+
+    /*
+     * strings cannot appear as args, so use the type
+     * to determine cutoffs for different script ids
+     */
+    while(currArg < argc){
+        if(necroIsObject(argv[currArg])){
+            if(!necroObjectCheckType(
+                argv[currArg],
+                necro_stringObject
+            )){
+                pgError(
+                    "Necro non-string obj passed to "
+                    "spawn native func; " SRC_LOCATION
+                );
+            }
+            /*
+             * if we are here, the object is a string,
+             * indicating that the user is starting to
+             * describe another script
+             */
+            ++currId;
+            if(currId > SCRIPTS_NUM_VMS){
+                pgError(
+                    "Necro too many strings passed to "
+                    "spawn native func, max is"
+                    "SCRIPTS_NUM_VMS; "
+                    SRC_LOCATION
+                );
+            }
+            /*
+             * grab the string itself for later
+             * resource lookup
+             */
+            scriptIdPtrs[currId]
+                = &(necroObjectAsString(argv[currArg])
+                    ->string);
+        } /* end object case */
+        else{ /* if the arg is a non-object value */
+            if(currId < 0 || currId >= SCRIPTS_NUM_VMS){
+                pgError(
+                    "Necro value passed to spawn "
+                    "native func in wrong position;"
+                    SRC_LOCATION
+                );
+            }
+            /*
+             * if this is the first arg for the current
+             * script, set the start index
+             */
+            if(argStartIndices[currId] == 0){
+                argStartIndices[currId] = currArg;
+            }
+            ++argCounts[currId];
+        } /* end non-object value case */
+
+        ++currArg;
     }
 
     declareList(componentList, 10);
@@ -2232,42 +2196,27 @@ static NecroValue spawn(int argc, NecroValue *argv){
     if(argc > 4){
         Scripts scripts = {0};
 
-        #define loadScriptIfStringIdValid(SLOT) \
-            do{ \
-                if((scriptId##SLOT##Ptr) \
-                    && !stringIsEmpty( \
-                        scriptId##SLOT##Ptr \
-                    ) \
-                ){ \
-                    scripts.vm##SLOT \
-                        = vmPoolRequest(); \
-                    NecroObjectFunc *scriptPtr \
-                        = resourcesGetScript( \
-                            _gamePtr->resourcesPtr, \
-                            scriptId##SLOT##Ptr \
-                        ); \
-                    necroVirtualMachineLoad( \
-                        scripts.vm##SLOT, \
-                        scriptPtr \
-                    ); \
-                } \
-            } while(false)
-
-        loadScriptIfStringIdValid(1);
-        loadScriptIfStringIdValid(2);
-        loadScriptIfStringIdValid(3);
-        loadScriptIfStringIdValid(4);
-
-        #undef loadScriptIfStringIdValid
+        /* load all scripts based on script id */
+        for(int i = 0; i < SCRIPTS_NUM_VMS; ++i){
+            loadScriptIfStringIdValid(
+                scriptIdPtrs,
+                argStartIndices,
+                argCounts,
+                argv,
+                &scripts,
+                i
+            );
+        }
 
         /*
          * only add scripts if at least one VM is
          * not null
          */
-        if(scripts.vm1 || scripts.vm2 
-            || scripts.vm3 || scripts.vm4
-        ){
-            addScripts(&componentList, scripts);
+        for(int i = 0; i < SCRIPTS_NUM_VMS; ++i){
+            if(scripts.vms[i]){
+                addScripts(&componentList, scripts);
+                break;
+            }
         }
     }
 

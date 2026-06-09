@@ -3,16 +3,15 @@
 
 #include "Necro.h"
 
+#define SCRIPTS_NUM_VMS 4
+
 /*
  * Points to scripts that run in the context of the
  * associated entity; maximum of 4 concurrent
  * scripts
  */
 typedef struct Scripts{
-    NecroVirtualMachine *vm1;
-    NecroVirtualMachine *vm2;
-    NecroVirtualMachine *vm3;
-    NecroVirtualMachine *vm4;
+    NecroVirtualMachine *vms[SCRIPTS_NUM_VMS];
 } Scripts;
 
 /*

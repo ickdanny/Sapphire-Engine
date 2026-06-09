@@ -11,6 +11,9 @@
 /* size of the call stack */
 #define NECRO_CALLSTACK_SIZE 16
 
+/* max number of args supported */
+#define NECRO_MAX_ARGS 4
+
 /*
  * used to report back the result of interpreting a
  * program
@@ -43,6 +46,8 @@ typedef struct NecroVirtualMachine{
     int frameCount;
     /* stack used by VM to store all values */
     NecroValue stack[NECRO_STACK_SIZE];
+    /* array for arg storage */
+    NecroValue args[NECRO_MAX_ARGS];
     /* pointer to one past the top of the stack */
     NecroValue *stackPtr;
     /* pointer to the head of the object list */
@@ -88,6 +93,16 @@ NecroInterpretResult necroVirtualMachineInterpret(
 void necroVirtualMachineLoad(
     NecroVirtualMachine *vmPtr,
     NecroObjectFunc *funcObjectProgramPtr
+);
+
+/*
+ * Sets the arg with the given index for the given
+ * virtual machine; should be called only after load
+ */
+void necroVirtualMachineSetArg(
+    NecroVirtualMachine *vmPtr,
+    uint32_t index,
+    NecroValue *valuePtr
 );
 
 /*

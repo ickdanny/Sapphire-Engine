@@ -43,6 +43,7 @@ typedef enum NecroTokenType{
     necro_tokenMinusGreater,        // ->
 
     /* literals */
+    necro_tokenArg,
     necro_tokenIdentifier,
     necro_tokenInt,
     necro_tokenFloat,

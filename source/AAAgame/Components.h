@@ -181,10 +181,7 @@ void scriptsDestructor(void *voidPtr);
 
 /* Component 34: DeathScripts */
 typedef struct DeathScripts{
-    String scriptId1;
-    String scriptId2;
-    String scriptId3;
-    String scriptId4;
+    String scriptIds[SCRIPTS_NUM_VMS];
 } DeathScripts;
 
 void deathScriptsDestructor(void *voidPtr);

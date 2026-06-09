@@ -23,23 +23,14 @@ void scriptsDestructor(void *voidPtr){
 
 void deathScriptsDestructor(void *voidPtr){
     DeathScripts *deathScriptsPtr = voidPtr;
-
-    #define freeStringIfAllocated(SLOT) \
-        do{ \
-            if(deathScriptsPtr->scriptId##SLOT._ptr){ \
-                stringFree( \
-                    &(deathScriptsPtr \
-                        ->scriptId##SLOT) \
-                ); \
-            } \
-        } while(false)
     
-    freeStringIfAllocated(1);
-    freeStringIfAllocated(2);
-    freeStringIfAllocated(3);
-    freeStringIfAllocated(4);
-
-    #undef freeStringIfAllocated
+    for(int i = 0; i < SCRIPTS_NUM_VMS; ++i){
+        if(deathScriptsPtr->scriptIds[i]._ptr){
+            stringFree(
+                &(deathScriptsPtr->scriptIds[i])
+            );
+        }
+    }
 }
 
 /*

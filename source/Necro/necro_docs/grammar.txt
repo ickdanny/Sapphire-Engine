@@ -104,6 +104,7 @@ Unary    -> - Unary | ! Unary | Call
 Call     -> Call ( ArgList ) | Primary
 Primary  -> Lambda
           | LValue
+          | ExternalArg
           | number            # either int or float
           | string            # of form "Hello, world!"
           | self              # ref enclosing lambda
@@ -123,6 +124,14 @@ LValue -> identifier
         | identifier . t
         | identifier . x
         | identifier . y
+
+# External args are special r-value identifiers of the
+# form "$[1-9][0-9]*", e.g. "$3"
+ExternalArg -> external_arg
+             | external_arg . r
+             | external_arg . t
+             | external_arg . x
+             | external_arg . y
 
 # We use C syntax for arguments / params
 ArgList    -> e | _ArgList

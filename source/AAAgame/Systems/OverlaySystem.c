@@ -128,9 +128,9 @@ static void removeLife(
     animations._maxTick = 3;
     addAnimations(&componentList, &animations);
     Scripts scripts = {0};
-    scripts.vm1 = vmPoolRequest();
+    scripts.vms[0] = vmPoolRequest();
     necroVirtualMachineLoad(
-        scripts.vm1,
+        scripts.vms[0],
         resourcesGetScript(
             gamePtr->resourcesPtr,
             &removeUIScriptId
@@ -200,9 +200,9 @@ static void removeBomb(
     animations._maxTick = 3;
     addAnimations(&componentList, &animations);
     Scripts scripts = {0};
-    scripts.vm1 = vmPoolRequest();
+    scripts.vms[0] = vmPoolRequest();
     necroVirtualMachineLoad(
-        scripts.vm1,
+        scripts.vms[0],
         resourcesGetScript(
             gamePtr->resourcesPtr,
             &removeUIScriptId

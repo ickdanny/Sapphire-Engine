@@ -18,6 +18,9 @@ static char* loadSourceFile(const char *fileName){
     if(!filePtr){
         pgWarning("failed to open file: ");
         pgWarning(fileName);
+        if(fileName[0] == '/'){
+            pgWarning("(possibly due to leading /)");
+        }
         return NULL;
     }
 
@@ -273,9 +276,57 @@ NecroToken necroLexerMakeNumber(NecroLexer *lexerPtr){
         }
     }
 
-    return necroLexerMakeToken(
-        lexerPtr,
+    return necroLexerMakeToken(lexerPtr,
         dotPresent ? necro_tokenFloat : necro_tokenInt
+    );
+}
+
+/* Reads an arg identifier from the specified lexer */
+NecroToken necroLexerMakeArg(NecroLexer *lexerPtr){
+    /* already past the leading '$' */
+
+    char c = necroLexerPeek(lexerPtr);
+
+    /* read the first digit */
+    if(isDigit(c)){
+        if(c != '0'){
+            necroLexerAdvance(lexerPtr);
+        }
+        else{
+            return necroLexerMakeErrorToken(lexerPtr,
+                "arg identifiers cannot start with '0'"
+            );
+        }
+    }
+    else{
+        printf("%c\n", c);
+        return necroLexerMakeErrorToken(lexerPtr,
+            "arg identifiers must be in int form"
+        );
+    }
+
+    /* read remaining digits */
+    c = necroLexerPeek(lexerPtr);
+    while(isDigit(c)){
+        necroLexerAdvance(lexerPtr);
+        c = necroLexerPeek(lexerPtr);
+    }
+
+    /* error if the next char is alphabetic */
+    c = necroLexerPeek(lexerPtr);
+    if(isAlpha(c)){
+        /* grab rest of error lexeme */
+        while(isAlpha(c) || isDigit(c)){
+            necroLexerAdvance(lexerPtr);
+            c = necroLexerPeek(lexerPtr);
+        }
+        return necroLexerMakeErrorToken(lexerPtr,
+            "arg identifiers cannot have letters"
+        );
+    }
+
+    return necroLexerMakeToken(lexerPtr, 
+        necro_tokenArg
     );
 }
 
@@ -475,6 +526,7 @@ NecroToken necroLexerNext(NecroLexer *lexerPtr){
         return necroLexerMakeNumber(lexerPtr);
     }
     switch(c){
+        case '$': return necroLexerMakeArg(lexerPtr);
         case '(': return necroLexerMakeToken(
             lexerPtr,
             necro_tokenLeftParen

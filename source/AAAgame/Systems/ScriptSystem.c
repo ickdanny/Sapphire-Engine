@@ -12,29 +12,29 @@ static VecsComponentSet accept
     | vecsComponentSetFromId(ScriptsId);
 
 /* runs a specified VM */
-#define runVM(VMPTRNAME) \
-    do{ \
-        if(VMPTRNAME){ \
-            NecroInterpretResult result \
-                = necroVirtualMachineResume( \
-                    VMPTRNAME \
-                ); \
-            switch(result){ \
-                case necro_success: \
-                    vmPoolReclaim(VMPTRNAME); \
-                    VMPTRNAME = NULL; \
-                    break; \
-                case necro_yielded: \
-                    break; \
-                case necro_runtimeError: \
-                    pgError( \
-                        "halt due to unknown " \
-                        "runtime error" \
-                    ); \
-                    break; \
-            } \
-        } \
-    } while(false)
+static void runVM(NecroVirtualMachine **vmPtrPtr){
+    if(vmPtrPtr && *vmPtrPtr){
+        NecroVirtualMachine *vmPtr = *vmPtrPtr;
+        NecroInterpretResult result
+            = necroVirtualMachineResume(
+                vmPtr
+            );
+        switch(result){
+            case necro_success:
+                vmPoolReclaim(vmPtr);
+                *vmPtrPtr = NULL;
+                break;
+            case necro_yielded:
+                break;
+            case necro_runtimeError:
+                pgError(
+                    "halt due to unknown "
+                    "runtime error"
+                );
+                break;
+        }
+    }
+}
 
 /* runs scripts on entities */
 void scriptSystem(Game *gamePtr, Scene *scenePtr){
@@ -59,20 +59,22 @@ void scriptSystem(Game *gamePtr, Scene *scenePtr){
             &itr
         );
         
-        runVM(scriptsPtr->vm1);
-        runVM(scriptsPtr->vm2);
-        runVM(scriptsPtr->vm3);
-        runVM(scriptsPtr->vm4);
+        for(int i = 0; i < SCRIPTS_NUM_VMS; ++i){
+            runVM(&scriptsPtr->vms[i]);
+        }
 
         /*
          * if all scripts are gone, remove the
          * component
          */
-        if(!scriptsPtr->vm1 
-            && !scriptsPtr->vm2
-            && !scriptsPtr->vm3
-            && !scriptsPtr->vm4
-        ){
+        bool allScriptsGone = true;
+        for(int i = 0; i < SCRIPTS_NUM_VMS; ++i){
+            if(scriptsPtr->vms[i]){
+                allScriptsGone = false;
+                break;
+            }
+        }
+        if(allScriptsGone){
             vecsWorldEntityQueueRemoveComponent(
                 Scripts,
                 &(scenePtr->ecsWorld),

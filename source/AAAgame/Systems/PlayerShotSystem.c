@@ -92,10 +92,10 @@ static void addPlayerShot(
                     entity
                 );
             /* if slot 3 is empty */
-            if(!scriptsPtr->vm3){
-                scriptsPtr->vm3 = vmPoolRequest();
+            if(!scriptsPtr->vms[2]){
+                scriptsPtr->vms[2] = vmPoolRequest();
                 necroVirtualMachineLoad(
-                    scriptsPtr->vm3,
+                    scriptsPtr->vms[2],
                     resourcesGetScript(
                         gamePtr->resourcesPtr,
                         &shotId
@@ -106,9 +106,9 @@ static void addPlayerShot(
         /* otherwise, add a new script component */
         else{
             Scripts scripts = {0};
-            scripts.vm3 = vmPoolRequest();
+            scripts.vms[2] = vmPoolRequest();
             necroVirtualMachineLoad(
-                scripts.vm3,
+                scripts.vms[2],
                 resourcesGetScript(
                     gamePtr->resourcesPtr,
                     &shotId

@@ -49,37 +49,26 @@ static void handleDeathScript(
          * Make a new scripts object based on the
          * death script ids
          */
-        Scripts scripts = {0};
-        #define addScriptIfStringAllocated(SLOT) \
-            do{ \
-                if(deathScriptsPtr->scriptId##SLOT \
-                        ._ptr \
-                    && !stringIsEmpty( \
-                        &(deathScriptsPtr \
-                            ->scriptId##SLOT) \
-                    ) \
-                ){ \
-                    NecroObjectFunc *scriptPtr \
-                        = resourcesGetScript( \
-                            gamePtr->resourcesPtr, \
-                            &(deathScriptsPtr \
-                                ->scriptId##SLOT) \
-                        ); \
-                    scripts.vm##SLOT \
-                        = vmPoolRequest(); \
-                    necroVirtualMachineLoad( \
-                        scripts.vm##SLOT, \
-                        scriptPtr \
-                    ); \
-                } \
-            } while(false)
+        Scripts scripts = {0};                
 
-        addScriptIfStringAllocated(1);
-        addScriptIfStringAllocated(2);
-        addScriptIfStringAllocated(3);
-        addScriptIfStringAllocated(4);
-
-        #undef addScriptIfStringAllocated
+        for(int i = 0; i < SCRIPTS_NUM_VMS; ++i){
+            if(deathScriptsPtr->scriptIds[i]._ptr
+                && !stringIsEmpty(
+                    &(deathScriptsPtr->scriptIds[i])
+                )
+            ){
+                NecroObjectFunc *scriptPtr
+                    = resourcesGetScript(
+                        gamePtr->resourcesPtr,
+                        &(deathScriptsPtr->scriptIds[i])
+                    );
+                scripts.vms[i] = vmPoolRequest();
+                necroVirtualMachineLoad(
+                    scripts.vms[i],
+                    scriptPtr
+                );
+            }
+        }
 
         addScripts(&componentList, scripts);
 

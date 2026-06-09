@@ -877,6 +877,30 @@ static NecroInterpretResult necroVirtualMachineRun(
                 );
                 break;
             }
+            case necro_getArg: {
+                /* index here is 1-indexed */
+                uint8_t index = readByte(framePtr);
+                if(index <= 0){
+                    necroVirtualMachineRuntimeError(
+                        vmPtr,
+                        "get arg index must be > 0"
+                    );
+                    return necro_runtimeError;
+                }
+                /* this is 0-indexed */
+                uint32_t actualIndex = index - 1;
+                if(actualIndex >= NECRO_MAX_ARGS){
+                    necroVirtualMachineRuntimeError(
+                        vmPtr,
+                        "index past max for vm"
+                    );
+                }
+                necroVirtualMachineStackPush(
+                    vmPtr,
+                    vmPtr->args[actualIndex]
+                );
+                break;
+            }
             case necro_getLocal: {
                 /* get the stack slot of the local */
                 uint8_t slot = readByte(framePtr);
@@ -1867,6 +1891,42 @@ void necroVirtualMachineLoad(
 }
 
 /*
+ * Sets the arg with the given index for the given
+ * virtual machine; should be called only after load
+ */
+void necroVirtualMachineSetArg(
+    NecroVirtualMachine *vmPtr,
+    uint32_t index,
+    NecroValue *valuePtr
+){
+    assertNotNull(
+        vmPtr,
+        "null vm passed to set arg; "
+        SRC_LOCATION
+    );
+    assertNotNull(
+        valuePtr,
+        "null value passed to set arg; "
+        SRC_LOCATION
+    );
+    assertNotZero(
+        index,
+        "0 index passed to set arg; starts at 1; "
+        SRC_LOCATION
+    );
+
+    /* the arg array is 0-indexed */
+    uint32_t actualIndex = index - 1;
+    assertTrue(
+        actualIndex < NECRO_MAX_ARGS,
+        "args past max; "
+        SRC_LOCATION
+    );
+
+    vmPtr->args[actualIndex] = *valuePtr;
+}
+
+/*
  * Has the specified virtual machine continue running
  * its program; should only be used if the virtual
  * machine has previously yielded
@@ -1932,6 +1992,9 @@ void necroVirtualMachineReset(
         NecroValue,
         &(vmPtr->globalsMap)
     );
+
+    /* clear all args */
+    memset(vmPtr->args, 0, sizeof(vmPtr->args));
 }
 
 /*

@@ -108,11 +108,15 @@ int main(){
     /* load each subdirectory of scripts */
     resourcesLoadDirectory(
         &(engine.resources),
-        "res/script/header"
+        "res/script/misc"
     );
     resourcesLoadDirectory(
         &(engine.resources),
         "res/script/stage"
+    );
+    resourcesLoadDirectory(
+        &(engine.resources),
+        "res/script/bosses"
     );
 
     /* init MIDI */

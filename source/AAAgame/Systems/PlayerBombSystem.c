@@ -72,14 +72,14 @@ void playerBombSystem(Game *gamePtr, Scene *scenePtr){
         &(scenePtr->ecsWorld),
         playerHandle
     );
-    /* add bomb in slot 4 */
-    assertNull(scriptsPtr->vm4,
+    /* add bomb in slot 3 */
+    assertNull(scriptsPtr->vms[3],
         "error: try to add bomb script but slot4 "
         "is occupied; " SRC_LOCATION
     );
-    scriptsPtr->vm4 = vmPoolRequest();
+    scriptsPtr->vms[3] = vmPoolRequest();
     necroVirtualMachineLoad(
-        scriptsPtr->vm4,
+        scriptsPtr->vms[3],
         resourcesGetScript(
             gamePtr->resourcesPtr,
             &bombId

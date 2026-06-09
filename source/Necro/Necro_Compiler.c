@@ -48,6 +48,7 @@ typedef struct NecroParseRule{
 #define grouping necroCompilerGrouping
 #define call necroCompilerCall
 #define dot necroCompilerDot
+#define arg necroCompilerArg
 #define variable necroCompilerVariable
 #define string necroCompilerString
 #define and_ necroCompilerAnd
@@ -124,6 +125,8 @@ static const NecroParseRule parseRules[] = {
         = {NULL,     NULL,   necro_precNone},
     [necro_tokenMinusGreater]
         = {NULL,     NULL,   necro_precNone},
+    [necro_tokenArg]
+        = {arg,      NULL,   necro_precNone},
     [necro_tokenIdentifier]
         = {variable, NULL,   necro_precNone},
     [necro_tokenInt]
@@ -171,6 +174,7 @@ static const NecroParseRule parseRules[] = {
 #undef grouping
 #undef call
 #undef dot
+#undef arg
 #undef variable
 #undef string
 #undef and_
@@ -2145,6 +2149,129 @@ static void necroCompilerVariableSet(
 }
 
 /*
+ * Helper function to extract the arg index from the
+ * arg token
+ */
+static uint8_t necroCompilerGetArgIndex(
+    NecroCompiler *compilerPtr,
+    NecroToken token
+){
+    #define buffer_size 32
+
+    static char buffer[buffer_size] = {0};
+    strncpy(buffer, token.startPtr, token.length);
+    /* here, buffer holds a string e.g. "$7" */
+
+    int index = -1;
+    /* + 1 to start reading past '$' */
+    int numScanned = sscanf(buffer + 1, "%d", &index);
+
+    if(numScanned < 1){
+        necroCompilerErrorPrev(
+            compilerPtr,
+            "failed to scan arg"
+        );
+    }
+    if(index <= 0){
+        necroCompilerErrorPrev(
+            compilerPtr,
+            "arg index must be > 0"
+        );
+    }
+    if(index > UINT8_MAX){
+        necroCompilerErrorPrev(
+            compilerPtr,
+            "arg index too large"
+        );
+    }
+
+    return (uint8_t)index;
+
+    #undef buffer_size
+}
+
+/*
+ * Parses an arg for the specified compiler
+ */
+void necroCompilerArg(
+    NecroCompiler *compilerPtr,
+    bool canAssign
+){
+    NecroToken varName = compilerPtr->prevToken;
+    NecroInstruction memberGetOp = 0;
+
+    /* it is possible for arg to be a composite type */
+    bool isMember = false;
+
+    /* extract arg index from token */
+    uint8_t arg = necroCompilerGetArgIndex(
+        compilerPtr,
+        varName
+    );
+
+    /*
+     * if following token is dot, get on
+     * vector or point
+     */
+    if(necroCompilerMatch(
+        compilerPtr,
+        necro_tokenDot
+    )){
+        isMember = true;
+
+        /* expect current token to be an identifier */
+        necroCompilerConsume(
+            compilerPtr,
+            necro_tokenIdentifier,
+            "Expect 'r', 't', 'x', or 'y' following "
+            "a '.'"
+        )
+        if(compilerPtr->prevToken.length != 1){
+            necroCompilerErrorPrev(
+                compilerPtr,
+                "Expect only 'r', 't', 'x', or 'y'"
+            );
+        }
+        /*
+         * VN needs 2 instructions to get the value
+         * of a member; one to load the whole composite
+         * type, another to get specifically the member
+         */
+        switch(*(compilerPtr->prevToken.startPtr)){
+            case 'r':
+                memberGetOp = necro_getR;
+                break;
+            case 't':
+                memberGetOp = necro_getTheta;
+                break;
+            case 'x':
+                memberGetOp = necro_getX;
+                break;
+            case 'y':
+                memberGetOp = necro_getY;
+                break;
+            default:
+                necroCompilerErrorPrev(
+                    compilerPtr,
+                    "Expect only 'r', 't', 'x', or 'y'"
+                );
+                break;
+        }
+    }
+
+    /* generate get code */
+    necroCompilerVariableGet(
+        compilerPtr,
+        necro_getArg,
+        memberGetOp,
+        arg,    /* here, arg is 1-indexed arg num */
+        0,      /* no need for access jump count */
+        false,  /* not local */
+        isMember
+    );
+}
+
+/*
  * Emits instructions for the specified global or local
  * variable passed as a token for the given compiler
  */
@@ -2184,6 +2311,7 @@ static void necroCompilerNamedVariable(
         mutable = compilerPtr->currentFuncCompilerPtr
             ->locals[localIndex].mutable;
     }
+    /* otherwise, assume variable is global */
     else{
         arg = necroCompilerIdentifierLiteral(
             compilerPtr,

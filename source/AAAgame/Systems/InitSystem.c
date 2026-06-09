@@ -885,8 +885,8 @@ static VecsEntity addPlayer(
     );
     addDeathCommand(&componentList, death_player);
     addDeathScripts(&componentList, ((DeathScripts){
-        .scriptId1 = stringMakeC("remove_ghost"),
-        .scriptId3 = stringMakeC("spawn_player_death")
+        .scriptIds[0] = stringMakeC("remove_ghost"),
+        .scriptIds[2] = stringMakeC("spawn_player_death")
     }));
     /* add player animations */
     Animations animations = animationListMake();
@@ -1096,7 +1096,7 @@ static void addStageScript(
             );
             break;
     }
-    scripts.vm1 = vmPoolRequest();
+    scripts.vms[0] = vmPoolRequest();
 
     scriptPtr = resourcesGetScript(
         gamePtr->resourcesPtr,
@@ -1107,7 +1107,7 @@ static void addStageScript(
         "failed to find script for stage;"
         SRC_LOCATION
     );
-    necroVirtualMachineLoad(scripts.vm1, scriptPtr);
+    necroVirtualMachineLoad(scripts.vms[0], scriptPtr);
     addScripts(&componentList, scripts);
     addEntityAndFreeList(
         &componentList,
@@ -1570,9 +1570,9 @@ static void initCredits(
     declareList(componentList, 1);
     Scripts scripts = {0};
     String scriptId = stringMakeC("credits");
-    scripts.vm1 = vmPoolRequest();
+    scripts.vms[0] = vmPoolRequest();
     necroVirtualMachineLoad(
-        scripts.vm1,
+        scripts.vms[0],
         resourcesGetScript(
             gamePtr->resourcesPtr,
             &scriptId
