@@ -1,4 +1,15 @@
-while(true){
-    print "TODO: STAGE 4 SCRIPT";
-    yield;
-}
+# stage 4 script: todo name
+
+include "res/script/header/stage.nech";
+
+spawn(
+    "boss4",
+    getTopSpawnLeft(gameWidth() / 2.0),
+    <<0.0, 0.0>>,
+    0,
+    "boss4_master"
+);
+
+wait isWin();
+tickTimer(300);
+endStage();
