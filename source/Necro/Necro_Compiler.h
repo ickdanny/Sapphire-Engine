@@ -80,6 +80,7 @@ typedef struct NecroCompiler{
      * recursive or cyclical includes
      */
     HashMap includedFileNames;
+    const char *fileName;
     bool hadError;
     bool inPanicMode;
 } NecroCompiler;

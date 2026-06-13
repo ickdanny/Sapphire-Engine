@@ -27,6 +27,8 @@ typedef enum NecroValueType{
 /* A tagged union of values for Necro */
 typedef struct NecroValue{
     NecroValueType type;
+    /* used for passing lambdas as params */
+    int32_t accessIndex;
     union{
         bool boolean;
         int integer;
@@ -39,31 +41,36 @@ typedef struct NecroValue{
 
 /* Constructs a NecroValue for the specified bool */
 #define necroBoolValue(BOOL) \
-    ((NecroValue){necro_bool, {.boolean = (BOOL)}})
+    ((NecroValue){necro_bool, -1, {.boolean = (BOOL)}})
 
 /* Constructs a NecroValue for the specified int */
 #define necroIntValue(INT) \
-    ((NecroValue){necro_int, {.integer = (INT)}})
+    ((NecroValue){necro_int, -1, {.integer = (INT)}})
 
 /* Constructs a NecroValue for the specified float */
 #define necroFloatValue(FLOAT) \
-    ((NecroValue){necro_float, {.floating = (FLOAT)}})
+    ((NecroValue){necro_float, -1, {.floating = (FLOAT)}})
 
 /*
  * Constructs a NecroValue for the specified polar
  * vector
  */
 #define necroVectorValue(VECTOR) \
-    ((NecroValue){necro_vector, {.vector = (VECTOR)}})
+    ((NecroValue){necro_vector, -1, {.vector = (VECTOR)}})
 
 /* Constructs a NecroValue for the specified point */
 #define necroPointValue(POINT) \
-    ((NecroValue){necro_point, {.point = (POINT)}})
+    ((NecroValue){necro_point, -1, {.point = (POINT)}})
 
-/* Constructs a NecroValue for the specified object */
+/*
+ * Constructs a NecroValue for the specified object
+ * (-1 passed for accessIndex because it is set at
+ * runtime)
+ */
 #define necroObjectValue(OBJECT) \
     ((NecroValue){ \
         necro_object, \
+        -1, \
         {.object = (NecroObject*)(OBJECT)} \
     })
 

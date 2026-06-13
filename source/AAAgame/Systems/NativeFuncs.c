@@ -2060,6 +2060,10 @@ static void loadScriptIfStringIdValid(
                 _gamePtr->resourcesPtr,
                 scriptIdPtrs[slot]
             );
+        if(!scriptPtr){
+            pgWarning(scriptIdPtrs[slot]->_ptr);
+            pgError("Failed to find script for spawn");
+        }
         necroVirtualMachineLoad(
             scriptsPtr->vms[slot],
             scriptPtr

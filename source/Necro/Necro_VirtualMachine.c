@@ -7,7 +7,7 @@
 #define globalsMapInitCapacity 20
 
 /* define for verbose output */
-/* #define VM_VERBOSE */
+// #define VM_VERBOSE
 
 /*
  * Constructs and returns a new NecroVirtualMachine by
@@ -472,16 +472,21 @@ static void necroVirtualMachineDefineNativeFunc(
     ERRMSG \
 ) \
     do{ \
-        uint8_t slot = readByte((FRAMEPTR)); \
-        uint8_t jumps = readByte((FRAMEPTR)); \
-        NecroCallFrame *frameToAccess = (FRAMEPTR); \
-        for(int i = 0; i < jumps; ++i){ \
-            frameToAccess \
-                = frameToAccess->accessPtr; \
+        NecroVirtualMachine *_vmPtr = (VMPTR); \
+        NecroCallFrame *_framePtr = (FRAMEPTR); \
+        uint8_t _slot = readByte(_framePtr); \
+        uint8_t _jumps = readByte(_framePtr); \
+        NecroCallFrame *_frameToAccess = _framePtr; \
+        for(int i = 0; i < _jumps; ++i){ \
+            fflush(stdout); \
+            _frameToAccess \
+                = &(_vmPtr->callStack[ \
+                    _frameToAccess->accessIndex \
+                ]); \
         } \
         NecroValue value \
             = necroVirtualMachineStackPeek( \
-                (VMPTR), \
+                _vmPtr, \
                 0 \
             ); \
         float valueAsFloat = 0; \
@@ -494,17 +499,17 @@ static void necroVirtualMachineDefineNativeFunc(
         else{ \
             pgWarning((ERRMSG)); \
             necroVirtualMachineRuntimeError( \
-                (VMPTR), \
+                _vmPtr, \
                 "members can only be set to numbers" \
             ); \
             return necro_runtimeError; \
         } \
         NecroValue *localPtr \
-            = &(frameToAccess->slots[slot]); \
+            = &(_frameToAccess->slots[_slot]); \
         if(!NECROISFUNC(*localPtr)){ \
             pgWarning((ERRMSG)); \
             necroVirtualMachineRuntimeError( \
-                (VMPTR), \
+                _vmPtr, \
                 "invalid type for member assignment" \
             ); \
             return necro_runtimeError; \
@@ -540,29 +545,28 @@ static void necroVirtualMachineConcatenate(
 }
 
 /*
- * Sets up the access link for the given frame pointer;
- * if prevPtr is NULL, the access link will also
- * be set to NULL.
+ * Sets up the access index for the given frame pointer;
+ * if prevPtr is NULL, the access index will also
+ * be set to -1; used when a lambda is first called.
  */
-static void _setAccessPtr(
-    NecroCallFrame *prevPtr,
-    NecroCallFrame *framePtr
+static int32_t necroVirtualMachineCalculateAccessIndex(
+    const NecroVirtualMachine * const vmPtr,
+    const NecroCallFrame * const prevPtr,
+    const int currDepth
 ){
     assertNotNull(
-        framePtr,
-        "NULL framePtr passed into _setAccessPtr"
+        vmPtr,
+        "NULL vmPtr passed into setAccessIndex"
         SRC_LOCATION
     );
 
     /*
      * if prevPtr is NULL, then we are setting the
      * access ptr for the outermost depth, so
-     * we can safely just set the accessPtr to NULL
-     * also.
+     * we can safely return -1.
      */
     if(prevPtr == NULL){
-        framePtr->accessPtr = NULL;
-        return;
+        return -1;
     }
 
     /*
@@ -570,15 +574,24 @@ static void _setAccessPtr(
      * 7.3.6
      */
     int prevDepth = prevPtr->funcPtr->depth;
-    int depth = framePtr->funcPtr->depth;
-    framePtr->accessPtr = prevPtr;
-    if(depth <= prevDepth){
-        int numHops = prevDepth - depth + 1;
+    const NecroCallFrame *accessPtr = prevPtr;
+
+    if(currDepth <= prevDepth){
+        int numHops = prevDepth - currDepth + 1;
         for(int i = 0; i < numHops; ++i){
-            framePtr->accessPtr
-                = framePtr->accessPtr->accessPtr;
+            accessPtr = &(vmPtr->callStack[
+                accessPtr->accessIndex
+            ]);
         }
     }
+
+    /*
+     * pointer subtraction used to calculate the index
+     * of the access ptr based on the base address of
+     * the call stack
+     */
+    int32_t accessIndex = accessPtr - vmPtr->callStack;
+    return accessIndex;
 }
 
 /*
@@ -588,6 +601,7 @@ static void _setAccessPtr(
 static bool necroVirtualMachineCall(
     NecroVirtualMachine *vmPtr,
     NecroObjectFunc *funcPtr,
+    int32_t accessIndex,
     int numArgs,
     bool copyStrings
 ){
@@ -638,8 +652,59 @@ static bool necroVirtualMachineCall(
     framePtr->funcPtr = funcPtr;
     framePtr->instructionPtr
         = funcPtr->program.code._ptr;
+
+    /* overlap stack slots for arg passing */
     framePtr->slots = vmPtr->stackPtr - numArgs - 1;
-    _setAccessPtr(prevPtr, framePtr);
+
+    /* check args for lambdas; set access index */
+    for(int argIndex = 0; argIndex < numArgs; ++argIndex){
+        NecroValue *argPtr = framePtr->slots + argIndex + 1;
+        if(argPtr->type == necro_object){
+            NecroObject *objPtr = necroAsObject(*argPtr);
+            if(objPtr->type == necro_funcObject){
+                /*
+                 * if access index has not been set,
+                 * we need to set it
+                 */
+                if(argPtr->accessIndex < 0){
+                    NecroObjectFunc *funcPtr
+                        = necroObjectAsFunc(*argPtr);
+                    argPtr->accessIndex
+                        = necroVirtualMachineCalculateAccessIndex(
+                            vmPtr,
+                            /* get curr frame */
+                            &(vmPtr->callStack[
+                                vmPtr->frameCount - 2
+                            ]),
+                            funcPtr->depth
+                        );
+                }
+            }
+        }
+    }
+
+    /*
+     * if access index is already set in the value,
+     * just copy it into the frame; this occurs when
+     * lambdas are passed as parameters (Dragon 7.3.7)
+     */
+    if(accessIndex >= 0
+        && accessIndex < NECRO_CALLSTACK_SIZE
+    ){
+        framePtr->accessIndex = accessIndex;
+    }
+    /*
+     * otherwise, calculate the access index according
+     * to Dragon 7.3.6
+     */
+    else{
+        framePtr->accessIndex
+            = necroVirtualMachineCalculateAccessIndex(
+                vmPtr,
+                prevPtr,
+                framePtr->funcPtr->depth
+            );
+    }
 
     /*
      * copy strings from the function if it actually
@@ -672,13 +737,17 @@ static bool necroVirtualMachineCallValue(
 ){
     if(necroIsObject(callee)){
         switch(necroObjectGetType(callee)){
-            case necro_funcObject:
+            case necro_funcObject: {
+                NecroObjectFunc *funcPtr
+                    = necroObjectAsFunc(callee);
                 return necroVirtualMachineCall(
                     vmPtr,
-                    necroObjectAsFunc(callee),
+                    funcPtr,
+                    callee.accessIndex,
                     numArgs,
                     true
                 );
+            }
             case necro_nativeFuncObject: {
                 NecroNativeFunc nativeFunc
                     = necroObjectAsNativeFunc(callee)
@@ -687,6 +756,7 @@ static bool necroVirtualMachineCallValue(
                     numArgs,
                     vmPtr->stackPtr - numArgs
                 );
+                /* pop off args to native func */
                 vmPtr->stackPtr -= numArgs + 1;
                 necroVirtualMachineStackPush(
                     vmPtr,
@@ -721,6 +791,7 @@ static NecroInterpretResult necroVirtualMachineRun(
         /* debug printing */
         #ifdef VM_VERBOSE
         printf("Stack:");
+        fflush(stdout);
         for(NecroValue *slotPtr = vmPtr->stack;
             slotPtr < vmPtr->stackPtr;
             ++slotPtr
@@ -730,12 +801,22 @@ static NecroInterpretResult necroVirtualMachineRun(
             printf("]");
         }
         printf("\n");
+        printf("Call Stack:");
+        for(int i = 0; i < vmPtr->frameCount; ++i){
+            NecroCallFrame *framePtr
+                = vmPtr->callStack + i;
+            printf("[");
+            printf("(ai: %d)", framePtr->accessIndex);
+            printf("]");
+        }
+        printf("\n");
         necroProgramDisassembleInstruction(
             &(framePtr->funcPtr->program),
             (size_t)(framePtr->instructionPtr
                 - (uint8_t*)framePtr->funcPtr->program
                     .code._ptr)
         );
+        fflush(stdout);
         #endif
 
         /* read next instruction opcode */
@@ -911,7 +992,9 @@ static NecroInterpretResult necroVirtualMachineRun(
                     = framePtr;
                 for(int i = 0; i < jumps; ++i){
                     frameToAccess
-                        = frameToAccess->accessPtr;
+                        = &(vmPtr->callStack[
+                            frameToAccess->accessIndex
+                        ]);
                 }
                 /*
                  * push the value of the local to the
@@ -934,7 +1017,9 @@ static NecroInterpretResult necroVirtualMachineRun(
                     = framePtr;
                 for(int i = 0; i < jumps; ++i){
                     frameToAccess
-                        = frameToAccess->accessPtr;
+                        = &(vmPtr->callStack[
+                            frameToAccess->accessIndex
+                        ]);
                 }
                 /*
                  * write the value of the stack top
@@ -1755,11 +1840,14 @@ static NecroInterpretResult necroVirtualMachineRun(
                         vmPtr
                     );
                 --(vmPtr->frameCount);
+
+                /* top level return */
                 if(vmPtr->frameCount == 0){
                     necroVirtualMachineStackPop(vmPtr);
                     return necro_success;
                 }
 
+                /* pop off args used to call the func */
                 vmPtr->stackPtr = framePtr->slots;
                 /*
                  * push the return value back onto the
@@ -1885,6 +1973,7 @@ void necroVirtualMachineLoad(
     necroVirtualMachineCall(
         vmPtr,
         funcObjectProgramPtr,
+        -1,   /* no stored access index */
         0,    /* 0 args */
         false /* do not copy strings */
     );

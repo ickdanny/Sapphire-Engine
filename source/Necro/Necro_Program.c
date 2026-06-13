@@ -112,7 +112,7 @@ static size_t printSimpleInstruction(
  * Prints out the disassembly of a 2-byte instruction
  * with the second byte printed out as an integer
  */
-static size_t printByteInstruction(
+static size_t print2ByteInstruction(
     const char *name,
     NecroProgram *programPtr,
     int offset
@@ -125,6 +125,31 @@ static size_t printByteInstruction(
 
     printf("%-8s %4d\n", name, slot);
     return offset + 2;
+}
+
+/*
+ * Prints out the disassembly of a 3-byte instruction
+ * with following bytes printed out as integers
+ */
+static size_t print3ByteInstruction(
+    const char *name,
+    NecroProgram *programPtr,
+    int offset
+){
+    /* get slot1 from the next byte in the code */
+    uint8_t slot1 = arrayListGet(uint8_t,
+        &(programPtr->code),
+        offset + 1
+    );
+
+    /* get slot2 from the following byte in the code */
+    uint8_t slot2 = arrayListGet(uint8_t,
+        &(programPtr->code),
+        offset + 2
+    );
+
+    printf("%-8s %4d %4d\n", name, slot1, slot2);
+    return offset + 3;
 }
 
 /* Prints out the disassembly of a jump instruction */
@@ -242,13 +267,13 @@ size_t necroProgramDisassembleInstruction(
                 offset
             );
         case necro_getLocal:
-            return printByteInstruction(
+            return print3ByteInstruction(
                 "GETLOCAL",
                 programPtr,
                 offset
             );
         case necro_setLocal:
-            return printByteInstruction(
+            return print3ByteInstruction(
                 "SETLOCAL",
                 programPtr,
                 offset
@@ -364,23 +389,27 @@ size_t necroProgramDisassembleInstruction(
                 offset
             );
         case necro_setRLocal:
-            return printSimpleInstruction(
+            return print3ByteInstruction(
                 "SETRL",
+                programPtr,
                 offset
             );
         case necro_setThetaLocal:
-            return printSimpleInstruction(
+            return print3ByteInstruction(
                 "SETTL",
+                programPtr,
                 offset
             );
         case necro_setXLocal:
-            return printSimpleInstruction(
+            return print3ByteInstruction(
                 "SETXL",
+                programPtr,
                 offset
             );
         case necro_setYLocal:
-            return printSimpleInstruction(
+            return print3ByteInstruction(
                 "SETYL",
+                programPtr,
                 offset
             );
         case necro_print:
@@ -410,7 +439,7 @@ size_t necroProgramDisassembleInstruction(
                 offset
             );
         case necro_call:
-            return printByteInstruction(
+            return print2ByteInstruction(
                 "CALL",
                 programPtr,
                 offset

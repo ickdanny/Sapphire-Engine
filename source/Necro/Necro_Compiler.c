@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#define maxParams 255
+#define maxParams 15
 #define lexerStackInitCapacity 8
 #define globalsTableInitCapacity 30
 #define includedFileNamesInitCapacity 10
@@ -307,12 +307,13 @@ static void necroCompilerError(
     }
     compilerPtr->inPanicMode = true;
 
-    #define bufferSize 50
+    #define bufferSize 64
     static char buffer[bufferSize] = {0};
     snprintf(
         buffer,
         bufferSize - 1,
-        "%lu: Error",
+        "Error (%s %lu)",
+        compilerPtr->fileName,
         (unsigned long)tokenPtr->lineNumber
     );
     pgWarning(buffer);
@@ -1927,6 +1928,7 @@ static uint8_t necroCompilerArgumentList(
     NecroCompiler *compilerPtr
 ){
     uint8_t numArgs = 0;
+    
     /*
      * compile each expression separated by commas
      * until the closing paren
@@ -2936,6 +2938,7 @@ void necroCompilerReset(NecroCompiler *compilerPtr){
         constructureStringHash,
         constructureStringEquals
     );
+    compilerPtr->fileName = NULL;
     /*
      * no need to take care of the func compiler stack
      * since it lives on the C call stack as local
@@ -2970,6 +2973,7 @@ NecroObjectFunc *necroCompilerCompileScript(
 ){
     /* reset the compiler; nulls the funcPtr also */
     necroCompilerReset(compilerPtr);
+    compilerPtr->fileName = fileName;
     /* freed when the compiler is freed below */
     compilerPtr->lexer = necroLexerMake(fileName);
 
@@ -3008,7 +3012,6 @@ NecroObjectFunc *necroCompilerCompileScript(
     if(hadError){
         necroObjectFree((NecroObject*)toRet);
         toRet = NULL;
-        pgError(fileName);
         pgError(
             "halting due to Necro compiler error(s)"
         );

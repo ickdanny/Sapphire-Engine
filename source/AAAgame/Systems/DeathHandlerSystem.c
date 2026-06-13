@@ -62,6 +62,10 @@ static void handleDeathScript(
                         gamePtr->resourcesPtr,
                         &(deathScriptsPtr->scriptIds[i])
                     );
+                if(!scriptPtr){
+                    pgWarning(deathScriptsPtr->scriptIds[i]._ptr);
+                    pgError("Failed to find script for death");
+                }
                 scripts.vms[i] = vmPoolRequest();
                 necroVirtualMachineLoad(
                     scripts.vms[i],

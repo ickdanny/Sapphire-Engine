@@ -325,6 +325,7 @@ void necroObjectPrint(NecroValue value){
             break;
         case necro_funcObject:
             printFunction(necroObjectAsFunc(value));
+            printf(" (ai: %d)", value.accessIndex);
             break;
         case necro_nativeFuncObject:
             printf("<native fn>");

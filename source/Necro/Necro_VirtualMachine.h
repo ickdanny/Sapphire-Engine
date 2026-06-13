@@ -30,10 +30,10 @@ typedef struct NecroCallFrame{
     uint8_t *instructionPtr;
     NecroValue *slots;
     /*
-     * points to the frame of the last call of the
+     * index of the frame of the last call of the
      * enclosing procedure
      */
-    struct NecroCallFrame *accessPtr;
+    int32_t accessIndex;
 } NecroCallFrame;
 
 /*
@@ -46,7 +46,7 @@ typedef struct NecroVirtualMachine{
     int frameCount;
     /* stack used by VM to store all values */
     NecroValue stack[NECRO_STACK_SIZE];
-    /* array for arg storage */
+    /* array for script arg storage */
     NecroValue args[NECRO_MAX_ARGS];
     /* pointer to one past the top of the stack */
     NecroValue *stackPtr;
