@@ -1,9 +1,17 @@
 # bullet script for double turning laser spawners
 
-print $1;
+include "res/script/header/timing.nech";
+include "res/script/header/movement.nech";
+include "res/script/header/enemy.nech";
+include "res/script/header/danmaku.nech";
+
 # control parameters
-~
-let turnAngle := diff(30, 60, 90);
+
+var turnAngle := diff(30, 60, 90);
+if($1 == 1){
+    turnAngle := -turnAngle;
+}
+
 let shiftTicks := 50;
 let waitSecs := 0.4;
 let midSpeed := 50.0;
@@ -16,153 +24,108 @@ let gravDragHigh := 0.0015;
 let gravDrag := random(gravDragLow, gravDragHigh);
 let gravDirectionRange := 10.0;
 
-let segmentsBeforeSpawner
-    := _bullet_boss4_9_segmentsBeforeSpawner();
+# laser spawning
 
-# laser spawning funcs
+let segmentsBeforeSpawner := diff(7, 6, 6);
+
 var segmentCount := 1;
-func spawnLaserSegmentB(pos, angle, depthOffset){
-    let scriptID = "laser_boss4_9_a";
-    if(segmentCount == segmentsBeforeSpawner){
-        scriptID = "laser_boss4_9_b";
-        segmentCount = 0;
-    }
-    spawn(
-        "laser_red",
-        pos,
-        <<0, angle>>,
-        depthOffset,
-        scriptID
-    );
-    segmentCount += 1;
-}
-func spawnLaserSegmentC(pos, angle, depthOffset){
-    let scriptID = "laser_boss4_9_a";
-    if(segmentCount == segmentsBeforeSpawner){
-        scriptID = "laser_boss4_9_c";
-        segmentCount = 0;
-    }
-    spawn(
-        "laser_orange",
-        pos,
-        <<0, angle>>,
-        depthOffset,
-        scriptID
-    );
-    segmentCount = segmentCount + 1;
-}
-func spawnLaserSegmentD(pos, angle, depthOffset){
-    let scriptID = "laser_boss4_9_a";
-    if(segmentCount == segmentsBeforeSpawner){
-        scriptID = "laser_boss4_9_d";
-        segmentCount = 0;
-    }
-    spawn(
-        "laser_lyellow",
-        pos,
-        <<0, angle>>,
-        depthOffset,
-        scriptID
-    );
-    segmentCount = segmentCount + 1;
-}
-func spawnLaserSegmentE(pos, angle, depthOffset){
-    let scriptID = "laser_boss4_9_a";
-    if(segmentCount == segmentsBeforeSpawner){
-        scriptID = "laser_boss4_9_e";
-        segmentCount = 0;
-    }
-    spawn(
-        "laser_lgreen",
-        pos,
-        <<0, angle>>,
-        depthOffset,
-        scriptID
-    );
-    segmentCount = segmentCount + 1;
-}
-func spawnLaserSegmentF(pos, angle, depthOffset){
-    let scriptID = "laser_boss4_9_a";
-    if(segmentCount == segmentsBeforeSpawner){
-        scriptID = "laser_boss4_9_f";
-        segmentCount = 0;
-    }
-    spawn(
-        "laser_lblue",
-        pos,
-        <<0, angle>>,
-        depthOffset,
-        scriptID
-    );
-    segmentCount = segmentCount + 1;
-}
-func spawnLaserSegmentG(pos, angle, depthOffset){
-    let scriptID = "laser_boss4_9_a";
-    if(segmentCount == segmentsBeforeSpawner){
-        scriptID = "laser_boss4_9_g";
-        segmentCount = 0;
-    }
-    spawn(
-        "laser_lpurple",
-        pos,
-        <<0, angle>>,
-        depthOffset,
-        scriptID
-    );
-    segmentCount = segmentCount + 1;
-}
+let spawnRandomLaser := \() -> {
+    let r := random(0.0, 1.0);
+    let pos := getPosition();
+    let angle := getAngle();
+    let scriptId := "laser_boss4_9";
 
-func spawnRandomLaser(){
-    let r = random(0.0, 1.0);
-    let pos = getPosition();
-    let angle = getAngle();
-    if(r < 1.0/6.0){
-        spawnLaser(pos, angle, spawnLaserSegmentB);
+    var prototypeId;
+    var arg;
+
+    if(r < 1.0/6.0) {
+        prototypeId := "laser_red";
+        arg := 1;
     }
-    else if(r < 2.0/6.0){
-        spawnLaser(pos, angle, spawnLaserSegmentC);
+    else if(r < 2.0/6.0) {
+        prototypeId := "laser_orange";
+        arg := 2;
     }
-    else if(r < 3.0/6.0){
-        spawnLaser(pos, angle, spawnLaserSegmentD);
+    else if(r < 3.0/6.0) {
+        prototypeId := "laser_lyellow";
+        arg := 3;
     }
-    else if(r < 4.0/6.0){
-        spawnLaser(pos, angle, spawnLaserSegmentE);
+    else if(r < 4.0/6.0) {
+        prototypeId := "laser_lgreen";
+        arg := 4;
     }
-    else if(r < 5.0/6.0){
-        spawnLaser(pos, angle, spawnLaserSegmentF);
+    else if(r < 5.0/6.0) {
+        prototypeId := "laser_lblue";
+        arg := 5;
     }
     else{
-        spawnLaser(pos, angle, spawnLaserSegmentG);
+        prototypeId := "laser_lpurple";
+        arg := 6;
     }
+
+    spawnLaser(
+        pos,
+        angle,
+        \(pos, angle, depthOffset) -> {
+            var argToPass := 0;
+            if(segmentCount == segmentsBeforeSpawner){
+                segmentCount := 0;
+                argToPass := arg;
+            }
+            spawn(
+                prototypeId,
+                pos,
+                <<0, angle>>,
+                depthOffset,
+                scriptId,
+                argToPass
+            );
+            segmentCount += 1;
+        }
+    );
+};
+
+# bullet behavior
+
+if($1 == 0 || $1 == 1){
+    shiftVelocityTurnPeriod(
+        0,
+        getAngle() + turnAngle,
+        shiftTicks
+    );
+
+    spawnRandomLaser();
+    secTimer(waitSecs);
+
+    shiftVelocityTurnPeriod(
+        midSpeed,
+        getAngle() - turnAngle,
+        shiftTicks
+    );
+    shiftVelocityTurnPeriod(
+        0,
+        getAngle() - turnAngle,
+        shiftTicks
+    );
+
+    spawnRandomLaser();
+    secTimer(waitSecs);
+
+    shiftSpeedPeriod(endSpeedBeforeGravity, endSpeedTicks);
+
+    let gravDirection := 90.0
+        + random(-gravDirectionRange, gravDirectionRange);
+    gravity(gravDirection, gravAccel, gravDrag);
 }
+else if($1 == 2){
+    shiftSpeedPeriod(0, shiftTicks);
 
-shiftVelocityTurnPeriod(
-    0,
-    getAngle() + turnAngle,
-    shiftTicks
-);
+    spawnRandomLaser();
+    secTimer(waitSecs);
 
-spawnRandomLaser();
-secTimer(waitSecs);
+    shiftSpeedPeriod(endSpeedBeforeGravity, endSpeedTicks);
 
-shiftVelocityTurnPeriod(
-    midSpeed,
-    getAngle() - turnAngle,
-    shiftTicks
-);
-shiftVelocityTurnPeriod(
-    0,
-    getAngle() - turnAngle,
-    shiftTicks
-);
-
-spawnRandomLaser();
-secTimer(waitSecs);
-
-shiftSpeedPeriod(endSpeedBeforeGravity, endSpeedTicks);
-
-let gravDirection = 90.0
-    + random(-gravDirectionRange, gravDirectionRange);
-gravity(gravDirection, gravAccel, gravDrag);
-
-~
+    let gravDirection := 90.0
+        + random(-gravDirectionRange, gravDirectionRange);
+    gravity(gravDirection, gravAccel, gravDrag);
+}

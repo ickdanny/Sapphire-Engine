@@ -1,3 +1,6 @@
+include "res/script/header/timing.nech";
+include "res/script/header/math.nech";
+
 # =================== #
 # PATTERN COMPOSITION #
 # =================== #
@@ -26,7 +29,7 @@ let ring := \(velocity, symmetry, nextFunc) -> {
     let increment := 360.0 / symmetry;
     for(var i := 0; i < symmetry; i += 1){
         nextFunc(velocity, i);
-        velocity.t := velocity.t + increment;
+        velocity.t += increment;
     }
 };
 
@@ -74,7 +77,7 @@ let polygon := \(
     # theta at the first non-vertex angle
     var theta := halfAngle - angleDecrement;
     for(var i := 1; i < bulletsPerSide; i += 1){
-        angle := angle - angleDecrement;
+        angle -= angleDecrement;
         speed := sec(toRadians(theta)) * midSpeed;
         ring(<<speed, angle>>, sides, nextFunc);
         theta := theta - angleDecrement;

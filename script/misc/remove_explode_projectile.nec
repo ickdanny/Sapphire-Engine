@@ -1,0 +1,4 @@
+include "res/script/header/timing.nech";
+
+tickTimer(9);
+removeEntity();

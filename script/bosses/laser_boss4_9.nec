@@ -1,0 +1,38 @@
+include "res/script/header/danmaku.nech";
+
+let lifetimeSecs := 0.3;
+
+laser(lifetimeSecs);
+
+if($1 != 0){
+    # some lasers will spawn
+    var prototype;
+
+    if($1 == 1){
+        prototype := "star_red";
+    }
+    else if($1 == 2){
+        prototype := "star_orange";
+    }
+    else if($1 == 3){
+        prototype := "star_lyellow";
+    }
+    else if($1 == 4){
+        prototype := "star_lgreen";
+    }
+    else if($1 == 5){
+        prototype := "star_lblue";
+    }
+    else if($1 == 6){
+        prototype := "star_lpurple";
+    }
+
+    spawn(
+        prototype,
+        getPosition(),
+        <<0, 0>>,
+        random(1, 999),
+        "bullet_boss4_9_b",
+        $1 - 1
+    );
+}
