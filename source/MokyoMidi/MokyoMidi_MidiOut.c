@@ -200,6 +200,12 @@ void mmMidiOutShortMsg(
     MMMidiOut *midiOutPtr, 
     uint32_t output
 ){
+    // todo really strange thing i discovered while
+    // working on Misti; this breaks if midiOutOpen is
+    // given an actual device and not MIDI_MAPPER
+    if(output == 0xf7){
+        return;
+    }
     MMRESULT result = midiOutShortMsg(
         midiOutPtr->midiOutHandle,
         output

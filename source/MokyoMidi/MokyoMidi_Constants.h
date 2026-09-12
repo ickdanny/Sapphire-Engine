@@ -19,6 +19,7 @@
 	
 /* status codes */
 #define mm_statusMask ((uint8_t)0xF0)
+#define mm_channelMask((uint8_t)0x0F)
 /* note: midi event last 4 bits are channel number */
 #define mm_noteOff ((uint8_t)0x80)
 #define mm_noteOn ((uint8_t)0x90)
